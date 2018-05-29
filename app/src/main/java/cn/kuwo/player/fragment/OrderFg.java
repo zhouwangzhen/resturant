@@ -1,0 +1,822 @@
+package cn.kuwo.player.fragment;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.avos.avoscloud.AVCloud;
+import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVFile;
+import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.FindCallback;
+import com.avos.avoscloud.FunctionCallback;
+import com.avos.avoscloud.GetCallback;
+import com.avos.avoscloud.SaveCallback;
+import com.bumptech.glide.Glide;
+import com.orhanobut.logger.Logger;
+import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import com.yzq.zxinglibrary.android.CaptureActivity;
+import com.yzq.zxinglibrary.common.Constant;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+import cn.kuwo.player.MyApplication;
+import cn.kuwo.player.R;
+import cn.kuwo.player.adapter.PayKeyAdapter;
+import cn.kuwo.player.adapter.ScanGoodAdapter;
+import cn.kuwo.player.base.BaseFragment;
+import cn.kuwo.player.bean.ProductBean;
+import cn.kuwo.player.bean.UserBean;
+import cn.kuwo.player.custom.RefundFragment;
+import cn.kuwo.player.custom.ScanUserFragment;
+import cn.kuwo.player.custom.ShowComboMenuFragment;
+import cn.kuwo.player.custom.ShowPreOrderFragment;
+import cn.kuwo.player.event.ComboEvent;
+import cn.kuwo.player.event.CouponEvent;
+import cn.kuwo.player.event.SuccessEvent;
+import cn.kuwo.player.interfaces.MyItemClickListener;
+import cn.kuwo.player.print.Bill;
+import cn.kuwo.player.util.CONST;
+import cn.kuwo.player.util.CameraProvider;
+import cn.kuwo.player.util.MyUtils;
+import cn.kuwo.player.util.ObjectUtil;
+import cn.kuwo.player.util.ProductUtil;
+import cn.kuwo.player.util.ToastUtil;
+
+import static android.app.Activity.RESULT_OK;
+
+public class OrderFg extends BaseFragment {
+    @BindView(R.id.user_avatar)
+    QMUIRadiusImageView userAvatar;
+    @BindView(R.id.svip_avatar)
+    ImageView svipAvatar;
+    @BindView(R.id.user_type)
+    TextView userType;
+    @BindView(R.id.user_tel)
+    TextView userTel;
+    @BindView(R.id.user_whitebar)
+    TextView userWhitebar;
+    @BindView(R.id.user_stored)
+    TextView userStored;
+    @BindView(R.id.user_meatweight)
+    TextView userMeatweight;
+    @BindView(R.id.linearLayout)
+    LinearLayout linearLayout;
+    @BindView(R.id.ll_show_member)
+    LinearLayout llShowMember;
+    @BindView(R.id.btn_to_pay)
+    Button btnToPay;
+    Unbinder unbinder3;
+    @BindView(R.id.btn_place_order)
+    Button btnPlaceOrder;
+    private int REQUEST_CODE_SCAN = 111;
+    private static String ARG_PARAM = "param_table_id";
+    private static String ARG_PARAM1 = "param_save_data";
+    @BindView(R.id.order_table)
+    TextView orderTable;
+    @BindView(R.id.order_people)
+    TextView orderPeople;
+    @BindView(R.id.gridview)
+    GridView gridview;
+    @BindView(R.id.editMemberAmount)
+    EditText editMemberAmount;
+    @BindView(R.id.recycle_scan_good)
+    RecyclerView recycleScanGood;
+    @BindView(R.id.total_money)
+    TextView totalMoney;
+    @BindView(R.id.min_money)
+    TextView minMoney;
+    @BindView(R.id.total_number)
+    TextView totalNumber;
+    @BindView(R.id.order_change_table)
+    Button orderChangeTable;
+    @BindView(R.id.spinner_people)
+    Spinner spinnerPeople;
+    Unbinder unbinder;
+    @BindView(R.id.sign_user)
+    Button signUser;
+    private Activity mActivity;
+    private String tableId = "";
+    private int initializeNumner = 0;
+    private String userId = "";
+    private Boolean saveData = true;
+
+    private AVObject tableAVObject;
+    private List<Object> orders = new ArrayList<>();
+    private List<Object> preOrders = new ArrayList<>();
+    private List<Object> initializePreOrders = new ArrayList<>();
+
+    LinearLayoutManager linearLayoutManager;
+    ScanGoodAdapter scanGoodAdapter;
+
+    public static OrderFg newInstance(String str, Boolean saveState) {
+        OrderFg orderFg = new OrderFg();
+        Bundle bundle = new Bundle();
+        bundle.putString(ARG_PARAM, str);
+        bundle.putBoolean(ARG_PARAM1, saveState);
+        orderFg.setArguments(bundle);
+        return orderFg;
+    }
+
+    @Override
+    protected int getLayoutId() {
+        return R.layout.fg_order;
+    }
+
+    private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
+
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mActivity = (Activity) context;
+        tableId = getArguments().getString(ARG_PARAM);  //获取参数
+        try {
+            saveData = getArguments().getBoolean(ARG_PARAM1);
+        } catch (Exception e) {
+            e.printStackTrace();
+            saveData = true;
+        }
+
+    }
+
+    @Override
+    public void initData() {
+        setUpPayKeyAdapter();
+        setParams();
+
+    }
+
+    private void setParams() {
+        showDialog();
+        editMemberAmount.setFocusableInTouchMode(false);
+        final AVQuery<AVObject> table = new AVQuery<>("Table");
+        table.include("user");
+        table.getInBackground(tableId, new GetCallback<AVObject>() {
+            @Override
+            public void done(final AVObject avObject, AVException e) {
+                if (e == null) {
+                    tableAVObject = avObject;
+                    orderTable.setText(tableAVObject.getString("tableNumber") + "号桌");
+                    orderPeople.setText(tableAVObject.getInt("accommodate") + "人座");
+                    fetchCommodity(tableAVObject);
+                    if (tableAVObject.getInt("customer") > 0) {
+                        spinnerPeople.setSelection(tableAVObject.getInt("customer") - 1);
+                    }
+                    if (tableAVObject.getAVObject("user") != null) {
+                        AVObject userObject = avObject.getAVObject("user");
+                        llShowMember.setVisibility(View.VISIBLE);
+                        Double whiteBarBalance = MyUtils.formatDouble(MyUtils.formatDouble(userObject.getDouble("gold")) - MyUtils.formatDouble(userObject.getDouble("arrears")));
+                        Double storedBalance = MyUtils.formatDouble(userObject.getDouble("stored"));
+                        AVFile avatar = (AVFile) userObject.get("avatar");
+                        Glide.with(MyApplication.getContextObject()).load(avatar.getUrl()).into(userAvatar);
+                        userTel.setText("用户手机号:" + userObject.getString("username"));
+                        userStored.setText("消费金:" + storedBalance);
+                        userWhitebar.setText("白条:" + whiteBarBalance);
+                        Map<String, Object> parameter = new HashMap<String, Object>();
+                        parameter.put("userID", avObject.getAVObject("user").getObjectId());
+                        AVCloud.callFunctionInBackground("svip", parameter, new FunctionCallback<Map<String, Object>>() {
+                            @Override
+                            public void done(Map<String, Object> objectMap, AVException e) {
+                                if (e == null) {
+                                    hideDialog();
+                                    userMeatweight.setText("牛肉额度:" + objectMap.get("meatWeight").toString() + "kg");
+                                    userId = avObject.getObjectId();
+                                    if ((Boolean) objectMap.get("svip")) {
+                                        svipAvatar.setVisibility(View.VISIBLE);
+                                        userType.setText("超牛会员");
+                                    } else {
+                                        svipAvatar.setVisibility(View.GONE);
+                                        userType.setText("普通会员");
+                                    }
+                                    signUser.setText("退出登录");
+                                } else {
+                                    userMeatweight.setText("牛肉额度:" + "0.0" + "kg");
+                                    hideDialog();
+                                    ToastUtil.showShort(getContext(), "获取超牛信息错误");
+                                }
+                            }
+                        });
+                    } else {
+                        hideDialog();
+                        llShowMember.setVisibility(View.INVISIBLE);
+                        signUser.setText("用户登录");
+
+                    }
+                } else {
+                    hideDialog();
+                    ToastUtil.showShort(getContext(), "获取订单信息错误");
+                }
+            }
+        });
+        spinnerPeople.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (tableAVObject != null) {
+                    tableAVObject.put("customer", Integer.parseInt(spinnerPeople.getSelectedItem().toString()));
+                    if (tableAVObject.getDate("startedAt")!=null){
+                        tableAVObject.put("startedAt", new Date());
+                    }
+                    tableAVObject.saveInBackground(new SaveCallback() {
+                        @Override
+                        public void done(AVException e) {
+                            if (e != null) {
+                                ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
+                            }
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+    }
+
+    private void fetchCommodity(AVObject tableAVObject) {
+        linearLayoutManager = new LinearLayoutManager(getActivity());
+        recycleScanGood.setLayoutManager(linearLayoutManager);
+        orders = tableAVObject.getList("order");
+        preOrders = tableAVObject.getList("preOrder");
+        initializePreOrders = tableAVObject.getList("preOrder");
+        if (orders.size() > 0 || preOrders.size() > 0) {
+            initializeNumner = preOrders.size();//标记是否有添加新产品
+            refreshList();
+        }
+        setListener();
+    }
+
+    private void setListener() {
+        editMemberAmount.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String serial = editMemberAmount.getText().toString().trim();
+                if (serial.length() == 3) {
+                    editMemberAmount.setText("");
+                    List<ProductBean> productBeans = ProductUtil.searchBySerial(serial);
+                    HashMap<String, Object> hashMap = new HashMap<>();
+                    if (productBeans.size() > 0) {
+                        ProductBean productBean = productBeans.get(0);
+                        ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(MyApplication.getContextObject(), productBean, false);
+                        showComboMenuFragment.show(getActivity().getFragmentManager(), "showcomboMenu");
+                    } else {
+                        ToastUtil.showShort(MyApplication.getContextObject(), "没有查到此编号商品");
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+    }
+
+
+    private void refreshList() {
+        scanGoodAdapter = new ScanGoodAdapter(getContext(), tableAVObject);
+        recycleScanGood.setAdapter(scanGoodAdapter);
+        scanGoodAdapter.setOnItemClickListener(new MyItemClickListener() {
+            @Override
+            public void onItemClick(View view, final int postion) {
+                if (postion < preOrders.size()) {
+                    int index = preOrders.size() - postion - 1;
+                    HashMap<String, Object> format = ObjectUtil.format(preOrders.get(index));
+                    ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+                    ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(MyApplication.getContextObject(), productBean, true, preOrders.get(index), index);
+                    showComboMenuFragment.show(getActivity().getFragmentManager(), "showcomboMenu");
+
+                } else if (postion < preOrders.size() + orders.size()) {
+                    if (view.getId() == R.id.ll_item) {
+                        RefundFragment refundFragment = new RefundFragment(tableAVObject, orders, orders.size() + preOrders.size() - postion - 1);
+                        refundFragment.show(getActivity().getSupportFragmentManager(), "showpreorder");
+                    }
+                }
+                if (postion < preOrders.size() + orders.size()) {
+                    if (view.getId() == R.id.tv_comment) {
+                        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
+                        String comment = "";
+                        if (postion <= preOrders.size() - 1) {
+                            final HashMap<String, Object> format = ObjectUtil.format(preOrders.get(preOrders.size() - postion - 1));
+                            comment = ObjectUtil.getString(format, "comment");
+                            builder.setTitle("备注")
+                                    .setDefaultText(comment)
+                                    .setPlaceholder("在此输入此菜的备注")
+                                    .setInputType(InputType.TYPE_CLASS_TEXT)
+                                    .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                        @Override
+                                        public void onClick(QMUIDialog dialog, int index) {
+                                            dialog.dismiss();
+                                        }
+                                    })
+                                    .addAction("确定", new QMUIDialogAction.ActionListener() {
+                                        @Override
+                                        public void onClick(QMUIDialog dialog, int index) {
+                                            CharSequence text = builder.getEditText().getText();
+                                            if (text != null && text.length() > 0) {
+                                                format.put("comment", text);
+                                                dialog.dismiss();
+                                                scanGoodAdapter.notifyDataSetChanged();
+                                            } else {
+                                                Toast.makeText(getActivity(), "请填入备注", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    })
+                                    .create(mCurrentDialogStyle).show();
+                        }
+                    }
+                }
+
+
+            }
+        });
+        totalMoney.setText("￥" + ProductUtil.calculateTotalMoney(orders, preOrders) + "元");
+        minMoney.setText("￥" + ProductUtil.calculateMinMoney(orders, preOrders) + "元");
+        totalNumber.setText(preOrders.size() + orders.size() + "");
+    }
+
+    private void setUpPayKeyAdapter() {
+        gridview.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                gridview.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                int height = gridview.getMeasuredHeight();
+                final PayKeyAdapter adapter = new PayKeyAdapter(MyApplication.getContextObject(), height);
+                gridview.setAdapter(adapter);
+                gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        String keyType = view.findViewById(R.id.GridTextView).getTag().toString();
+                        String textValue = ((TextView) view.findViewById(R.id.GridTextView)).getText().toString();
+                        String editText = editMemberAmount.getText().toString();
+                        if (keyType.equals("num")) {
+                            //数字键
+                            try {
+                                if (editText.length() == 4) {
+                                    Toast.makeText(MyApplication.getContextObject(), "编号不能超过3位数", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    editMemberAmount.setText(editText + textValue);
+                                }
+                            } catch (Exception e) {
+                            }
+                        }
+                        if (keyType.equals("back")) {
+
+                            try {
+                                editMemberAmount.setText("");
+                            } catch (Exception e) {
+                                editMemberAmount.setText("");
+                            }
+                        }
+                        if (keyType.equals("point")) {
+                            try {
+
+                                if (editText.length() > 0) {
+                                    editMemberAmount.setText(editText.substring(0, editText.length() - 1));
+                                }
+                            } catch (Exception e) {
+                                editMemberAmount.setText("");
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (preOrders.size() > 0 || orders.size() > 0) {
+            if (tableAVObject != null && preOrders.size() > 0 && saveData) {
+                tableAVObject.put("preOrder", preOrders);
+                if (tableAVObject.getInt("customer") == 0) {
+                    tableAVObject.put("customer", 1);
+                }
+                tableAVObject.put("startedAt", new Date());
+                tableAVObject.put("preOrder", preOrders);
+                tableAVObject.saveInBackground(new SaveCallback() {
+                    @Override
+                    public void done(AVException e) {
+                        if (e == null) {
+                            Logger.d("保存");
+                        } else {
+                            ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙");
+                        }
+                    }
+                });
+            }
+        } else {
+            if (tableAVObject != null) {
+                AVQuery<AVObject> query = new AVQuery<>("Table");
+                query.getInBackground(tableId, new GetCallback<AVObject>() {
+                    @Override
+                    public void done(AVObject table, AVException e) {
+                        if (e == null) {
+                            if (table.getList("order").size() == 0 && table.getList("preOrder").size() == 0) {
+                                if (table.getInt("customer") > 0) {
+                                    table.put("customer", 0);
+                                    table.put("order", new List[0]);
+                                    table.put("preOrder", new List[0]);
+                                    table.put("refundOrder", new List[0]);
+                                    table.put("startedAt", null);
+                                    table.put("user", null);
+                                    table.saveInBackground(new SaveCallback() {
+                                        @Override
+                                        public void done(AVException e) {
+                                        }
+                                    });
+                                }
+                            }
+                        } else {
+                            ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙");
+                        }
+                    }
+                });
+            } else {
+                hideDialog();
+            }
+        }
+    }
+
+
+    @OnClick({R.id.order_change_table, R.id.sign_user, R.id.btn_to_pay, R.id.btn_place_order})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.order_change_table:
+                final AVQuery<AVObject> table = new AVQuery<>("Table");
+                table.whereEqualTo("active", 1);
+                table.whereEqualTo("customer", 0);
+                table.addAscendingOrder("tableNumber");
+                table.findInBackground(new FindCallback<AVObject>() {
+                    @Override
+                    public void done(List<AVObject> list, AVException e) {
+                        if (e == null) {
+                            if (list.size() > 0) {
+                                final String[] tables = new String[list.size()];
+                                for (int i = 0; i < list.size(); i++) {
+                                    tables[i] = list.get(i).getString("tableNumber");
+                                }
+                                new QMUIDialog.CheckableDialogBuilder(getActivity())
+                                        .setCheckedIndex(-1)
+                                        .addItems(tables, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                                final AVQuery<AVObject> tableNew = new AVQuery<>("Table");
+                                                tableNew.whereEqualTo("tableNumber", tables[which]);
+                                                tableNew.findInBackground(new FindCallback<AVObject>() {
+                                                    @Override
+                                                    public void done(List<AVObject> list, AVException e) {
+                                                        if (e == null) {
+                                                            AVObject avObject = list.get(0);
+                                                            avObject.put("order", orders);
+                                                            avObject.put("preOrder", preOrders);
+                                                            avObject.put("customer", Integer.parseInt(spinnerPeople.getSelectedItem().toString()));
+                                                            avObject.put("startedAt", tableAVObject.getDate("startedAt"));
+                                                            if (tableAVObject.getAVObject("user") != null) {
+                                                                avObject.put("user", AVObject.createWithoutData("_User", tableAVObject.getAVObject("user").getObjectId()));
+                                                            }
+                                                            avObject.saveInBackground(new SaveCallback() {
+                                                                @Override
+                                                                public void done(AVException e) {
+                                                                    if (e == null) {
+                                                                        ArrayList<Object> objects = new ArrayList<>();
+                                                                        tableAVObject.put("order", new List[0]);
+                                                                        tableAVObject.put("preOrder", new List[0]);
+                                                                        tableAVObject.put("customer", 0);
+                                                                        tableAVObject.put("startedAt", null);
+                                                                        tableAVObject.put("user", null);
+                                                                        tableAVObject.saveInBackground(new SaveCallback() {
+                                                                            @Override
+                                                                            public void done(AVException e) {
+                                                                                if (e == null) {
+                                                                                    ToastUtil.showShort(MyApplication.getContextObject(), "换桌成功");
+                                                                                    preOrders.removeAll(preOrders);
+                                                                                    FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                                                                                    ft.replace(R.id.fragment_content, TableFg.newInstance(""), "table").commit();
+
+                                                                                } else {
+                                                                                    ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                    } else {
+                                                                        ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
+                                                                    }
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        })
+                                        .create(mCurrentDialogStyle).show();
+                            } else {
+                                ToastUtil.showShort(MyApplication.getContextObject(), "暂无可换桌号");
+                            }
+                        }
+                    }
+                });
+
+                break;
+            case R.id.sign_user:
+                if (tableAVObject != null) {
+                    if (tableAVObject.getAVObject("user") != null) {
+                        new QMUIDialog.MessageDialogBuilder(getActivity())
+                                .setTitle("温馨提示")
+                                .setMessage("确定要取消此订单的用户信息？")
+                                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .addAction("确定", new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        dialog.dismiss();
+                                        tableAVObject.put("user", null);
+                                        tableAVObject.saveInBackground(new SaveCallback() {
+                                            @Override
+                                            public void done(AVException e) {
+                                                if (e == null) {
+                                                    ToastUtil.showShort(MyApplication.getContextObject(), "清空用户数据成功");
+                                                    initData();
+                                                }
+                                            }
+                                        });
+                                    }
+                                })
+                                .create(mCurrentDialogStyle).show();
+
+                    } else {
+                        chooseScanType();
+                    }
+
+                }
+                break;
+            case R.id.btn_to_pay:
+                if (tableAVObject != null) {
+                    if (orders.size() > 0) {
+                        if (preOrders.size() > 0) {
+                            new QMUIDialog.MessageDialogBuilder(getActivity())
+                                    .setTitle("温馨提示")
+                                    .setMessage("还有未下单商品,是否继续下单？")
+                                    .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                        @Override
+                                        public void onClick(QMUIDialog dialog, int index) {
+                                            dialog.dismiss();
+                                        }
+                                    })
+                                    .addAction("确定", new QMUIDialogAction.ActionListener() {
+                                        @Override
+                                        public void onClick(QMUIDialog dialog, int index) {
+                                            dialog.dismiss();
+                                            FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                                            ft.replace(R.id.fragment_content, SettleFg.newInstance(tableAVObject.getObjectId())).commit();
+                                        }
+                                    })
+                                    .create(mCurrentDialogStyle).show();
+                        } else {
+                            FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                            ft.replace(R.id.fragment_content, SettleFg.newInstance(tableAVObject.getObjectId())).commit();
+                        }
+                    } else {
+                        ToastUtil.showShort(MyApplication.getContextObject(), "至少下单一个商品");
+                    }
+
+                } else {
+                    ToastUtil.showShort(MyApplication.getContextObject(), "网络错误,回退重新点击重试");
+                }
+                break;
+            case R.id.btn_place_order:
+                if (tableAVObject != null) {
+                    if (preOrders.size() > 0) {
+                        saveData = false;
+                        ShowPreOrderFragment showPreOrderFragment = new ShowPreOrderFragment(tableAVObject, preOrders);
+                        showPreOrderFragment.show(getActivity().getSupportFragmentManager(), "showpreorder");
+                    } else {
+                        ToastUtil.showShort(MyApplication.getContextObject(), "请先选择商品");
+                    }
+                }
+                break;
+        }
+    }
+
+    private void chooseScanType() {
+        if (CameraProvider.hasCamera()) {
+            if (MyUtils.getCameraPermission(getContext())) {
+                Intent intent = new Intent(getActivity(), CaptureActivity.class);
+                intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
+                startActivityForResult(intent, REQUEST_CODE_SCAN);
+            }
+        } else {
+            ScanUserFragment scanUserFragment = new ScanUserFragment(1);
+            scanUserFragment.show(getFragmentManager(), "scanuser");
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_SCAN && resultCode == RESULT_OK) {
+            if (data != null) {
+                showDialog();
+                String code = data.getStringExtra(Constant.CODED_CONTENT);
+                Map<String, String> parameters = new HashMap<String, String>();
+                parameters.put("payCode", code.trim());
+                AVCloud.callFunctionInBackground("payCodeGetUser", parameters, new FunctionCallback<Map<String, Object>>() {
+                    @Override
+                    public void done(final Map<String, Object> object, AVException e) {
+                        if (e == null) {
+                            showDialog();
+                            Map<String, Object> parameter = new HashMap<String, Object>();
+                            parameter.put("userID", object.get("objectId").toString());
+                            AVCloud.callFunctionInBackground("svip", parameter, new FunctionCallback<Map<String, Object>>() {
+                                @Override
+                                public void done(Map<String, Object> objectMap, AVException e) {
+                                    if (e == null) {
+                                        hideDialog();
+                                        llShowMember.setVisibility(View.VISIBLE);
+                                        Double whiteBarBalance = MyUtils.formatDouble(Double.parseDouble(object.get("gold").toString()) - Double.parseDouble(object.get("arrears").toString()));
+                                        Double storedBalance = MyUtils.formatDouble(Double.parseDouble(object.get("stored").toString()));
+                                        Glide.with(MyApplication.getContextObject()).load(object.get("avatarurl").toString()).into(userAvatar);
+                                        userTel.setText("用户手机号:" + object.get("username").toString());
+                                        userStored.setText("消费金:" + storedBalance);
+                                        userWhitebar.setText("白条:" + whiteBarBalance);
+                                        userMeatweight.setText("牛肉额度:" + objectMap.get("meatWeight").toString() + "kg");
+                                        userId = object.get("objectId").toString();
+                                        if (tableAVObject != null) {
+                                            tableAVObject.put("user", AVObject.createWithoutData("_User", userId));
+                                            tableAVObject.saveInBackground(new SaveCallback() {
+                                                @Override
+                                                public void done(AVException e) {
+                                                    if (e != null) {
+                                                        ToastUtil.showShort(getContext(), e.getMessage());
+                                                    }
+                                                }
+                                            });
+                                        }
+                                        if ((Boolean) objectMap.get("svip")) {
+                                            svipAvatar.setVisibility(View.VISIBLE);
+                                            userType.setText("超牛会员");
+                                        } else {
+                                            svipAvatar.setVisibility(View.GONE);
+                                            userType.setText("普通会员");
+                                        }
+                                        signUser.setText("退出登录");
+                                    } else {
+                                        hideDialog();
+                                        ToastUtil.showShort(getContext(), e.getMessage());
+                                    }
+                                }
+                            });
+
+                        } else {
+                            hideDialog();
+                            ToastUtil.showShort(getContext(), e.getMessage());
+                        }
+                    }
+                });
+
+            }
+        }
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(ComboEvent event) {
+        if (!event.getEdit()) {
+            HashMap<String, Object> hashMap = new HashMap<>();
+            hashMap.put("id", event.getProductBean().getObjectId());
+            hashMap.put("number", event.getCommodityNumber());
+            hashMap.put("comment", event.getContent());
+            hashMap.put("name", event.getProductBean().getName());
+            if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
+                hashMap.put("comboList", event.getComboList());
+            } else {
+                hashMap.put("comboList", new ArrayList<>());
+            }
+            hashMap.put("presenter", event.getProductBean().getGivecode());
+            hashMap.put("cookSerial", event.getCookSerial());
+            preOrders.add(hashMap);
+        } else {
+            if (event.getOrderIndex() != -1) {
+                if (event.getCommodityNumber()>0) {
+                    Object o = preOrders.get(event.getOrderIndex());
+                    HashMap<String, Object> format = ObjectUtil.format(o);
+                    format.put("id", event.getProductBean().getObjectId());
+                    format.put("number", event.getCommodityNumber());
+                    format.put("comment", event.getContent());
+                    format.put("name", event.getProductBean().getName());
+                    if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
+                        format.put("comboList", event.getComboList());
+                    } else {
+                        format.put("comboList", new ArrayList<>());
+                    }
+                    format.put("presenter", event.getProductBean().getGivecode());
+                    format.put("cookSerial", event.getCookSerial());
+                }else{
+                    preOrders.remove(event.getOrderIndex());
+                }
+            }
+        }
+        refreshList();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(final SuccessEvent event) {
+        if (event.getCode() == 0) {
+            refreshList();
+        }
+
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void UserMessgae(UserBean userBean) {
+        if (userBean.getCallbackCode() == CONST.UserCode.SCANCUSTOMER) {
+            llShowMember.setVisibility(View.VISIBLE);
+            Glide.with(MyApplication.getContextObject()).load(userBean.getAvatar()).into(userAvatar);
+            userTel.setText("用户手机号:" + userBean.getUsername());
+            userStored.setText("消费金:" + userBean.getStored());
+            userWhitebar.setText("白条:" + userBean.getBalance());
+            userMeatweight.setText("牛肉额度:" + userBean.getMeatWeight() + "kg");
+            userId = userBean.getId();
+            if (tableAVObject != null) {
+                tableAVObject.put("user", AVObject.createWithoutData("_User", userId));
+                tableAVObject.saveInBackground(new SaveCallback() {
+                    @Override
+                    public void done(AVException e) {
+                        if (e != null) {
+                            ToastUtil.showShort(getContext(), e.getMessage());
+                            ;
+                        }
+                    }
+                });
+            }
+            if (userBean.getSvip()) {
+                svipAvatar.setVisibility(View.VISIBLE);
+                userType.setText("超牛会员");
+            } else {
+                svipAvatar.setVisibility(View.GONE);
+                userType.setText("普通会员");
+            }
+            signUser.setText("退出登录");
+            Logger.d(userBean);
+        }
+    }
+}

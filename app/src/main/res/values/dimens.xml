@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="text_zise_14">9sp</dimen>
+    <dimen name="width_200">200dp</dimen>
+</resources>

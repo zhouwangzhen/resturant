@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cn.kuwo.player.custom.FlowRadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/rg_number"
+    android:orientation="horizontal">
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="1" />
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="2" />
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="3" />
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="4" />
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="5" />
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="6" />
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="7" />
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="8" />
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="9" />
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="10" />
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="11" />
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="12" />
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="13" />
+
+    <RadioButton
+        style="@style/BtnNumber"
+        android:text="X" />
+</cn.kuwo.player.custom.FlowRadioGroup>

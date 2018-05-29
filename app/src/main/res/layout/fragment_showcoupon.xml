@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/grey"
+    android:gravity="center">
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="我的线上优惠券列表"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:gravity="center"/>
+    <GridView
+        android:id="@+id/gv_table"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/grey"
+        android:fadingEdge="none"
+        android:listSelector="#00000000"
+        android:numColumns="1"
+        android:verticalSpacing="20dp"
+        android:overScrollMode="never" />
+</LinearLayout>
