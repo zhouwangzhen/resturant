@@ -1,5 +1,6 @@
 package cn.kuwo.player.bean;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
 
 public class RuleBean extends RealmObject {
@@ -13,6 +14,7 @@ public class RuleBean extends RealmObject {
     private Boolean memberDiscountJoin;
     private Boolean wineJoin;
     private Boolean foldOnFoldJoin;
+    private RealmList<String> fullReduce;
 
     public Boolean getNoMemberJoin() {
         return noMemberJoin;
@@ -94,6 +96,14 @@ public class RuleBean extends RealmObject {
         this.foldOnFoldJoin = foldOnFoldJoin;
     }
 
+    public RealmList<String> getFullReduce() {
+        return fullReduce;
+    }
+
+    public void setFullReduce(RealmList<String> fullReduce) {
+        this.fullReduce = fullReduce;
+    }
+
     @Override
     public String toString() {
         return "RuleBean{" +
@@ -107,6 +117,7 @@ public class RuleBean extends RealmObject {
                 ", memberDiscountJoin=" + memberDiscountJoin +
                 ", wineJoin=" + wineJoin +
                 ", foldOnFoldJoin=" + foldOnFoldJoin +
+                ", fullReduce=" + fullReduce +
                 '}';
     }
 }

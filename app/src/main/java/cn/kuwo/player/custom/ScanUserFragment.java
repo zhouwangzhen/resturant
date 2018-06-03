@@ -263,7 +263,8 @@ public class ScanUserFragment extends DialogFragment {
                                                         MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
                                                         objectMap.get("meatId").toString().length()>0?objectMap.get("meatId").toString():"",
                                                         (Boolean)objectMap.get("svip"),
-                                                        map.get("avatarurl").toString()
+                                                        map.get("avatarurl").toString(),
+                                                        (Boolean)objectMap.get("alreadySVIP")
                                                 );
                                                 EventBus.getDefault().post(userBean);
                                                 getDialog().dismiss();
@@ -276,7 +277,7 @@ public class ScanUserFragment extends DialogFragment {
 
                                 } else if (type == 2) {//获取用户信息id,username
                                     hideDialog();
-                                    UserBean userBean = new UserBean(CONST.UserCode.SCANUSER, map.getObjectId(), map.get("username").toString(), Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString()));
+                                    UserBean userBean = new UserBean(CONST.UserCode.SCANUSER, map.getObjectId(), map.get("username").toString(), Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString()),(Boolean) map.get("test"),Integer.parseInt(map.get("clerk").toString()));
                                     EventBus.getDefault().post(userBean);
                                     getDialog().dismiss();
                                 } else {
@@ -333,7 +334,8 @@ public class ScanUserFragment extends DialogFragment {
                                                     MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
                                                     objectMap.get("meatId").toString().length()>0?objectMap.get("meatId").toString():"",
                                                     (Boolean)objectMap.get("svip"),
-                                                     map.get("avatarurl").toString()
+                                                     map.get("avatarurl").toString(),
+                                                    (Boolean)objectMap.get("alreadySVIP")
                                             );
                                             EventBus.getDefault().post(userBean);
                                             getDialog().dismiss();
@@ -346,7 +348,7 @@ public class ScanUserFragment extends DialogFragment {
 
                             } else if (type == 2) {//获取用户信息id,username
                                 hideDialog();
-                                UserBean userBean = new UserBean(CONST.UserCode.SCANUSER, map.get("objectId").toString(), map.get("username").toString(), Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString()));
+                                UserBean userBean = new UserBean(CONST.UserCode.SCANUSER, map.get("objectId").toString(), map.get("username").toString(), Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString()),(Boolean) map.get("test"),Integer.parseInt(map.get("clerk").toString()));
                                 EventBus.getDefault().post(userBean);
                                 getDialog().dismiss();
                             } else {

@@ -17,7 +17,6 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
@@ -137,6 +136,8 @@ public class SettleFg extends BaseFragment {
     TextView tableNumber;
     @BindView(R.id.merge_settle)
     Button mergeSettle;
+    @BindView(R.id.full_reduce_money)
+    TextView fullreduceMoney;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private int REQUEST_CODE_SCAN = 111;
     private Activity mActivity;
@@ -151,8 +152,8 @@ public class SettleFg extends BaseFragment {
     private Double meatReduceWeight = 0.0;
     private Double myMeatReduceMoney = 0.0;
     private Double myMeatReduceWeight = 0.0;
-    private Double realPayMoeny = 0.0;
     private Double activityReduceMoney = 0.0;
+    private Double fullReduceMoney = 0.0;
     private Double hasMeatWeight = 0.0;
     private CouponEvent onlineCouponEvent = null;
     private CouponEvent offlineCouponEvent = null;
@@ -278,7 +279,7 @@ public class SettleFg extends BaseFragment {
     }
 
     private void getUserCoupon() {
-        if (tableAVObject.getAVUser("user")!=null) {
+        if (tableAVObject.getAVObject("user") != null) {
             showDialog();
             AVQuery<AVObject> couponType = new AVQuery<>("CouponType");
             ArrayList<Integer> types = new ArrayList<>();
@@ -303,7 +304,7 @@ public class SettleFg extends BaseFragment {
                     }
                 }
             });
-        }else{
+        } else {
             ToastUtil.showShort(MyApplication.getContextObject(), "请用户先登录后查看");
         }
     }
@@ -349,6 +350,7 @@ public class SettleFg extends BaseFragment {
         activityReduceMoney = 0.0;
         myMeatReduceMoney = 0.0;
         myMeatReduceWeight = 0.0;
+        fullReduceMoney = 0.0;
         try {
             orders = ObjectUtil.deepCopy(tableAVObject.getList("order"));
         } catch (Exception e) {
@@ -392,7 +394,6 @@ public class SettleFg extends BaseFragment {
                     centerOrder = new ArrayList<>();
                     e.printStackTrace();
                 }
-                Logger.d(centerOrder.size());
                 useExchangeList = ProductUtil.canExchangeMeatList(centerOrder, hasMeatWeight, weights);
             } else {
                 List<Object> centerOrder = new ArrayList<>();
@@ -440,6 +441,12 @@ public class SettleFg extends BaseFragment {
             totalMoney.setText("￥" + actualTotalMoneny + "元");
             storeReduceMoney.setText("-" + activityReduceMoney);
         }
+
+        fullReduceMoney=MyUtils.formatDouble(ProductUtil.calFullReduceMoney(actualTotalMoneny)>actualTotalMoneny?actualTotalMoneny:ProductUtil.calFullReduceMoney(actualTotalMoneny));
+        fullreduceMoney.setText("-"+fullReduceMoney);
+        actualTotalMoneny-=fullReduceMoney;
+        actualTotalMoneny=MyUtils.formatDouble(actualTotalMoneny);
+        totalMoney.setText("￥" + actualTotalMoneny + "元");
         minPayMoney.setText("-" + meatReduceMoney);
     }
 
@@ -502,7 +509,7 @@ public class SettleFg extends BaseFragment {
                 Bundle bundle = new Bundle();
                 OrderDetail orderDetail = new OrderDetail(tableAVObject, hasMeatWeight, originTotalMoneny,
                         actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
-                        onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), orders,selectTableIds,selectTableNumber);
+                        onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), orders, selectTableIds, selectTableNumber,fullReduceMoney);
                 bundle.putSerializable("table", (Serializable) orderDetail);
                 payFg.setArguments(bundle);
                 ft.replace(R.id.fragment_content, payFg, "pay").commit();

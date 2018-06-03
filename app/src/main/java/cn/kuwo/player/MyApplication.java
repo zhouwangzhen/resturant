@@ -6,6 +6,7 @@ import android.content.Context;
 import com.avos.avoscloud.AVOSCloud;
 import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.Logger;
+import com.tencent.bugly.crashreport.CrashReport;
 
 import cn.kuwo.player.util.RealmHelper;
 import io.realm.Realm;
@@ -25,6 +26,7 @@ public class MyApplication extends Application {
                 .deleteRealmIfMigrationNeeded()
                 .build();
         Realm.setDefaultConfiguration(configuration);
+        CrashReport.initCrashReport(this, "523a908f55", false);
     }
     public static Context getContextObject(){
         return context;

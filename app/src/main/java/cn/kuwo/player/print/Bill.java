@@ -137,6 +137,10 @@ public class Bill {
                             pos1 = new Pos(url_kitchen, 9100, "GBK");    //第一个参数是打印机网口IP
                             pos1.initPos();
                             pos1.printLine(1);
+                            pos1.fontSizeSetBig(3);
+                            pos1.printCenter();
+                            pos1.printText("厨房订单(主联)");
+                            pos1.printLine(1);
                             pos1.printLocation(2);
                             pos1.fontSizeSetBig(3);
                             pos1.printText(tableAVObject.getString("tableNumber") + "桌");
@@ -251,6 +255,11 @@ public class Bill {
                             Pos pos1;
                             pos1 = new Pos(url_kitchen, 9100, "GBK");    //第一个参数是打印机网口IP
                             pos1.initPos();
+                            pos1.printLine(1);
+                            pos1.fontSizeSetBig(3);
+                            pos1.printCenter();
+                            pos1.printText("厨房订单(副联)");
+                            pos1.fontSizeSetBig(1);
                             pos1.printLine(1);
                             pos1.printLocation(2);
                             pos1.fontSizeSetBig(3);
@@ -373,6 +382,11 @@ public class Bill {
                             pos2 = new Pos(url_kitchen, 9100, "GBK");    //第一个参数是打印机网口IP
                             pos2.initPos();
                             pos2.printLine(1);
+                            pos2.fontSizeSetBig(3);
+                            pos2.printCenter();
+                            pos2.printText("水吧订单");
+                            pos2.fontSizeSetBig(1);
+                            pos2.printLine(1);
                             pos2.printLocation(2);
                             pos2.fontSizeSetBig(3);
                             pos2.printText(tableAVObject.getString("tableNumber") + "桌");
@@ -432,6 +446,136 @@ public class Bill {
                     e.printStackTrace();
                     Logger.d(e.getMessage());
                     EventBus.getDefault().post(new SuccessEvent(-3, tableAVObject.getString("tableNumber") + "桌下单水吧小票机连接失败", orders, tableAVObject));
+
+                }
+                try {
+                    if (type == 0 || type == -4) {
+                        if (ProductUtil.indexOfNoDrink(orders) > 0) {
+                            String url_kitchen = SharedHelper.read("ip1_cool") + "." + SharedHelper.read("ip2_cool") + "." + SharedHelper.read("ip3_cool") + "." + SharedHelper.read("ip4_cool");
+                            Pos pos1;
+                            pos1 = new Pos(url_kitchen, 9100, "GBK");    //第一个参数是打印机网口IP
+                            pos1.initPos();
+                            pos1.printLine(1);
+                            pos1.fontSizeSetBig(3);
+                            pos1.printCenter();
+                            pos1.printText("冷菜间订单");
+                            pos1.fontSizeSetBig(1);
+                            pos1.printLine(1);
+                            pos1.printLocation(2);
+                            pos1.fontSizeSetBig(3);
+                            pos1.printText(tableAVObject.getString("tableNumber") + "桌");
+                            pos1.printLine(1);
+                            pos1.fontSizeSetBig(1);
+                            pos1.printLocation(0);
+                            pos1.printText("点单");
+                            pos1.printTextNewLine("-----------------------------------------------");
+                            pos1.printLine(1);
+                            for (int k = -1; k < 6; k++) {
+                                pos1.bold(true);
+                                int serial = ProductUtil.indexOfSerial(orders, k);
+                                Logger.d(serial);
+                                if (k == 1 && serial > 0) {
+                                    pos1.printText("-----------------------------------------------");
+                                    pos1.printLine(1);
+                                    pos1.printLocation(1);
+                                    pos1.bold(true);
+                                    pos1.printText("第一道菜" + "(" + serial + "种)");
+                                    pos1.printLine(1);
+                                    pos1.bold(false);
+                                } else if (k == 2 && serial > 0) {
+                                    pos1.printText("-----------------------------------------------");
+                                    pos1.printLine(1);
+                                    pos1.printLocation(1);
+                                    pos1.bold(true);
+                                    pos1.printText("第二道菜" + "(" + serial + "种)");
+                                    pos1.printLine(1);
+                                    pos1.bold(false);
+                                } else if (k == 3 && serial > 0) {
+                                    pos1.printText("-----------------------------------------------");
+                                    pos1.printLine(1);
+                                    pos1.printLocation(1);
+                                    pos1.bold(true);
+                                    pos1.printText("第三道菜" + "(" + serial + "种)");
+                                    pos1.printLine(1);
+                                    pos1.bold(false);
+                                } else if (k == 4 && serial > 0) {
+                                    pos1.printText("-----------------------------------------------");
+                                    pos1.printLine(1);
+                                    pos1.printLocation(1);
+                                    pos1.bold(true);
+                                    pos1.printText("第四道菜" + "(" + serial + "种)");
+                                    pos1.printLine(1);
+                                    pos1.bold(false);
+
+                                } else if (k == 5 && serial > 0) {
+                                    pos1.printText("-----------------------------------------------");
+                                    pos1.printLine(1);
+                                    pos1.printLocation(1);
+                                    pos1.bold(true);
+                                    pos1.printText("第五道菜" + "(" + serial + "种)");
+                                    pos1.printLine(1);
+                                    pos1.bold(false);
+                                }
+                                pos1.bold(false);
+                                for (int i = 0; i < orders.size(); i++) {
+                                    pos1.printLocation(0);
+                                    HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
+                                    int serialNumber = ProductUtil.indexOfSerial(orders, k);
+                                    ProductUtil.indexOfSerial(orders, k);
+                                    int number = 0;
+                                    if (ObjectUtil.getInt(format, "cookSerial") == k && serialNumber > 0 && MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 5) {
+                                        pos1.printLocation(0);
+                                        pos1.printTextNewLine(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName());
+                                        pos1.printLine(1);
+                                        pos1.printText("");
+                                        pos1.printLocation(20, 1);
+                                        pos1.printText("");
+                                        pos1.printLocation(80, 1);
+                                        pos1.printWordSpace(1);
+                                        pos1.printText("");
+                                        pos1.printWordSpace(2);
+                                        pos1.printText("   x" + ObjectUtil.getDouble(format, "number") + "份");
+                                        pos1.printLine(1);
+                                        Logger.d(ObjectUtil.getList(format, "comboList").size());
+                                        if (ObjectUtil.getList(format, "comboList").size() > 0) {
+                                            List<String> comboList = ObjectUtil.getList(format, "comboList");
+                                            for (int j = 0; j < comboList.size(); j++) {
+                                                pos1.printLine();
+                                                pos1.printWordSpace(1);
+                                                pos1.printText(comboList.get(j));
+                                                pos1.printLine();
+                                            }
+                                        }
+                                        if (ObjectUtil.getString(format, "presenter").length() > 0) {
+                                            pos1.printLine();
+                                            pos1.printWordSpace(1);
+                                            pos1.printText("赠送菜品:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
+                                            pos1.printLine();
+                                        }
+                                        if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
+                                            pos1.printText("(备注:" + ObjectUtil.getString(format, "comment") + ")");
+                                            pos1.printLine(1);
+                                        }
+                                        if (number > 0 && number != serialNumber) {
+                                            pos1.printTextNewLine("-----------------------------------------------");
+                                        }
+                                        ++number;
+
+                                        pos1.printLine(1);
+                                    }
+                                }
+                            }
+                            pos1.printLine(3);
+                            pos1.feedAndCut();
+                            pos1.closeIOAndSocket();
+                        }
+
+
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Logger.d(e.getMessage());
+                    EventBus.getDefault().post(new SuccessEvent(-4, tableAVObject.getString("tableNumber") + "桌下单冷菜间小票机连接失败", orders, tableAVObject));
 
                 }
             }
@@ -833,7 +977,7 @@ public class Bill {
                     pos.printLine(1);
                     pos.printTextNewLine("------------------------------------------------");
                     pos.printLine(1);
-                    Map<String, Double> secrowMap = ProductUtil.managerEscrow(actualMoney, escrow, orderDetail.getAvObject().getAVUser("user"));
+                    Map<String, Double> secrowMap = ProductUtil.managerEscrow(actualMoney, escrow, orderDetail.getAvObject().getAVObject("user"));
                     for (String key : secrowMap.keySet()) {
                         pos.printTwoColumn(key + " :", secrowMap.get(key) + "");
                         pos.printLine(1);

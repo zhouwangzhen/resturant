@@ -29,6 +29,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
@@ -37,6 +38,7 @@ import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.event.SuccessEvent;
 import cn.kuwo.player.util.ObjectUtil;
+import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
 
@@ -109,7 +111,6 @@ public class RefundFragment extends DialogFragment {
                     commodity.put("number", ObjectUtil.getDouble(commodity, "number") - copies >= 0 ? ObjectUtil.getDouble(commodity, "number") - copies : 0);
                     tableAVObject.getList("order").set(position, commodity);
                 }
-                com.orhanobut.logger.Logger.d(orders);
                 tableAVObject.put("order", orders);
                 tableAVObject.put("refundOrder", refundOrders);
                 tableAVObject.saveInBackground(new SaveCallback() {
@@ -125,6 +126,9 @@ public class RefundFragment extends DialogFragment {
                         }
                     }
                 });
+                List<Object> objects = new ArrayList<>();
+                objects.add(hashMap);
+                ProductUtil.saveOperateLog(3,objects,tableAVObject);
 
             }
         });

@@ -2,8 +2,10 @@ package cn.kuwo.player;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
@@ -43,9 +45,11 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import cn.kuwo.player.activity.RetailActivity;
 import cn.kuwo.player.base.BaseActivity;
+import cn.kuwo.player.bean.NetBean;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.custom.CommomDialog;
 import cn.kuwo.player.custom.ScanUserFragment;
+import cn.kuwo.player.custom.ShowNoNetFragment;
 import cn.kuwo.player.event.PrintEvent;
 import cn.kuwo.player.event.SuccessEvent;
 import cn.kuwo.player.fragment.CommodityFg;
@@ -56,6 +60,7 @@ import cn.kuwo.player.fragment.SettingFg;
 import cn.kuwo.player.fragment.SvipFg;
 import cn.kuwo.player.fragment.TableFg;
 import cn.kuwo.player.print.Bill;
+import cn.kuwo.player.receiver.NetWorkStateReceiver;
 import cn.kuwo.player.util.AppUtils;
 import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.DimenTool;
@@ -64,6 +69,7 @@ import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
+import io.realm.RealmList;
 
 public class MainActivity extends BaseActivity {
     private int REQUEST_CODE_SCAN = 111;
@@ -93,6 +99,8 @@ public class MainActivity extends BaseActivity {
     TextView waiterName;
     private AVQuery<AVObject> table;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
+    NetWorkStateReceiver netWorkStateReceiver;
+    ShowNoNetFragment showNoNetFragment = null;
 
     @Override
     protected int getContentViewId() {
@@ -103,38 +111,8 @@ public class MainActivity extends BaseActivity {
     @Override
     public void initData() {
         LoginSystemUser();
-        if (CameraProvider.hasCamera()){
-            menuRetail.setVisibility(View.GONE);
-        }else{
-            menuRetail.setVisibility(View.VISIBLE);
-        }
-        final RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
-        if (mRealmHleper.queryAllProduct().size() == 0) {
-            loadCommodity();
-        } else {
-            AVQuery<AVObject> offlineCommodity = new AVQuery<>("OfflineCommodity");
-            offlineCommodity.whereEqualTo("active", 1);
-            offlineCommodity.whereEqualTo("store", 1);
-            offlineCommodity.countInBackground(new CountCallback() {
-                @Override
-                public void done(int i, AVException e) {
-                    if (e == null) {
-                        if (i != mRealmHleper.queryAllProduct().size()) {
-                            loadCommodity();
-                        } else {
-                            fetchTable();
-                            subscribeQuery();
-                            initializeFragment();
-                        }
-                    } else {
-                        fetchTable();
-                        subscribeQuery();
-                        initializeFragment();
-                    }
-                }
-            });
-
-        }
+        checkIsCashierDesk();
+        checkLocalStorageSame();
         setListener();
 
     }
@@ -162,6 +140,46 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    private void checkIsCashierDesk() {
+        if (CameraProvider.hasCamera()) {
+            menuRetail.setVisibility(View.GONE);
+        } else {
+            menuRetail.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void checkLocalStorageSame() {
+        final RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
+        if (mRealmHleper.queryAllProduct().size() == 0) {
+            loadCommodity();
+        } else {
+            AVQuery<AVObject> offlineCommodity = new AVQuery<>("OfflineCommodity");
+            offlineCommodity.whereEqualTo("active", 1);
+            offlineCommodity.whereEqualTo("store", 1);
+            offlineCommodity.countInBackground(new CountCallback() {
+                @Override
+                public void done(int i, AVException e) {
+                    if (e == null) {
+                        if (i != mRealmHleper.queryAllProduct().size()) {
+                            loadCommodity();
+                        } else {
+                            fetchTable();
+                            subscribeQuery();
+                            initializeFragment();
+                        }
+                    } else {
+                        fetchTable();
+                        subscribeQuery();
+                        initializeFragment();
+                    }
+                }
+            });
+
+        }
+    }
+
+
+
     /**
      * 设置监听
      */
@@ -177,7 +195,7 @@ public class MainActivity extends BaseActivity {
         menuRetail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this,RetailActivity.class));
+                startActivity(new Intent(MainActivity.this, RetailActivity.class));
             }
         });
     }
@@ -311,7 +329,7 @@ public class MainActivity extends BaseActivity {
                                 ft.replace(R.id.fragment_content, orderFg, "order").commit();
                             }
                         });
-                    }catch (Exception e1){
+                    } catch (Exception e1) {
                         ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
                     }
 
@@ -450,7 +468,13 @@ public class MainActivity extends BaseActivity {
                         productBean.setScale(avObject.getDouble("scale"));
                         productBean.setRemainMoney(avObject.getDouble("remainMoney"));
                         productBean.setActive(avObject.getInt("active"));
-                        productBean.setComboMenu(avObject.getString("comboMenu") == null ? "" : MyUtils.replaceBlank(avObject.getString("comboMenu").trim().replace(" ","")));
+                        productBean.setComboMenu(avObject.getString("comboMenu") == null ? "" : MyUtils.replaceBlank(avObject.getString("comboMenu").trim().replace(" ", "")));
+                        RealmList<String> commentsList = new RealmList<>();
+                        for (int k = 0; k < avObject.getList("comments").size(); k++) {
+                            commentsList.add(avObject.getList("comments").get(k).toString());
+                        }
+                        productBean.setGiveRule(avObject.getInt("giveRule"));
+                        productBean.setComments(commentsList);
                         mRealmHleper.addProduct(productBean);
                     }
                     fetchTable();
@@ -464,12 +488,19 @@ public class MainActivity extends BaseActivity {
     public void onResume() {
         super.onResume();
         EventBus.getDefault().register(this);
+        if (netWorkStateReceiver == null) {
+            netWorkStateReceiver = new NetWorkStateReceiver();
+        }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(netWorkStateReceiver, filter);
     }
 
     @Override
     public void onPause() {
         super.onPause();
         EventBus.getDefault().unregister(this);
+        unregisterReceiver(netWorkStateReceiver);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -489,6 +520,7 @@ public class MainActivity extends BaseActivity {
         }
 
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(final PrintEvent event) {
         if (event.getCode() <= -1) {
@@ -496,7 +528,7 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onClick(Dialog dialog, boolean confirm) {
                     if (confirm) {
-                        Bill.printSettleBill(MyApplication.getContextObject(),event.getOrderDetail(), event.getJsonObject(), event.getEscrow());
+                        Bill.printSettleBill(MyApplication.getContextObject(), event.getOrderDetail(), event.getJsonObject(), event.getEscrow());
                         dialog.dismiss();
                     }
 
@@ -505,5 +537,17 @@ public class MainActivity extends BaseActivity {
                     .setTitle("提示").setNegativeButton("放弃打印小票").setPositiveButton("重新尝试打印").show();
         }
 
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(NetBean netBean) {
+        if (netBean.getCode() == -1) {
+            showNoNetFragment = new ShowNoNetFragment();
+            showNoNetFragment.show(getSupportFragmentManager(), "shownoNet");
+        } else if (netBean.getCode() == 0) {
+            if (showNoNetFragment != null) {
+                showNoNetFragment.getDialog().dismiss();
+            }
+        }
     }
 }

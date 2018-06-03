@@ -31,14 +31,14 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
     private LayoutInflater inflater;
     private MyItemClickListener mListener = null;
     private AVObject tableAVObject;
-    private List<AVObject> orders;
-    private List<AVObject> preOrders;
-    private List<AVObject> refundOrders;
+    private List<Object> orders;
+    private List<Object> preOrders;
+    private List<Object> refundOrders;
 
 
     public ScanGoodAdapter(Context context, AVObject tableAVObject) {
         this.mContext = context;
-        inflater = LayoutInflater.from(mContext);
+        inflater = LayoutInflater.from(MyApplication.getContextObject());
         this.tableAVObject = tableAVObject;
         orders = tableAVObject.getList("order");
         preOrders = tableAVObject.getList("preOrder");
@@ -83,10 +83,10 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             holder.tvSerial.setText(preProductBean.getSerial());
             holder.tvWeight.setText("菜品重量:" + preProductBean.getWeight() + "kg" + (preProductBean.getScale() > 0 ? "   超牛会员可抵扣" + MyUtils.formatDouble(preProductBean.getScale() * preProductBean.getWeight()) + "kg" : ""));
             holder.tvComment.setText(ObjectUtil.getString(format, "comment").length() > 0 ? "备注:" + ObjectUtil.getString(format, "comment") : "备注:无");
-            if (preProductBean.getGivecode().length() > 0) {
+            if (ObjectUtil.getString(format,"presenter").length()> 0) {
                 holder.tvGive.setVisibility(View.VISIBLE);
                 try {
-                    holder.tvGive.setText("赠送:" + MyUtils.getProductById(preProductBean.getGivecode()).getName());
+                    holder.tvGive.setText("赠送:" + MyUtils.getProductById(ObjectUtil.getString(format,"presenter")).getName());
                 } catch (Exception e) {
                 }
 
@@ -120,10 +120,10 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(productBean.getSerial());
             holder.tvWeight.setText("菜品重量:" + productBean.getWeight() + "kg" + (productBean.getScale() > 0 ? "   超牛会员可抵扣" + MyUtils.formatDouble(productBean.getScale() * productBean.getWeight()) + "kg" : ""));
-            if (productBean.getGivecode().length() > 0) {
+            if (ObjectUtil.getString(format,"presenter").length() > 0) {
                 holder.tvGive.setVisibility(View.VISIBLE);
                 try {
-                    holder.tvGive.setText("赠送:" + MyUtils.getProductById(productBean.getGivecode()).getName());
+                    holder.tvGive.setText("赠送:" + MyUtils.getProductById(ObjectUtil.getString(format,"presenter")).getName());
                 } catch (Exception e) {
                 }
             } else {
@@ -141,10 +141,10 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(productBean.getSerial());
             holder.tvWeight.setText("菜品重量:" + productBean.getWeight() + "kg" + (productBean.getScale() > 0 ? "   超牛会员可抵扣" + MyUtils.formatDouble(productBean.getScale() * productBean.getWeight()) + "kg" : ""));
-            if (productBean.getGivecode().length() > 0) {
+            if (ObjectUtil.getString(format,"presenter").length() > 0) {
                 holder.tvGive.setVisibility(View.VISIBLE);
                 try {
-                    holder.tvGive.setText("赠送:" + MyUtils.getProductById(productBean.getGivecode()).getName());
+                    holder.tvGive.setText("赠送:" + MyUtils.getProductById(MyUtils.getProductById(ObjectUtil.getString(format,"presenter")).getName()).getName());
                 } catch (Exception e) {
                 }
             } else {

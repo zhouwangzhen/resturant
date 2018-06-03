@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
@@ -104,6 +105,9 @@ public class PayFg extends BaseFragment {
     TextView tvOnlineContent;
     @BindView(R.id.tv_online_moeny)
     TextView tvOnlineMoeny;
+    @BindView(R.id.full_reduce_money)
+    TextView fullreduceMoney;
+    Unbinder unbinder1;
 
     private Activity mActivity;
     private OrderDetail orderDetail;
@@ -199,7 +203,7 @@ public class PayFg extends BaseFragment {
                     mallOrder.put("orderStatus", AVObject.createWithoutData("MallOrderStatus", CONST.OrderState.ORDER_STATUS_FINSIH));
                     mallOrder.put("escrow", escrow);
                     mallOrder.put("startedAt", orderDetail.getAvObject().getDate("startedAt"));
-                    mallOrder.put("customer", orderDetail.getAvObject().getInt("customer")+orderDetail.getSelectTableNumbers().size());
+                    mallOrder.put("customer", orderDetail.getAvObject().getInt("customer") + orderDetail.getSelectTableNumbers().size());
                     mallOrder.put("endAt", new Date());
                     mallOrder.put("offline", true);
                     mallOrder.put("store", 1);
@@ -231,7 +235,9 @@ public class PayFg extends BaseFragment {
                         if (orderDetail.getActivityMoney() > 0) {
                             jsonReduce.put("线下店打折优惠", orderDetail.getActivityMoney());
                         }
-
+                        if (orderDetail.getFullReduceMoney() > 0) {
+                            jsonReduce.put("满减优惠", orderDetail.getFullReduceMoney());
+                        }
                         mallOrder.put("reduceDetail", jsonReduce);
                     } catch (JSONException e1) {
                         e1.printStackTrace();
@@ -243,6 +249,7 @@ public class PayFg extends BaseFragment {
                             hideDialog();
                             if (e == null) {
                                 showDialog();
+                                ProductUtil.saveOperateLog(4,orderDetail.getFinalOrders(),orderDetail.getAvObject());
                                 Bill.printSettleBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow);
                                 ToastUtil.showShort(MyApplication.getContextObject(), "订单结算完成");
                             } else {
@@ -253,7 +260,7 @@ public class PayFg extends BaseFragment {
 
                 } else {
                     hideDialog();
-                    ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙请重试"+e.getMessage());
+                    ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙请重试" + e.getMessage());
                 }
             }
         });
@@ -296,7 +303,7 @@ public class PayFg extends BaseFragment {
                     FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
                     ft.replace(R.id.fragment_content, TableFg.newInstance(""), "table").commit();
                 } else {
-                    ToastUtil.showShort(MyApplication.getContextObject(),"网络错误"+e.getMessage());
+                    ToastUtil.showShort(MyApplication.getContextObject(), "网络错误" + e.getMessage());
                     resetTable();
                 }
             }
@@ -313,6 +320,7 @@ public class PayFg extends BaseFragment {
         mySvipReduceMoney.setText(orderDetail.getMyReduceMoney() + "");
         storeReduceMoney.setText("-" + orderDetail.getActivityMoney());
         totalMoney.setText("￥" + orderDetail.getActualMoney());
+        fullreduceMoney.setText("-"+orderDetail.getFullReduceMoney());
         if (orderDetail.getOfflineCouponEvent() != null) {
             tvOfflineContent.setText(orderDetail.getOfflineCouponEvent().getContent());
             tvOfflineMoeny.setText("-" + orderDetail.getOfflineCouponEvent().getMoney());
@@ -403,6 +411,20 @@ public class PayFg extends BaseFragment {
         mActivity = (Activity) context;
         tableId = getArguments().getString(tableId);  //获取参数
         orderDetail = (OrderDetail) getArguments().getSerializable("table");
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // TODO: inflate a fragment view
+        View rootView = super.onCreateView(inflater, container, savedInstanceState);
+        unbinder1 = ButterKnife.bind(this, rootView);
+        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder1.unbind();
     }
 
     public class PaymentAdapter extends BaseAdapter {

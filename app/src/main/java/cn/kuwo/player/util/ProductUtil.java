@@ -2,7 +2,10 @@ package cn.kuwo.player.util;
 
 import android.widget.TextView;
 
+import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 
 import java.io.IOException;
@@ -18,8 +21,10 @@ import java.util.Map;
 
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.bean.ProductBean;
+import cn.kuwo.player.bean.RuleBean;
 import cn.kuwo.player.comparator.MapValueComparator;
 import cn.kuwo.player.event.OrderDetail;
+import io.realm.RealmList;
 import io.realm.RealmObject;
 
 public class ProductUtil {
@@ -668,7 +673,7 @@ public class ProductUtil {
             } else {
                 restaurarnt++;
             }
-            if (!order.getAVUser("user").getObjectId().equals(CONST.ACCOUNT.SYSTEMACCOUNT)) {
+            if (!order.getAVObject("user").getObjectId().equals(CONST.ACCOUNT.SYSTEMACCOUNT)) {
                 member++;
             } else {
                 noMember++;
@@ -719,12 +724,12 @@ public class ProductUtil {
         return finalOrders;
     }
 
-    public static int  indexOfSerial(List<Object> orders, int k) {
-        int number=0;
-        for (int i=0;i<orders.size();i++){
+    public static int indexOfSerial(List<Object> orders, int k) {
+        int number = 0;
+        for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             int cookSerial = ObjectUtil.getInt(format, "cookSerial");
-            if (cookSerial==k){
+            if (cookSerial == k) {
                 ++number;
             }
         }
@@ -733,23 +738,83 @@ public class ProductUtil {
     }
 
     public static int indexOfNoDrink(List<Object> orders) {
-        int number=0;
-        for (int i=0;i<orders.size();i++){
+        int number = 0;
+        for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            if (MyUtils.getProductById(ObjectUtil.getString(format,"id")).getType()!=5){
+            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 5) {
                 ++number;
             }
         }
         return number;
     }
+
     public static int indexOfDrink(List<Object> orders) {
-        int number=0;
-        for (int i=0;i<orders.size();i++){
+        int number = 0;
+        for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            if (MyUtils.getProductById(ObjectUtil.getString(format,"id")).getType()==5){
+            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 5) {
                 ++number;
             }
         }
         return number;
+    }
+
+    /**
+     * 确定满减金额
+     */
+    public static Double calFullReduceMoney(Double actualTotalMoneny) {
+        RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
+        RuleBean ruleBean = mRealmHleper.queryAllRule().get(0);
+        RealmList<String> fullReduce = ruleBean.getFullReduce();
+        if (fullReduce.size() > 0) {
+            int index = 0;
+            for (int i = 0; i < fullReduce.size() - 1; i++) {
+                if (Double.parseDouble(fullReduce.get(i).split("-")[0]) < actualTotalMoneny && (Double.parseDouble(fullReduce.get(i).split("-")[0]) > actualTotalMoneny)) {
+                    index = i;
+                }
+            }
+            if (index != 0) {
+                index = fullReduce.size() - 1;
+            }
+
+            return Double.parseDouble(fullReduce.get(index).split("-")[1]);
+        } else {
+            return 0.0;
+        }
+
+    }
+
+    public static String calPresenter(AVObject tableAVObject, ProductBean productBean, boolean isSvip) {
+        String code = "";
+        if (productBean.getGivecode() != null && MyUtils.getProductById(productBean.getGivecode()) != null) {
+            if (productBean.getGiveRule() == 0) {
+                code = productBean.getGivecode();
+            } else if (productBean.getGiveRule() == 1) {
+                if (tableAVObject.getAVObject("user") != null) {
+                    code = productBean.getGivecode();
+                }
+            } else if (productBean.getGiveRule() == 2) {
+                if (tableAVObject.getAVObject("user") != null && isSvip) {
+                    code = productBean.getGivecode();
+                }
+            }
+        }
+        return code;
+
+    }
+    public static void saveOperateLog(int i, List<Object> preOrders,AVObject avObject){
+        AVObject operateLog = new AVObject("OperateLog");
+        operateLog.put("type",i);//0:下单 1:点单 2:改单 3:退单 4:结账
+        operateLog.put("store",1);
+        operateLog.put("orderlist",preOrders);
+        operateLog.put("tableNumber",avObject.getString("tableNumber"));
+        operateLog.put("operator",AVObject.createWithoutData("_User",SharedHelper.read("cashierId")));
+        operateLog.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(AVException e) {
+
+            }
+        });
+
     }
 }

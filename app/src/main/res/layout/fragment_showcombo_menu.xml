@@ -188,6 +188,7 @@
                 android:padding="8dp">
 
                 <LinearLayout
+                    android:id="@+id/ll_comment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
@@ -197,47 +198,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginRight="20dp"
                         android:text="备注内容：" />
-
-                    <Button
-                        android:id="@+id/remark_3"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="三分熟" />
-
-                    <Button
-                        android:id="@+id/remark_5"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="五分熟" />
-
-                    <Button
-                        android:id="@+id/remark_7"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="七分熟" />
-
-                    <Button
-                        android:id="@+id/remark_no_caraway"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="不要香菜" />
-                    <Button
-                        android:id="@+id/remark_add_ice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="加冰" />
-
-                    <Button
-                        android:id="@+id/remark_deice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="去冰" />
-
-                    <Button
-                        android:id="@+id/remark_normal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="常温" />
                 </LinearLayout>
 
                 <EditText

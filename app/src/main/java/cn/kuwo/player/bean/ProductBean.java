@@ -26,6 +26,8 @@ public class ProductBean extends RealmObject implements Serializable {
     private Double remainMoney;//抵扣后还需要支付的金额
     private String comboMenu;//套餐内容
     private int active;//是否显示
+    private RealmList<String> comments;//备注提示
+    private int giveRule;
 
     public String getCode() {
         return code;
@@ -179,6 +181,22 @@ public class ProductBean extends RealmObject implements Serializable {
         this.active = active;
     }
 
+    public RealmList<String> getComments() {
+        return comments;
+    }
+
+    public void setComments(RealmList<String> comments) {
+        this.comments = comments;
+    }
+
+    public int getGiveRule() {
+        return giveRule;
+    }
+
+    public void setGiveRule(int giveRule) {
+        this.giveRule = giveRule;
+    }
+
     @Override
     public String toString() {
         return "ProductBean{" +
@@ -201,6 +219,8 @@ public class ProductBean extends RealmObject implements Serializable {
                 ", remainMoney=" + remainMoney +
                 ", comboMenu='" + comboMenu + '\'' +
                 ", active=" + active +
+                ", comments=" + comments +
+                ", giveRule=" + giveRule +
                 '}';
     }
 }
