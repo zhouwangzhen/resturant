@@ -5,19 +5,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RetailBean implements Serializable {
-    private static final long serialVersionUID = 1L;
     private ArrayList<ProductBean> commodityList;
+    private ArrayList<String> ids;
     private ArrayList<String> codes;
     private ArrayList<Double> prices;
     private ArrayList<Double> weight;
 
-    public RetailBean(ArrayList<ProductBean> commodityList, ArrayList<String> codes, ArrayList<Double> prices, ArrayList<Double> weight) {
-        this.commodityList=commodityList;
+
+    public RetailBean( ArrayList<String> ids,ArrayList<String> codes, ArrayList<Double> prices, ArrayList<Double> weight) {
+        this.ids=ids;
         this.codes = codes;
         this.prices = prices;
         this.weight = weight;
     }
-
     public ArrayList<ProductBean> getCommodityList() {
         return commodityList;
     }
@@ -50,10 +50,19 @@ public class RetailBean implements Serializable {
         this.weight = weight;
     }
 
+    public ArrayList<String> getIds() {
+        return ids;
+    }
+
+    public void setIds(ArrayList<String> ids) {
+        this.ids = ids;
+    }
+
     @Override
     public String toString() {
         return "RetailBean{" +
                 "commodityList=" + commodityList +
+                ", ids=" + ids +
                 ", codes=" + codes +
                 ", prices=" + prices +
                 ", weight=" + weight +

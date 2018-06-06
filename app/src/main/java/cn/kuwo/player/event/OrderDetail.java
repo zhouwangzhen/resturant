@@ -91,7 +91,8 @@ public class OrderDetail implements Serializable {
                        String useMeatId,
                        List<Object> svipMaxExchangeList,
                        UserBean userBean,
-                       List<Object>orders) {//零售版
+                       List<Object>orders,
+                       Double fullReduceMoney) {//零售版
         this.avObject = avObject;
         this.myMeatWeight = myMeatWeight;
         this.totalMoney = totalMoney;
@@ -110,6 +111,7 @@ public class OrderDetail implements Serializable {
         this.svipMaxExchangeList = svipMaxExchangeList;
         this.userBean = userBean;
         this.orders=orders;
+        this.fullReduceMoney = fullReduceMoney;
     }
 
     public AVObject getAvObject() {

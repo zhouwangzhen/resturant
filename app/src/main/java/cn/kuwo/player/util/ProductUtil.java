@@ -22,6 +22,7 @@ import java.util.Map;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RuleBean;
+import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.comparator.MapValueComparator;
 import cn.kuwo.player.event.OrderDetail;
 import io.realm.RealmList;
@@ -403,6 +404,10 @@ public class ProductUtil {
                 title.setText("招商银行信用卡支付");
                 money.setText("招行信用卡" + orderDetail.getActualMoney() + "元");
                 break;
+            case 22:
+                title.setText("浦发信用卡支付");
+                money.setText("浦发信用卡" + orderDetail.getActualMoney() + "元");
+                break;
         }
     }
 
@@ -466,9 +471,11 @@ public class ProductUtil {
             case 20:
                 content = "现金支付" + MyUtils.formatDouble(actual - storedBalance - whiteBarBalance) + "元成功？";
                 break;
-
             case 21:
                 content = "招行信用卡支付余下的" + actual + "元成功？";
+                break;
+            case 22:
+                content = "浦发信用卡支付余下的" + actual + "元成功？";
                 break;
 
 
@@ -519,13 +526,13 @@ public class ProductUtil {
 
     }
 
-    public static Map<String, Double> managerEscrow(Double actualMoney, int escrow, AVObject userObject) {
+    public static Map<String, Double> managerEscrow(Double actualMoney, int escrow, UserBean userBean) {
         Map<String, Double> escrowDetail = new HashMap<>();
         Double whiteBarBalance = 0.0;
         Double storedBalance = 0.0;
-        if (userObject != null) {
-            whiteBarBalance = MyUtils.formatDouble(MyUtils.formatDouble(userObject.getDouble("gold")) - MyUtils.formatDouble(userObject.getDouble("arrears")));
-            storedBalance = MyUtils.formatDouble(userObject.getDouble("stored"));
+        if (userBean != null) {
+            whiteBarBalance = MyUtils.formatDouble(userBean.getBalance());
+            storedBalance = MyUtils.formatDouble(userBean.getStored());
         }
         switch (escrow) {
             case 1:
@@ -605,7 +612,10 @@ public class ProductUtil {
                 escrowDetail.put("现金支付", MyUtils.formatDouble(actualMoney - whiteBarBalance - storedBalance));
                 break;
             case 21:
-                escrowDetail.put("招商银行支付", actualMoney);
+                escrowDetail.put("招商信用卡银行支付", actualMoney);
+                break;
+            case 22:
+                escrowDetail.put("浦发信用卡银行支付", actualMoney);
                 break;
 
         }
@@ -650,6 +660,21 @@ public class ProductUtil {
         }
     }
 
+    public static String calCommodityId(String barcode) {
+        RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
+        return mRealmHleper.queryProductByBarcode(convertCode(barcode)).get(0).getObjectId();
+    }
+
+    public static String convertCode(String code) {
+        if (code.length() == 13) {
+            return code;
+        } else if (code.length() == 18) {
+            return code.substring(2, 7);
+        } else{
+            return code;
+        }
+    }
+
     /**
      * 统计总单的信息
      */
@@ -657,6 +682,9 @@ public class ProductUtil {
         HashMap<String, Object> detail = new HashMap<>();
         HashMap<String, Double> numbers = new HashMap<>();
         HashMap<String, Double> weights = new HashMap<>();
+        HashMap<String, Integer> offlineCoupon = new HashMap<>();
+        HashMap<String, Integer> onlineCoupon = new HashMap<>();
+
         Double online = 0.0;
         Double offline = 0.0;
         int retail = 0;
@@ -693,6 +721,22 @@ public class ProductUtil {
                     numbers.put(name, ObjectUtil.getDouble(format, "number"));
                 }
             }
+            if (order.getAVObject("useSystemCoupon") != null) {
+                String name = order.getAVObject("useSystemCoupon").getAVObject("type").getString("name");
+                if (offlineCoupon.containsKey(name)) {
+                    offlineCoupon.put(name, offlineCoupon.get(name) + 1);
+                } else {
+                    offlineCoupon.put(name, 1);
+                }
+            }
+            if (order.getAVObject("useUserCoupon") != null) {
+                String name = order.getAVObject("useUserCoupon").getAVObject("type").getString("name");
+                if (onlineCoupon.containsKey(name)) {
+                    onlineCoupon.put(name, onlineCoupon.get(name) + 1);
+                } else {
+                    onlineCoupon.put(name, 1);
+                }
+            }
         }
         List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(numbers.entrySet());
         Collections.sort(list, new Comparator<Map.Entry<String, Double>>() {
@@ -701,14 +745,17 @@ public class ProductUtil {
                 return o2.getValue().compareTo(o1.getValue());
             }
         });
-        detail.put("onlineMoney", online + "元");
-        detail.put("offlineMoney", offline + "元");
+        detail.put("onlineMoney", MyUtils.formatDouble(online) + "元");
+        detail.put("offlineMoney", MyUtils.formatDouble(offline) + "元");
+        detail.put("totalMoney", MyUtils.formatDouble(offline+online) + "元");
         detail.put("member", member + "单");
         detail.put("noMember", noMember + "单");
         detail.put("retailNumber", retail + "单");
         detail.put("restaurarntNumber", restaurarnt + "单");
         detail.put("reduceWeight", MyUtils.formatDouble(reduceWeight) + "kg");
         detail.put("numbers", list);
+        detail.put("offlineCoupon", offlineCoupon);
+        detail.put("onlineCoupon", onlineCoupon);
         Logger.d(detail);
         return detail;
     }
@@ -786,7 +833,7 @@ public class ProductUtil {
 
     public static String calPresenter(AVObject tableAVObject, ProductBean productBean, boolean isSvip) {
         String code = "";
-        if (productBean.getGivecode() != null && MyUtils.getProductById(productBean.getGivecode()) != null) {
+        if (productBean.getGivecode().length() > 0 && MyUtils.getProductById(productBean.getGivecode()) != null) {
             if (productBean.getGiveRule() == 0) {
                 code = productBean.getGivecode();
             } else if (productBean.getGiveRule() == 1) {
@@ -802,13 +849,14 @@ public class ProductUtil {
         return code;
 
     }
-    public static void saveOperateLog(int i, List<Object> preOrders,AVObject avObject){
+
+    public static void saveOperateLog(int i, List<Object> preOrders, AVObject avObject) {
         AVObject operateLog = new AVObject("OperateLog");
-        operateLog.put("type",i);//0:下单 1:点单 2:改单 3:退单 4:结账
-        operateLog.put("store",1);
-        operateLog.put("orderlist",preOrders);
-        operateLog.put("tableNumber",avObject.getString("tableNumber"));
-        operateLog.put("operator",AVObject.createWithoutData("_User",SharedHelper.read("cashierId")));
+        operateLog.put("type", i);//0:下单 1:点单 2:改单 3:退单 4:结账
+        operateLog.put("store", 1);
+        operateLog.put("orderlist", preOrders);
+        operateLog.put("tableNumber", avObject.getString("tableNumber"));
+        operateLog.put("operator", AVObject.createWithoutData("_User", SharedHelper.read("cashierId")));
         operateLog.saveInBackground(new SaveCallback() {
             @Override
             public void done(AVException e) {
@@ -816,5 +864,14 @@ public class ProductUtil {
             }
         });
 
+    }
+
+    public static boolean checkIsGive(int type) {
+        for (int i = 0; i < CONST.GIVETYPES.length; i++) {
+            if (CONST.GIVETYPES[i] == type) {
+                return true;
+            }
+        }
+        return false;
     }
 }

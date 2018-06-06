@@ -16,6 +16,8 @@ import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RetailBean;
+import cn.kuwo.player.util.MyUtils;
+import cn.kuwo.player.util.ProductUtil;
 
 public class ShowRetailAdapter extends RecyclerView.Adapter<ShowRetailAdapter.MyViewHolder> {
 
@@ -38,7 +40,7 @@ public class ShowRetailAdapter extends RecyclerView.Adapter<ShowRetailAdapter.My
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
-        ProductBean productBean = retailBean.getCommodityList().get(position);
+        ProductBean productBean =MyUtils.getProductById(retailBean.getIds().get(position));
         Double price = retailBean.getPrices().get(position);
         Double weight = retailBean.getWeight().get(position);
         Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);

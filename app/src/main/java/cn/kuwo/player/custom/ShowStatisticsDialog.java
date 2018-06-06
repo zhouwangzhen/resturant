@@ -34,7 +34,7 @@ import cn.kuwo.player.print.Bill;
 public class ShowStatisticsDialog extends DialogFragment {
     private HashMap<String, Object> ordersDetail;
     private View view;
-    private LinearLayout llDetail,llCommodity;
+    private LinearLayout llDetail,llCommodity,llOfflineCoupon,llOnlineCoupon;
     private Button btnSureOrder;
     private Date orderDate;
 
@@ -65,6 +65,7 @@ public class ShowStatisticsDialog extends DialogFragment {
 
     @SuppressLint("InflateParams")
     private void initData() {
+        setItem("总营业金额",ordersDetail.get("totalMoney").toString());
         setItem("线上收款金额",ordersDetail.get("onlineMoney").toString());
         setItem("线下收款金额",ordersDetail.get("offlineMoney").toString());
         setItem("会员数",ordersDetail.get("member").toString());
@@ -73,9 +74,18 @@ public class ShowStatisticsDialog extends DialogFragment {
         setItem("零售单数",ordersDetail.get("restaurarntNumber").toString());
         setItem("抵扣牛肉重量",ordersDetail.get("reduceWeight").toString());
         List<Map.Entry<String,Double>>  numbersList = (  List<Map.Entry<String,Double>> ) ordersDetail.get("numbers");
+        HashMap<String, Integer> offlineCoupon = (HashMap<String, Integer>) ordersDetail.get("offlineCoupon");
+        HashMap<String, Integer> onlineCoupon = (HashMap<String, Integer>) ordersDetail.get("onlineCoupon");
         for(Map.Entry<String,Double> mapping:numbersList){
-            setCommodityItem(mapping.getKey(),mapping.getValue()+"份");
+            setCommodityItem(llCommodity,mapping.getKey(),mapping.getValue()+"份");
         }
+        for(String key:offlineCoupon.keySet()){
+            setCommodityItem(llOfflineCoupon,key,offlineCoupon.get(key)+"张");
+        }
+        for(String key:onlineCoupon.keySet()){
+            setCommodityItem(llOnlineCoupon,key,onlineCoupon.get(key)+"张");
+        }
+
 
     }
     private void setItem(String content, String detail) {
@@ -89,19 +99,21 @@ public class ShowStatisticsDialog extends DialogFragment {
 
     }
 
-    private void setCommodityItem(String content, String detail) {
+    private void setCommodityItem(LinearLayout ll,String content, String detail) {
         LayoutInflater inflater = LayoutInflater.from(MyApplication.getContextObject());
         View inflate = inflater.inflate(R.layout.view_statistics_item, null);
         TextView itemName = (TextView) inflate.findViewById(R.id.item_name);
         TextView itemDetail = (TextView) inflate.findViewById(R.id.item_detial);
         itemName.setText(content);
         itemDetail.setText(detail);
-        llCommodity.addView(inflate);
+        ll.addView(inflate);
 
     }
     private void findView() {
         llDetail = view.findViewById(R.id.ll_detail);
         llCommodity = view.findViewById(R.id.ll_commodity);
+        llOfflineCoupon = view.findViewById(R.id.ll_offline_coupon);
+        llOnlineCoupon = view.findViewById(R.id.ll_online_coupon);
         btnSureOrder = view.findViewById(R.id.btn_sure_order);
         WindowManager.LayoutParams lp = getDialog().getWindow().getAttributes();
         lp.dimAmount = 0.8f;

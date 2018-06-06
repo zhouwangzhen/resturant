@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="4dp"
             android:textColor="@color/black"
-            android:text="1111"
+            android:text=""
             android:textSize="16sp"
             android:ellipsize="end"
             android:lines="2" />

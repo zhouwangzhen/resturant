@@ -41,7 +41,6 @@ public class TableFg extends BaseFragment {
     @BindView(R.id.gv_table)
     GridView gvTable;
     TableAdapter tableAdapter;
-    QMUITipDialog tipDialog;
     List<AVObject> tables = new ArrayList<>();
     @BindView(R.id.radio_big_table)
     RadioButton radioBigTable;
@@ -59,19 +58,10 @@ public class TableFg extends BaseFragment {
 
     @Override
     public void initData() {
-        setDensity();
         showDialog();
         setListener();
         fetchTable();
 
-    }
-
-    private void setDensity() {
-        if (getDensity()==3){
-            gvTable.setNumColumns(3);
-        }else{
-            gvTable.setNumColumns(4);
-        }
     }
 
     private void fetchTable() {
@@ -164,7 +154,7 @@ public class TableFg extends BaseFragment {
                 holder.tableTime = (TextView) view.findViewById(R.id.table_time);
                 holder.card_hide = (CardView) view.findViewById(R.id.card_hide);
                 holder.card_show = (CardView) view.findViewById(R.id.card_show);
-                holder.ll_table = (LinearLayout) view.findViewById(R.id.ll_table);
+                holder.cv_table = (CardView) view.findViewById(R.id.cv_table);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
@@ -192,7 +182,7 @@ public class TableFg extends BaseFragment {
                 holder.tableTime.setText("");
             }
 
-            holder.ll_table.setOnLongClickListener(new View.OnLongClickListener() {
+            holder.cv_table.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     if (avObject.getBoolean("spread")) {
@@ -205,7 +195,7 @@ public class TableFg extends BaseFragment {
                     return true;
                 }
             });
-            holder.ll_table.setOnClickListener(new View.OnClickListener() {
+            holder.cv_table.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
@@ -330,7 +320,7 @@ public class TableFg extends BaseFragment {
             TextView tableTime;
             CardView card_hide;
             CardView card_show;
-            LinearLayout ll_table;
+            CardView cv_table;
         }
     }
 }

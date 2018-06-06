@@ -105,6 +105,8 @@ public class PayActivity extends BaseActivity {
     GridView gvPayStyle;
     @BindView(R.id.btn_finish_pay)
     Button btnFinishPay;
+    @BindView(R.id.full_reduce_money)
+    TextView fullreduceMoney;
     private OrderDetail orderDetail;
     private List<Integer> paymentTypes = new ArrayList<>();
     private JSONObject jsonReduce;
@@ -200,6 +202,7 @@ public class PayActivity extends BaseActivity {
                     mallOrder.put("escrow", escrow);
                     mallOrder.put("offline", true);
                     mallOrder.put("store", 1);
+                    mallOrder.put("outside",true);
                     mallOrder.put("commodityDetail", orderDetail.getOrders());
                     if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null) {
                         mallOrder.put("meatWeights", ProductUtil.listToList(orderDetail.getUseExchangeList()));
@@ -211,9 +214,11 @@ public class PayActivity extends BaseActivity {
                     try {
                         if (orderDetail.getOnlineCouponEvent() != null) {
                             jsonReduce.put(orderDetail.getOnlineCouponEvent().getContent(), orderDetail.getOnlineCouponEvent().getMoney());
+                            mallOrder.put("useUserCoupon",AVObject.createWithoutData("Coupon",orderDetail.getOnlineCouponEvent().getId()));
                         }
                         if (orderDetail.getOfflineCouponEvent() != null) {
                             jsonReduce.put(orderDetail.getOfflineCouponEvent().getContent(), orderDetail.getOfflineCouponEvent().getMoney());
+                            mallOrder.put("useSystemCoupon",AVObject.createWithoutData("Coupon",orderDetail.getOfflineCouponEvent().getId()));
                         }
                         if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null) {
                             jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
@@ -221,7 +226,9 @@ public class PayActivity extends BaseActivity {
                         if (orderDetail.getActivityMoney() > 0) {
                             jsonReduce.put("线下店打折优惠", orderDetail.getActivityMoney());
                         }
-
+                        if (orderDetail.getFullReduceMoney() > 0) {
+                            jsonReduce.put("满减优惠", orderDetail.getFullReduceMoney());
+                        }
                         mallOrder.put("reduceDetail", jsonReduce);
                     } catch (JSONException e1) {
                         e1.printStackTrace();
@@ -262,6 +269,7 @@ public class PayActivity extends BaseActivity {
         mySvipReduceMoney.setText(orderDetail.getMyReduceMoney() + "");
         storeReduceMoney.setText("-" + orderDetail.getActivityMoney());
         totalMoney.setText("￥" + orderDetail.getActualMoney());
+        fullreduceMoney.setText("-"+orderDetail.getFullReduceMoney());
         if (orderDetail.getOfflineCouponEvent() != null) {
             tvOfflineContent.setText(orderDetail.getOfflineCouponEvent().getContent());
             tvOfflineMoeny.setText("-" + orderDetail.getOfflineCouponEvent().getMoney());

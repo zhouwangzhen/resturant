@@ -67,6 +67,7 @@ public class RetailActivity extends BaseActivity {
     private ArrayList<Double> prices = new ArrayList<>();
     private ArrayList<Double> weights = new ArrayList<>();
     private ArrayList<String> codes = new ArrayList<>();
+    private ArrayList<String> ids = new ArrayList<>();
 
     private String barcode = "";
     private Double money = 0.0;
@@ -76,6 +77,18 @@ public class RetailActivity extends BaseActivity {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+        }
+    };
+
+    private Runnable delayRun = new Runnable() {
+        @Override
+        public void run() {
+            scanMeatcode.setText("");
+            if (MyUtils.getProductBean(barcode).size() > 0) {
+                addProduct(barcode);
+            } else {
+                ToastUtil.showShort(MyApplication.getContextObject(), "扫码商品有误");
+            }
         }
     };
 
@@ -125,30 +138,22 @@ public class RetailActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(RetailActivity.this, SettleActivity.class);
-                RetailBean retailBean = new RetailBean(commodityList, codes, prices, weights);
+                RetailBean retailBean = new RetailBean(ids,codes, prices, weights);
                 intent.putExtra("retailBean", retailBean);
                 startActivityForResult(intent, 1);
             }
         });
     }
 
-    private Runnable delayRun = new Runnable() {
-        @Override
-        public void run() {
-            scanMeatcode.setText("");
-            if (MyUtils.getProductBean(barcode).size() > 0) {
-                addProduct(MyUtils.getProductBean(barcode).get(0), barcode);
-            } else {
-                ToastUtil.showShort(MyApplication.getContextObject(), "扫码商品有误");
-            }
-        }
-    };
 
-    private void addProduct(ProductBean productBean, String barcode) {
+
+    private void addProduct( String barcode) {
+        ProductBean productBean = MyUtils.getProductBean(barcode).get(0);
         commodityList.add(productBean);
         codes.add(barcode);
         weights.add(ProductUtil.calCommodityWeight(barcode));
         prices.add(ProductUtil.calCommodityMoney(barcode));
+        ids.add(ProductUtil.calCommodityId(barcode));
         scanAdapter.notifyDataSetChanged();
         money = MyUtils.totalPrice(prices);
         totalMoney.setText("共" + codes.size() + "件" + "     总计:" + money + "元");
@@ -163,6 +168,7 @@ public class RetailActivity extends BaseActivity {
         prices.remove(postion);
         commodityList.remove(postion);
         weights.remove(postion);
+        ids.remove(postion);
         scanAdapter.notifyDataSetChanged();
         money = MyUtils.totalPrice(prices);
         totalMoney.setText("共" + codes.size() + "件" + "     总计:" + money + "元");
@@ -183,6 +189,7 @@ public class RetailActivity extends BaseActivity {
             prices = new ArrayList<>();
             codes = new ArrayList<>();
             weights = new ArrayList<>();
+            ids = new ArrayList<>();
             money=0.0;
             commodityList = new ArrayList<>();
             noInfo.setVisibility(View.VISIBLE);

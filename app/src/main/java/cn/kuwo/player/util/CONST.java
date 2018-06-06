@@ -35,4 +35,6 @@ public class CONST {
     public static final String ADDRESS="瑞平路230号保利时光里B2-18";
 
     public static final String TEL="021-5496887";
+
+    public static final int[] GIVETYPES={7};
 }

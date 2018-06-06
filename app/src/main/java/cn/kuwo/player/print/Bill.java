@@ -268,6 +268,7 @@ public class Bill {
                             pos1.fontSizeSetBig(1);
                             pos1.printLocation(0);
                             pos1.printText("点单");
+                            pos1.printTextNewLine("----------------------------------------------");
                             pos1.printLine(1);
                             for (int k = -1; k < 6; k++) {
                                 pos1.bold(true);
@@ -885,6 +886,9 @@ public class Bill {
 
     }
 
+    /**
+     * 获取现在的时间
+     */
     public static String getNowDate() {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ");
         Date curDate = new Date(System.currentTimeMillis());//获取当前时间
@@ -977,7 +981,7 @@ public class Bill {
                     pos.printLine(1);
                     pos.printTextNewLine("------------------------------------------------");
                     pos.printLine(1);
-                    Map<String, Double> secrowMap = ProductUtil.managerEscrow(actualMoney, escrow, orderDetail.getAvObject().getAVObject("user"));
+                    Map<String, Double> secrowMap = ProductUtil.managerEscrow(actualMoney, escrow, orderDetail.getUserBean());
                     for (String key : secrowMap.keySet()) {
                         pos.printTwoColumn(key + " :", secrowMap.get(key) + "");
                         pos.printLine(1);
@@ -1122,7 +1126,7 @@ public class Bill {
                     pos1.printLine(1);
                     pos1.printTextNewLine("------------------------------------------------");
                     pos1.printLine(1);
-                    Map<String, Double> secrowMap1 = ProductUtil.managerEscrow(actualMoney, escrow, orderDetail.getAvObject().getAVUser("user"));
+                    Map<String, Double> secrowMap1 = ProductUtil.managerEscrow(actualMoney, escrow, orderDetail.getUserBean());
                     for (String key : secrowMap1.keySet()) {
                         pos1.printTwoColumn(key + " :", secrowMap1.get(key) + "");
                         pos1.printLine(1);
@@ -1301,6 +1305,9 @@ public class Bill {
 
     }
 
+    /**
+     * 打印总账单
+     */
     public static void printTotalBill(final Context context, final HashMap<String, Object> ordersDetail, final Date orderDate) {
         new Thread() {
             @Override
@@ -1321,6 +1328,7 @@ public class Bill {
                     pos.printLine(1);
                     pos.printTextNewLine("------------------------------------------------");
                     pos.printLine(1);
+                    pos.printTwoColumn("总营业金额", ordersDetail.get("totalMoney").toString());
                     pos.printTwoColumn("线上收款金额", ordersDetail.get("onlineMoney").toString());
                     pos.printTwoColumn("线下收款金额", ordersDetail.get("offlineMoney").toString());
                     pos.printTwoColumn("会员数", ordersDetail.get("member").toString());
@@ -1338,6 +1346,20 @@ public class Bill {
                         pos.printLine(1);
                     }
                     pos.printTextNewLine("------------------------------------------------");
+                    pos.printLine(1);
+                    HashMap<String, Integer> offlineCoupon = (HashMap<String, Integer>) ordersDetail.get("offlineCoupon");
+                    HashMap<String, Integer> onlineCoupon = (HashMap<String, Integer>) ordersDetail.get("onlineCoupon");
+                    for(String key:offlineCoupon.keySet()){
+                        pos.printTwoColumn(key,offlineCoupon.get(key)+"张");
+                        pos.printLine(1);
+                    }
+                    pos.printTextNewLine("------------------------------------------------");
+                    for(String key:onlineCoupon.keySet()){
+                        pos.printTwoColumn(key,onlineCoupon.get(key)+"张");
+                        pos.printLine(1);
+                    }
+                    pos.printTextNewLine("------------------------------------------------");
+                    pos.printLine(1);
                     pos.printTextNewLine("订单时间:" + MyUtils.dateFormatShort(orderDate) + " 00:00:00 ~ " + MyUtils.dateFormatShort(orderDate) + " 24:00:00");
                     pos.printLine(1);
                     pos.printTextNewLine("打印时间:" + MyUtils.dateFormat(new Date()));
@@ -1353,6 +1375,9 @@ public class Bill {
         }.start();
     }
 
+    /**
+     * 打开钱箱
+     */
     public static void openMoneyBox(final Context context) {
         new Thread() {
             @Override
@@ -1374,6 +1399,9 @@ public class Bill {
         }.start();
     }
 
+    /**
+     * 打印零售账单
+     */
     public static void printRetailBill(final Context context, final OrderDetail orderDetail, final JSONObject jsonReduce, final int escrow, UserBean userBean) {
         new Thread() {
             @Override
@@ -1431,7 +1459,7 @@ public class Bill {
                         pos.printWordSpace(1);
                         pos.printText("  ");
                         pos.printWordSpace(2);
-                        pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * productBean.getPrice()) + "");
+                        pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")) + "");
                         pos.printLine(1);
                     }
                     pos.printTextNewLine("------------------------------------------------");
@@ -1447,7 +1475,7 @@ public class Bill {
                     pos.printLine(1);
                     pos.printTextNewLine("------------------------------------------------");
                     pos.printLine(1);
-                    Map<String, Double> secrowMap = ProductUtil.managerEscrow(actualMoney, escrow, orderDetail.getAvObject().getAVUser("user"));
+                    Map<String, Double> secrowMap = ProductUtil.managerEscrow(actualMoney, escrow, orderDetail.getUserBean());
                     for (String key : secrowMap.keySet()) {
                         pos.printTwoColumn(key + " :", secrowMap.get(key) + "");
                         pos.printLine(1);
@@ -1482,7 +1510,7 @@ public class Bill {
                             pos.printLine(1);
                             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
                             Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
-                            pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", reduce + "");
+                            pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")) + "");
                             pos.printLine(1);
                         }
                         pos.printFourColumn("总计", "    ", "    " + orderDetail.getMyReduceWeight() + "kg", orderDetail.getMaxReduceMoney() + "");
@@ -1504,7 +1532,7 @@ public class Bill {
                             pos.printLine(1);
                             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
                             Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
-                            pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", reduce + "");
+                            pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")) + "");
                             pos.printLine(1);
                         }
                         pos.printFourColumn("总计", "    ", "    " + orderDetail.getMaxReduceWeight() + "kg", orderDetail.getMaxReduceMoney() + "");
@@ -1568,7 +1596,7 @@ public class Bill {
                         pos1.printWordSpace(1);
                         pos1.printText("  ");
                         pos1.printWordSpace(2);
-                        pos1.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * productBean.getPrice()) + "");
+                        pos1.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")) + "");
                         pos1.printLine(1);
                     }
                     pos1.printTextNewLine("------------------------------------------------");
@@ -1584,7 +1612,7 @@ public class Bill {
                     pos1.printLine(1);
                     pos1.printTextNewLine("------------------------------------------------");
                     pos1.printLine(1);
-                    Map<String, Double> secrowMap1 = ProductUtil.managerEscrow(actualMoney, escrow, orderDetail.getAvObject().getAVUser("user"));
+                    Map<String, Double> secrowMap1 = ProductUtil.managerEscrow(actualMoney, escrow, orderDetail.getUserBean());
                     for (String key : secrowMap1.keySet()) {
                         pos1.printTwoColumn(key + " :", secrowMap1.get(key) + "");
                         pos1.printLine(1);
@@ -1618,8 +1646,7 @@ public class Bill {
                             pos1.printTextNewLine(ObjectUtil.getString(format, "name"));
                             pos1.printLine(1);
                             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                            Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
-                            pos1.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", reduce + "");
+                            pos1.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")) + "");
                             pos1.printLine(1);
                         }
                         pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMyReduceWeight(), orderDetail.getMaxReduceMoney() + "");
@@ -1640,8 +1667,7 @@ public class Bill {
                             pos1.printTextNewLine(ObjectUtil.getString(format, "name"));
                             pos1.printLine(1);
                             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                            Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
-                            pos1.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", reduce + "");
+                            pos1.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")) + "");
                             pos1.printLine(1);
                         }
                         pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMaxReduceWeight() + "kg", orderDetail.getMaxReduceMoney() + "");
@@ -1669,6 +1695,9 @@ public class Bill {
         }.start();
     }
 
+    /**
+     * 超牛充值账单
+     */
     public static void printSvipBill(final String svipStyle, final Double money, final Double reduce,final Double finalMoney,final int escrow) {
         new Thread() {
             @Override

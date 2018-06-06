@@ -205,6 +205,24 @@
                         android:background="@drawable/shape_blue"
                         android:gravity="center"
                         android:textColor="@color/white" />
+                    <TextView
+                        android:layout_marginLeft="20dp"
+                        android:drawableLeft="@mipmap/icon_dot"
+                        android:text="预下单"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                    <TextView
+                        android:layout_marginLeft="20dp"
+                        android:drawableLeft="@mipmap/icon_already"
+                        android:text="已下单"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                    <TextView
+                        android:layout_marginLeft="20dp"
+                        android:drawableLeft="@mipmap/icon_delete"
+                        android:text="已退菜"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
 
                 <LinearLayout

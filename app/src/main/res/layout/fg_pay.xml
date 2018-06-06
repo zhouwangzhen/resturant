@@ -74,294 +74,306 @@
                             android:textSize="16sp" />
                     </LinearLayout>
 
-
-                    <LinearLayout
+                    <ScrollView
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:background="@drawable/shape_grey"
-                        android:orientation="vertical">
+                        android:layout_height="match_parent"
+                        android:scrollbars="none">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:padding="10dp">
+                            android:orientation="vertical">
 
-                            <ImageView
-                                android:layout_width="30dp"
-                                android:layout_height="30dp"
-                                android:background="@drawable/icon_svip" />
-
-                            <TextView
+                            <LinearLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:gravity="center_vertical"
-                                android:paddingLeft="10dp"
-                                android:text="超牛会员" />
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:background="@drawable/shape_grey"
+                                android:orientation="vertical">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:padding="10dp">
+
+                                    <ImageView
+                                        android:layout_width="30dp"
+                                        android:layout_height="30dp"
+                                        android:background="@drawable/icon_svip" />
+
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:gravity="center_vertical"
+                                        android:paddingLeft="10dp"
+                                        android:text="超牛会员" />
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+
+                                    android:gravity="center_vertical"
+                                    android:padding="10dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="可抵扣牛肉重量"
+                                        android:textColor="@color/slightgrey"
+                                        android:textSize="16sp" />
+
+                                    <View
+                                        android:layout_width="0dp"
+                                        android:layout_height="10dp"
+                                        android:layout_marginLeft="10dp"
+                                        android:layout_marginRight="10dp"
+                                        android:layout_weight="1"
+                                        android:background="@drawable/shape_dot"
+                                        android:layerType="software" />
+
+
+                                    <TextView
+                                        android:id="@+id/svip_all_reduce"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="0.0kg"
+                                        android:textColor="@color/slightgrey"
+                                        android:textSize="16sp" />
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:padding="10dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="完全抵扣后减免"
+                                        android:textColor="@color/slightgrey"
+                                        android:textSize="16sp" />
+
+                                    <View
+
+                                        android:layout_width="0dp"
+                                        android:layout_height="10dp"
+                                        android:layout_marginLeft="10dp"
+                                        android:layout_marginRight="10dp"
+                                        android:layout_weight="1"
+                                        android:background="@drawable/shape_dot"
+                                        android:layerType="software" />
+
+
+                                    <TextView
+                                        android:id="@+id/min_pay_money"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text=""
+                                        android:textColor="@color/slightgrey"
+                                        android:textSize="16sp" />
+                                </LinearLayout>
+
+                                <View
+                                    android:layout_width="match_parent"
+                                    android:layout_height="2dp"
+                                    android:background="@drawable/shape_dot"
+                                    android:layerType="software" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="10dp"
+                                    android:gravity="center_vertical"
+                                    android:padding="10dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="我的牛肉额度可抵扣牛肉重量"
+                                        android:textColor="@color/slightgrey"
+                                        android:textSize="16sp" />
+
+                                    <View
+                                        android:layout_width="0dp"
+                                        android:layout_height="10dp"
+                                        android:layout_marginLeft="10dp"
+                                        android:layout_marginRight="10dp"
+                                        android:layout_weight="1"
+                                        android:background="@drawable/shape_dot"
+                                        android:layerType="software" />
+
+
+                                    <TextView
+                                        android:id="@+id/my_svip_reduce_weight"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="0.0kg"
+                                        android:textColor="@color/slightgrey"
+                                        android:textSize="16sp" />
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:padding="10dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="我的牛肉抵扣后可减免"
+                                        android:textColor="@color/slightgrey"
+                                        android:textSize="16sp" />
+
+                                    <View
+                                        android:layout_width="0dp"
+                                        android:layout_height="10dp"
+                                        android:layout_marginLeft="10dp"
+                                        android:layout_marginRight="10dp"
+                                        android:layout_weight="1"
+                                        android:background="@drawable/shape_dot"
+                                        android:layerType="software" />
+
+
+                                    <TextView
+                                        android:id="@+id/my_svip_reduce_money"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text=""
+                                        android:textColor="@color/slightgrey"
+                                        android:textSize="16sp" />
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:id="@+id/tv_offline_content"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="线下优惠券"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="10dp"
+                                    android:layout_marginLeft="10dp"
+                                    android:layout_marginRight="10dp"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_dot"
+                                    android:layerType="software" />
+
+                                <TextView
+                                    android:id="@+id/tv_offline_moeny"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="-0.0"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:id="@+id/tv_online_content"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="线上优惠券"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="10dp"
+                                    android:layout_marginLeft="10dp"
+                                    android:layout_marginRight="10dp"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_dot"
+                                    android:layerType="software" />
+
+                                <TextView
+                                    android:id="@+id/tv_online_moeny"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="-0.0"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="开业优惠"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="10dp"
+                                    android:layout_marginLeft="10dp"
+                                    android:layout_marginRight="10dp"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_dot"
+                                    android:layerType="software" />
+
+                                <TextView
+                                    android:id="@+id/store_reduce_money"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="-0.0"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="满减优惠"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="10dp"
+                                    android:layout_marginLeft="10dp"
+                                    android:layout_marginRight="10dp"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_dot"
+                                    android:layerType="software" />
+
+                                <TextView
+                                    android:id="@+id/full_reduce_money"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="-0.0"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
                         </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-
-                            android:gravity="center_vertical"
-                            android:padding="10dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="可抵扣牛肉重量"
-                                android:textColor="@color/slightgrey"
-                                android:textSize="16sp" />
-
-                            <View
-                                android:layout_width="0dp"
-                                android:layout_height="10dp"
-                                android:layout_marginLeft="10dp"
-                                android:layout_marginRight="10dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/shape_dot"
-                                android:layerType="software" />
-
-
-                            <TextView
-                                android:id="@+id/svip_all_reduce"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0.0kg"
-                                android:textColor="@color/slightgrey"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:padding="10dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="完全抵扣后减免"
-                                android:textColor="@color/slightgrey"
-                                android:textSize="16sp" />
-
-                            <View
-
-                                android:layout_width="0dp"
-                                android:layout_height="10dp"
-                                android:layout_marginLeft="10dp"
-                                android:layout_marginRight="10dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/shape_dot"
-                                android:layerType="software" />
-
-
-                            <TextView
-                                android:id="@+id/min_pay_money"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text=""
-                                android:textColor="@color/slightgrey"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="2dp"
-                            android:background="@drawable/shape_dot"
-                            android:layerType="software" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:gravity="center_vertical"
-                            android:padding="10dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="我的牛肉额度可抵扣牛肉重量"
-                                android:textColor="@color/slightgrey"
-                                android:textSize="16sp" />
-
-                            <View
-                                android:layout_width="0dp"
-                                android:layout_height="10dp"
-                                android:layout_marginLeft="10dp"
-                                android:layout_marginRight="10dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/shape_dot"
-                                android:layerType="software" />
-
-
-                            <TextView
-                                android:id="@+id/my_svip_reduce_weight"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0.0kg"
-                                android:textColor="@color/slightgrey"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:padding="10dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="我的牛肉抵扣后可减免"
-                                android:textColor="@color/slightgrey"
-                                android:textSize="16sp" />
-
-                            <View
-                                android:layout_width="0dp"
-                                android:layout_height="10dp"
-                                android:layout_marginLeft="10dp"
-                                android:layout_marginRight="10dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/shape_dot"
-                                android:layerType="software" />
-
-
-                            <TextView
-                                android:id="@+id/my_svip_reduce_money"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text=""
-                                android:textColor="@color/slightgrey"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:id="@+id/tv_offline_content"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="线下优惠券"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
-
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="10dp"
-                            android:layout_marginLeft="10dp"
-                            android:layout_marginRight="10dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/shape_dot"
-                            android:layerType="software" />
-
-                        <TextView
-                            android:id="@+id/tv_offline_moeny"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="-0.0"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:id="@+id/tv_online_content"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="线上优惠券"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
-
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="10dp"
-                            android:layout_marginLeft="10dp"
-                            android:layout_marginRight="10dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/shape_dot"
-                            android:layerType="software" />
-
-                        <TextView
-                            android:id="@+id/tv_online_moeny"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="-0.0"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="开业优惠"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
-
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="10dp"
-                            android:layout_marginLeft="10dp"
-                            android:layout_marginRight="10dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/shape_dot"
-                            android:layerType="software" />
-
-                        <TextView
-                            android:id="@+id/store_reduce_money"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="-0.0"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="满减优惠"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
-
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="10dp"
-                            android:layout_marginLeft="10dp"
-                            android:layout_marginRight="10dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/shape_dot"
-                            android:layerType="software" />
-
-                        <TextView
-                            android:id="@+id/full_reduce_money"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="-0.0"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
-                    </LinearLayout>
+                    </ScrollView>
                 </LinearLayout>
 
                 <LinearLayout
@@ -448,6 +460,7 @@
                     android:id="@+id/btn_finish_pay"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
+                    android:background="@drawable/btn_material_yellow"
                     android:text="确认付款" />
             </LinearLayout>
         </LinearLayout>

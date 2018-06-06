@@ -55,6 +55,7 @@ import butterknife.Unbinder;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.adapter.ShowGoodAdapter;
+import cn.kuwo.player.api.CouponApi;
 import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.custom.ScanUserFragment;
@@ -260,11 +261,7 @@ public class SettleFg extends BaseFragment {
     }
 
     private void getStoreCoupon() {
-        final AVQuery<AVObject> coupon = new AVQuery<>("Coupon");
-        coupon.whereEqualTo("active", 1);
-        coupon.include("type");
-        coupon.whereEqualTo("username", "13888888888");
-        coupon.findInBackground(new FindCallback<AVObject>() {
+        CouponApi.getCouponOffline().findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(List<AVObject> list, AVException e) {
                 if (e == null) {
@@ -281,18 +278,7 @@ public class SettleFg extends BaseFragment {
     private void getUserCoupon() {
         if (tableAVObject.getAVObject("user") != null) {
             showDialog();
-            AVQuery<AVObject> couponType = new AVQuery<>("CouponType");
-            ArrayList<Integer> types = new ArrayList<>();
-            types.add(-1);
-            types.add(2);
-            couponType.whereContainedIn("store", types);
-            AVQuery<AVObject> coupon = new AVQuery<>("Coupon");
-            coupon.whereGreaterThan("end", new Date());
-            coupon.whereMatchesQuery("type", couponType);
-            coupon.whereEqualTo("username", tableAVObject.getAVObject("user").getString("username"));
-            coupon.whereEqualTo("use", 0);
-            coupon.include("type");
-            coupon.findInBackground(new FindCallback<AVObject>() {
+            CouponApi.getCouponOnline(tableAVObject.getAVObject("user").getString("username")).findInBackground(new FindCallback<AVObject>() {
                 @Override
                 public void done(List<AVObject> list, AVException e) {
                     hideDialog();
@@ -540,7 +526,7 @@ public class SettleFg extends BaseFragment {
                 if (e == null) {
                     if (list.size() == 0) {
                         hideDialog();
-                        ToastUtil.showShort(MyApplication.getContextObject(), "咱无可合并结账的订单");
+                        ToastUtil.showShort(MyApplication.getContextObject(), "暂无可合并结账的订单");
                     } else {
                         hideDialog();
                         final String[] items = new String[list.size()];

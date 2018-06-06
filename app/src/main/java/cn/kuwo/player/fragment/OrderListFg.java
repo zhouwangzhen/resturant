@@ -60,7 +60,6 @@ public class OrderListFg extends BaseFragment {
     TextView showDate;
     @BindView(R.id.btn_print)
     Button btnPrint;
-    Unbinder unbinder1;
     private Activity mActivity;
     private String mParam;
     @BindView(R.id.gv_table)
@@ -169,6 +168,8 @@ public class OrderListFg extends BaseFragment {
         mallOrder.include("paymentType");
         mallOrder.include("cashier");
         mallOrder.include("market");
+        mallOrder.include("useSystemCoupon.type");
+        mallOrder.include("useUserCoupon.type");
         mallOrder.orderByDescending("createdAt");
         mallOrder.addDescendingOrder("endAt");
         mallOrder.whereGreaterThan("createdAt", date);
@@ -250,6 +251,7 @@ public class OrderListFg extends BaseFragment {
                 holder = new ViewHolder();
                 holder.order_date = view.findViewById(R.id.order_date);
                 holder.order_state = view.findViewById(R.id.order_state);
+                holder.order_state_img = view.findViewById(R.id.order_state_img);
                 holder.order_table_number = view.findViewById(R.id.order_table_number);
                 holder.order_paysum = view.findViewById(R.id.order_paysum);
                 holder.order_detail = view.findViewById(R.id.order_detail);
@@ -281,11 +283,15 @@ public class OrderListFg extends BaseFragment {
             } else {
                 holder.order_memberstyle.setText("非会员账号");
             }
-
             String commodityList = "菜品详情\n";
             for (int i = 0; i < avObject.getList("commodityDetail").size(); i++) {
                 HashMap<String, Object> commodityDetail = ObjectUtil.format(avObject.getList("commodityDetail").get(i));
                 commodityList += commodityDetail.get("name").toString() + "*" + commodityDetail.get("number").toString() + "份\n";
+            }
+            if (avObject.getBoolean("outside")){
+                holder.order_state_img.setBackgroundResource(R.drawable.order_retail);
+            }else{
+                holder.order_state_img.setBackgroundResource(R.drawable.order_res);
             }
             holder.order_detail.setText(commodityList);
             String settleContent = "                                     结账详情\n";
@@ -358,6 +364,7 @@ public class OrderListFg extends BaseFragment {
             TextView order_paysum;
             TextView order_detail;
             TextView order_settle;
+            TextView order_state_img;
             TextView order_memberstyle;
             LinearLayout show_detail;
             CardView card_order;

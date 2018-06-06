@@ -29,6 +29,9 @@ import butterknife.Unbinder;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.adapter.OffineAdapter;
+import cn.kuwo.player.api.CommodityApi;
+import cn.kuwo.player.api.CommodityTypeApi;
+import cn.kuwo.player.api.RuleApi;
 import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RuleBean;
@@ -97,12 +100,7 @@ public class CommodityFg extends BaseFragment {
 
     public void loadCommodity() {
         emptyView.show(true);
-        final AVQuery<AVObject> offlineCommodity = new AVQuery<>("OfflineCommodity");
-        offlineCommodity.addAscendingOrder("type");
-        offlineCommodity.whereEqualTo("store", 1);
-        offlineCommodity.addAscendingOrder("serial");
-        offlineCommodity.limit(500);
-        offlineCommodity.findInBackground(new FindCallback<AVObject>() {
+        CommodityApi.getOfflineCommodity().findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(final List<AVObject> list, AVException e) {
                 if (e == null) {
@@ -152,10 +150,7 @@ public class CommodityFg extends BaseFragment {
     }
 
     private void fetchRule() {
-        AVQuery<AVObject> offlinePromotionRule = new AVQuery<>("OffineControl");
-        offlinePromotionRule.whereEqualTo("store", 1);
-        offlinePromotionRule.whereEqualTo("active", 1);
-        offlinePromotionRule.findInBackground(new FindCallback<AVObject>() {
+        RuleApi.getRule().findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(List<AVObject> list, AVException e) {
                 if (e == null) {
@@ -204,11 +199,7 @@ public class CommodityFg extends BaseFragment {
 
     public void loadType() {
         emptyView.show(true);
-        AVQuery<AVObject> query = new AVQuery<>("CommodityType");
-        query.whereEqualTo("active", 1);
-        query.whereEqualTo("store", 1);
-        query.addAscendingOrder("number");
-        query.findInBackground(new FindCallback<AVObject>() {
+        CommodityTypeApi.getCommodityType().findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(List<AVObject> list, AVException e) {
                 if (e == null) {

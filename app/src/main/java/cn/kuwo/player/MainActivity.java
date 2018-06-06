@@ -47,9 +47,11 @@ import cn.kuwo.player.activity.RetailActivity;
 import cn.kuwo.player.base.BaseActivity;
 import cn.kuwo.player.bean.NetBean;
 import cn.kuwo.player.bean.ProductBean;
+import cn.kuwo.player.bean.RuleBean;
 import cn.kuwo.player.custom.CommomDialog;
 import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.custom.ShowNoNetFragment;
+import cn.kuwo.player.event.ClearEvent;
 import cn.kuwo.player.event.PrintEvent;
 import cn.kuwo.player.event.SuccessEvent;
 import cn.kuwo.player.fragment.CommodityFg;
@@ -135,6 +137,7 @@ public class MainActivity extends BaseActivity {
         if (sharedHelper.readBoolean("cashierLogin")) {
             waiterName.setText(sharedHelper.read("cashierName"));
         } else {
+            sharedHelper.saveBoolean("cashierLogin",false);
             ScanUserFragment scanUserFragment = new ScanUserFragment(0);
             scanUserFragment.show(getSupportFragmentManager(), "scanuser");
         }
@@ -187,6 +190,8 @@ public class MainActivity extends BaseActivity {
         waiterName.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
+                SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
+                sharedHelper.saveBoolean("cashierLogin",false);
                 ScanUserFragment scanUserFragment = new ScanUserFragment(0);
                 scanUserFragment.show(getSupportFragmentManager(), "scanuser");
                 return false;
@@ -436,6 +441,7 @@ public class MainActivity extends BaseActivity {
 
 
     public void loadCommodity() {
+        fetchRule();
         final RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
         final AVQuery<AVObject> offlineCommodity = new AVQuery<>("OfflineCommodity");
         offlineCommodity.addAscendingOrder("type");
@@ -476,6 +482,7 @@ public class MainActivity extends BaseActivity {
                         productBean.setGiveRule(avObject.getInt("giveRule"));
                         productBean.setComments(commentsList);
                         mRealmHleper.addProduct(productBean);
+
                     }
                     fetchTable();
                     initializeFragment();
@@ -483,7 +490,46 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
+    private void fetchRule() {
+        AVQuery<AVObject> offlinePromotionRule = new AVQuery<>("OffineControl");
+        offlinePromotionRule.whereEqualTo("store", 1);
+        offlinePromotionRule.whereEqualTo("active", 1);
+        offlinePromotionRule.findInBackground(new FindCallback<AVObject>() {
+            @Override
+            public void done(List<AVObject> list, AVException e) {
+                if (e == null) {
+                    for (int i = 0; i < list.size(); i++) {
+                        RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
+                        mRealmHleper.deleteAll(RuleBean.class);
+                        AVObject avObject = list.get(i);
+                        RuleBean ruleBean = new RuleBean();
+                        ruleBean.setNoMemberJoin(avObject.getBoolean("noMemberJoin"));
+                        ruleBean.setDrinkJoin(avObject.getBoolean("drinkJoin"));
+                        ruleBean.setOnlyMeatJoin(avObject.getBoolean("onlyMeatJoin"));
+                        ruleBean.setMemberNoMoneyJoin(avObject.getBoolean("MemberNoMoneyJoin"));
+                        ruleBean.setAllDiscount(avObject.getDouble("allDiscount"));
+                        ruleBean.setDiscountContent(avObject.getString("discountContent"));
+                        ruleBean.setNoMemberBOGO(avObject.getBoolean("NoMemberBOGO"));
+                        ruleBean.setMemberDiscountJoin(avObject.getBoolean("MemberDiscountJoin"));
+                        ruleBean.setWineJoin(avObject.getBoolean("wineJoin"));
+                        ruleBean.setFoldOnFoldJoin(avObject.getBoolean("foldOnFoldJoin"));
+                        RealmList<String> reduceList = new RealmList<>();
+                        for (int k = 0; k < avObject.getList("fullReduce").size(); k++) {
+                            reduceList.add(avObject.getList("fullReduce").get(k).toString());
+                        }
+                        ruleBean.setFullReduce(reduceList);
 
+                        mRealmHleper.addRule(ruleBean);
+                        for (String reduce : ruleBean.getFullReduce()) {
+                            Logger.d(reduce);
+                        }
+                    }
+
+                }
+
+            }
+        });
+    }
     @Override
     public void onResume() {
         super.onResume();
@@ -548,6 +594,14 @@ public class MainActivity extends BaseActivity {
             if (showNoNetFragment != null) {
                 showNoNetFragment.getDialog().dismiss();
             }
+        }
+    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(ClearEvent clearEvent){
+        if (clearEvent.getCode()==0){
+            showDialog();
+        }else {
+            hideDialog();
         }
     }
 }

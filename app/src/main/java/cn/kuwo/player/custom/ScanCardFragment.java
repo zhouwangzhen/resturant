@@ -90,7 +90,6 @@ public class ScanCardFragment extends DialogFragment {
             }
 
         });
-        editScanCode.setText("1000");
 
     }
 

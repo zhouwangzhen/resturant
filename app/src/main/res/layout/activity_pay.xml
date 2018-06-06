@@ -332,7 +332,36 @@
                             android:textColor="@color/slightgrey"
                             android:textSize="16sp" />
                     </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:gravity="center_vertical">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="满减优惠"
+                            android:textColor="@color/slightgrey"
+                            android:textSize="16sp" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="10dp"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/shape_dot"
+                            android:layerType="software" />
+
+                        <TextView
+                            android:id="@+id/full_reduce_money"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="-0.0"
+                            android:textColor="@color/slightgrey"
+                            android:textSize="16sp" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <LinearLayout
@@ -419,6 +448,7 @@
                     android:id="@+id/btn_finish_pay"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
+                    android:background="@drawable/btn_material_yellow"
                     android:text="确认付款" />
             </LinearLayout>
         </LinearLayout>

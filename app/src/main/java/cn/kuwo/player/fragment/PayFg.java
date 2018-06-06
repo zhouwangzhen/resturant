@@ -177,7 +177,7 @@ public class PayFg extends BaseFragment {
         if (orderDetail.getAvObject().getAVObject("user") != null) {
             if (escrow == 1 || escrow == 11 || escrow == 12) {//纯消费金和白条支付
                 parameters.put("paymentType", "577b364a79bc440032772ba5");
-            } else if (escrow == 3 || escrow == 4 || escrow == 5 || escrow == 6) {//纯线下第三方支付
+            } else if (escrow == 3 || escrow == 4 || escrow == 5 || escrow == 6|| escrow == 21 || escrow == 22) {//纯线下第三方支付
                 parameters.put("paymentType", "59794daf128fe10056f43170");
             } else {//混合支付
                 parameters.put("paymentType", "59794db8ac502e0069a377d0");
@@ -213,7 +213,7 @@ public class PayFg extends BaseFragment {
                     for (int i = 0; i < orderDetail.getSelectTableNumbers().size(); i++) {
                         tableContent += "+" + orderDetail.getSelectTableNumbers().get(i);
                     }
-                    mallOrder.put("tableNumber", tableContent);
+                    mallOrder.put("tableNumber", orderDetail.getAvObject().getString("tableNumber"));
                     mallOrder.put("commodityDetail", orderDetail.getAvObject().getList("order"));
                     if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null) {
                         mallOrder.put("meatWeights", ProductUtil.listToList(orderDetail.getUseExchangeList()));
@@ -225,9 +225,11 @@ public class PayFg extends BaseFragment {
                     try {
                         if (orderDetail.getOnlineCouponEvent() != null) {
                             jsonReduce.put(orderDetail.getOnlineCouponEvent().getContent(), orderDetail.getOnlineCouponEvent().getMoney());
+                            mallOrder.put("useUserCoupon",AVObject.createWithoutData("Coupon",orderDetail.getOnlineCouponEvent().getId()));
                         }
                         if (orderDetail.getOfflineCouponEvent() != null) {
                             jsonReduce.put(orderDetail.getOfflineCouponEvent().getContent(), orderDetail.getOfflineCouponEvent().getMoney());
+                            mallOrder.put("useSystemCoupon",AVObject.createWithoutData("Coupon",orderDetail.getOfflineCouponEvent().getId()));
                         }
                         if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null) {
                             jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
@@ -338,6 +340,8 @@ public class PayFg extends BaseFragment {
             paymentTypes.add(5);
             paymentTypes.add(6);
             paymentTypes.add(21);
+            paymentTypes.add(22);
+
         }
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
 
@@ -393,6 +397,7 @@ public class PayFg extends BaseFragment {
         paymentTypes.add(5);
         paymentTypes.add(6);
         paymentTypes.add(21);
+        paymentTypes.add(22);
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
 
     }

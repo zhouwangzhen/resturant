@@ -1,5 +1,7 @@
 package cn.kuwo.player.bean;
 
+import com.avos.avoscloud.AVObject;
+
 import java.io.Serializable;
 
 public class UserBean implements Serializable{

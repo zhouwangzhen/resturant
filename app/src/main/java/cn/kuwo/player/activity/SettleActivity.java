@@ -3,7 +3,6 @@ package cn.kuwo.player.activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -14,20 +13,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
-import com.avos.avoscloud.AVFile;
 import com.avos.avoscloud.AVObject;
-import com.avos.avoscloud.AVQuery;
-import com.avos.avoscloud.AVUser;
-import com.avos.avoscloud.FunctionCallback;
-import com.avos.avoscloud.GetCallback;
-import com.avos.avoscloud.SaveCallback;
+import com.avos.avoscloud.FindCallback;
 import com.bumptech.glide.Glide;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.yzq.zxinglibrary.android.CaptureActivity;
 import com.yzq.zxinglibrary.common.Constant;
 
@@ -37,9 +28,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -47,16 +36,16 @@ import butterknife.OnClick;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.adapter.ShowRetailAdapter;
+import cn.kuwo.player.api.CouponApi;
 import cn.kuwo.player.base.BaseActivity;
 import cn.kuwo.player.bean.RetailBean;
 import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.custom.CommomDialog;
 import cn.kuwo.player.custom.ScanUserFragment;
+import cn.kuwo.player.custom.ShowCouponFragment;
 import cn.kuwo.player.custom.ShowReduceListFragment;
 import cn.kuwo.player.event.CouponEvent;
 import cn.kuwo.player.event.OrderDetail;
-import cn.kuwo.player.fragment.PayFg;
-import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.MyUtils;
@@ -123,11 +112,13 @@ public class SettleActivity extends BaseActivity {
     CheckBox cbUseSvip;
     @BindView(R.id.btn_pay)
     Button btnPay;
+    @BindView(R.id.full_reduce_money)
+    TextView fullreduceMoney;
 
     private RetailBean retailBean;
     private LinearLayoutManager linearLayoutManager;
     private ShowRetailAdapter showRetailAdapter;
-    private AVObject tableAVObject;
+    private AVObject userAVObject = null;
     private String userId = "";
     private String useMeatId = "";
     private Double originTotalMoneny = 0.0;
@@ -138,8 +129,8 @@ public class SettleActivity extends BaseActivity {
     private Double meatReduceWeight = 0.0;
     private Double myMeatReduceMoney = 0.0;
     private Double myMeatReduceWeight = 0.0;
-    private Double realPayMoeny = 0.0;
     private Double activityReduceMoney = 0.0;
+    private Double fullReduceMoney = 0.0;
     private Double hasMeatWeight = 0.0;
     private CouponEvent onlineCouponEvent = null;
     private CouponEvent offlineCouponEvent = null;
@@ -165,7 +156,7 @@ public class SettleActivity extends BaseActivity {
         recycleScanGood.setLayoutManager(linearLayoutManager);
         showRetailAdapter = new ShowRetailAdapter(MyApplication.getContextObject(), retailBean);
         recycleScanGood.setAdapter(showRetailAdapter);
-        orders = ObjectUtil.toObject(retailBean);
+        orders = ObjectUtil.toObject(retailBean.getIds(), retailBean.getPrices(), retailBean.getWeight());
         cbUseSvip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -173,6 +164,7 @@ public class SettleActivity extends BaseActivity {
             }
         });
         setData();
+        setListener();
     }
 
     /**
@@ -182,67 +174,63 @@ public class SettleActivity extends BaseActivity {
         if (userId.length() == 0) {
             llShowMember.setVisibility(View.INVISIBLE);
             signUser.setText("用户登录");
-            refreshList();
-        } else {
-            getUserInfo();
         }
         originTotalMoneny = MyUtils.totalPrice(retailBean.getPrices());
         orginPrice.setText(originTotalMoneny + "元");
         totalMoney.setText(originTotalMoneny + "元");
         totalNumber.setText(retailBean.getCodes().size() + "");
-
+        refreshList();
     }
 
-    private void getUserInfo() {
-        showDialog();
-        AVQuery<AVObject> userQuery = new AVQuery<>("_User");
-        userQuery.getInBackground(userId, new GetCallback<AVObject>() {
+    private void setListener() {
+        llOfflineMoeny.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void done(final AVObject avObject, AVException e) {
-                if (e == null) {
-                    Map<String, Object> parameter = new HashMap<String, Object>();
-                    parameter.put("userID", avObject.getObjectId());
-                    AVCloud.callFunctionInBackground("svip", parameter, new FunctionCallback<Map<String, Object>>() {
-                        @Override
-                        public void done(Map<String, Object> objectMap, AVException e) {
-                            if (e == null) {
-                                hideDialog();
-                                avUser=avObject;
-                                llShowMember.setVisibility(View.VISIBLE);
-                                Double whiteBarBalance = MyUtils.formatDouble(MyUtils.formatDouble(avUser.getDouble("gold")) - MyUtils.formatDouble(avUser.getDouble("arrears")));
-                                Double storedBalance = MyUtils.formatDouble(avUser.getDouble("stored"));
-                                Glide.with(MyApplication.getContextObject()).load(avUser.getAVFile("avatar").getUrl()).into(userAvatar);
-                                userTel.setText("用户手机号:" + avUser.getString("username"));
-                                userStored.setText("消费金:" + storedBalance);
-                                userWhitebar.setText("白条:" + whiteBarBalance);
-                                userMeatweight.setText("牛肉额度:" + objectMap.get("meatWeight").toString() + "kg");
-                                hasMeatWeight = Double.parseDouble(objectMap.get("meatWeight").toString());
-                                useMeatId = objectMap.get("meatId").toString().length() > 0 ? objectMap.get("meatId").toString() : "";
-                                if ((Boolean) objectMap.get("svip")) {
-                                    svipAvatar.setVisibility(View.VISIBLE);
-                                    userType.setText("超牛会员");
-                                    isSvip = true;
-                                } else {
-                                    svipAvatar.setVisibility(View.GONE);
-                                    userType.setText("普通会员");
-                                    isSvip = false;
-                                }
-                                signUser.setText("退出登录");
-                                refreshList();
-                            } else {
-                                hideDialog();
-                                refreshList();
-                                ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
-                            }
-                        }
-                    });
+            public void onClick(View v) {
+                getStoreCoupon();
+            }
+        });
+        llOnlineMoeny.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getUserCoupon();
 
+            }
+        });
+    }
+
+    private void getStoreCoupon() {
+        CouponApi.getCouponOffline().findInBackground(new FindCallback<AVObject>() {
+            @Override
+            public void done(List<AVObject> list, AVException e) {
+                if (e == null) {
+                    ShowCouponFragment showCouponFragment = new ShowCouponFragment(list, actualTotalMoneny, 2);
+                    showCouponFragment.show(getSupportFragmentManager(), "showpcoupon");
                 } else {
-                    hideDialog();
-                    refreshList();
+                    ToastUtil.showShort(MyApplication.getContextObject(), "网络错误");
+
                 }
             }
         });
+    }
+
+    private void getUserCoupon() {
+        if (userBean != null) {
+            showDialog();
+            CouponApi.getCouponOnline(userBean.getUsername()).findInBackground(new FindCallback<AVObject>() {
+                @Override
+                public void done(List<AVObject> list, AVException e) {
+                    hideDialog();
+                    if (e == null) {
+                        ShowCouponFragment showCouponFragment = new ShowCouponFragment(list, actualTotalMoneny, 1);
+                        showCouponFragment.show(getSupportFragmentManager(), "showpcoupon");
+                    } else {
+                        ToastUtil.showShort(MyApplication.getContextObject(), "网络错误");
+                    }
+                }
+            });
+        } else {
+            ToastUtil.showShort(MyApplication.getContextObject(), "请用户先登录后查看");
+        }
     }
 
     private void refreshList() {
@@ -253,40 +241,41 @@ public class SettleActivity extends BaseActivity {
         activityReduceMoney = 0.0;
         myMeatReduceMoney = 0.0;
         myMeatReduceWeight = 0.0;
+        fullReduceMoney = 0.0;
         totalNumber.setText(orders.size() + "");
         originTotalMoneny = MyUtils.totalPrice(retailBean.getPrices());
         orginPrice.setText(originTotalMoneny + "");
-        if (userId.length()>0) {
+        if (userId.length() > 0) {
             cbUseSvip.setVisibility(View.VISIBLE);
         } else {
             cbUseSvip.setVisibility(View.GONE);
         }
-        meatReduceMoney = ProductUtil.calMeatduceMoney(orders,retailBean.getPrices());
-        meatReduceWeight = ProductUtil.calMeatduceWeight(orders,retailBean.getWeight());
+        meatReduceMoney = ProductUtil.calMeatduceMoney(orders, retailBean.getPrices());
+        meatReduceWeight = ProductUtil.calMeatduceWeight(orders, retailBean.getWeight());
         svipAllReduce.setText(meatReduceWeight + "kg");
-        if (userId.length()>0) {
+        if (userId.length() > 0) {
             if (hasMeatWeight >= meatReduceWeight) {//用户牛肉大于等于可兑换的牛肉重量
                 mySvipReduceWeight.setText(meatReduceWeight + "kg");
                 mySvipReduceMoney.setText("-" + meatReduceMoney);
                 myMeatReduceWeight = meatReduceWeight;
                 myMeatReduceMoney = meatReduceMoney;
-                List<Object> centerOrder = new ArrayList<>();
+                List<Object> centerOrder;
                 try {
                     centerOrder = ObjectUtil.deepCopy(orders);
                 } catch (Exception e) {
                     centerOrder = new ArrayList<>();
                     e.printStackTrace();
                 }
-                useExchangeList = ProductUtil.canExchangeMeatList(centerOrder, hasMeatWeight,retailBean.getWeight());
+                useExchangeList = ProductUtil.canExchangeMeatList(centerOrder, hasMeatWeight, retailBean.getWeight());
             } else {
-                List<Object> centerOrder = new ArrayList<>();
+                List<Object> centerOrder;
                 try {
                     centerOrder = ObjectUtil.deepCopy(orders);
                 } catch (Exception e) {
                     centerOrder = new ArrayList<>();
                     e.printStackTrace();
                 }
-                useExchangeList = ProductUtil.canExchangeMeatList(centerOrder, hasMeatWeight,retailBean.getWeight());
+                useExchangeList = ProductUtil.canExchangeMeatList(centerOrder, hasMeatWeight, retailBean.getWeight());
                 myMeatReduceWeight = ProductUtil.calculateTotalWeight(useExchangeList);
                 myMeatReduceMoney = ProductUtil.calculateTotalMoney(useExchangeList);
                 mySvipReduceWeight.setText(myMeatReduceWeight + "kg");
@@ -304,10 +293,12 @@ public class SettleActivity extends BaseActivity {
         }
         if (offlineCouponEvent != null) {
             offlineCouponMoney = offlineCouponEvent.getMoney();
+            Logger.d(offlineCouponMoney);
             tvOfflineMoeny.setText("-" + offlineCouponMoney);
             tvOfflineContent.setText(offlineCouponEvent.getContent());
         }
         if (cbUseSvip.isChecked()) {
+            Logger.d(myMeatReduceMoney);
             activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - myMeatReduceMoney - offlineCouponMoney - onlineCouponMoney) * (1 - MyUtils.getDayRate()));
             if (activityReduceMoney < 0) activityReduceMoney = 0.0;
             actualTotalMoneny = originTotalMoneny - offlineCouponMoney - onlineCouponMoney - activityReduceMoney - myMeatReduceMoney;
@@ -322,6 +313,12 @@ public class SettleActivity extends BaseActivity {
             totalMoney.setText("￥" + actualTotalMoneny + "元");
             storeReduceMoney.setText("-" + activityReduceMoney);
         }
+
+        fullReduceMoney = MyUtils.formatDouble(ProductUtil.calFullReduceMoney(actualTotalMoneny) > actualTotalMoneny ? actualTotalMoneny : ProductUtil.calFullReduceMoney(actualTotalMoneny));
+        fullreduceMoney.setText("-" + fullReduceMoney);
+        actualTotalMoneny -= fullReduceMoney;
+        actualTotalMoneny = MyUtils.formatDouble(actualTotalMoneny);
+        totalMoney.setText("￥" + actualTotalMoneny + "元");
         minPayMoney.setText("-" + meatReduceMoney);
     }
 
@@ -330,32 +327,29 @@ public class SettleActivity extends BaseActivity {
         switch (view.getId()) {
             case R.id.sign_user:
                 if (userId.length() > 0) {
-                    new CommomDialog(this, R.style.dialog, "确定要取消此订单的用户信息？", new cn.kuwo.player.custom.CommomDialog.OnCloseListener() {
+                    new CommomDialog(this, R.style.dialog, "确定要取消此订单的用户信息？", new CommomDialog.OnCloseListener() {
                         @Override
                         public void onClick(Dialog dialog, boolean confirm) {
                             if (confirm) {
                                 dialog.dismiss();
                                 userId = "";
-                                avUser=null;
+                                avUser = null;
                                 ToastUtil.showShort(MyApplication.getContextObject(), "清空用户数据成功");
                                 setData();
                             }
 
                         }
-                    })
-                            .setTitle("提示").setNegativeButton("取消").setPositiveButton("退出").show();
+                    }).setTitle("提示").setNegativeButton("取消").setPositiveButton("退出").show();
                 } else {
                     chooseScanType();
                 }
-
-
                 break;
             case R.id.btn_pay:
                 Intent intent = new Intent(SettleActivity.this, PayActivity.class);
-                OrderDetail orderDetail = new OrderDetail(tableAVObject, hasMeatWeight, originTotalMoneny,
+                OrderDetail orderDetail = new OrderDetail(null, hasMeatWeight, originTotalMoneny,
                         actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
-                        onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders),userBean,orders);
-                intent.putExtra("table", orderDetail);
+                        onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), userBean, orders,fullReduceMoney);
+                intent.putExtra("table", (Serializable) orderDetail);
                 startActivityForResult(intent, 1);
                 break;
             case R.id.ll_max_reduce:
@@ -397,45 +391,55 @@ public class SettleActivity extends BaseActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void UserMessgae(UserBean bean) {
         if (bean.getCallbackCode() == CONST.UserCode.SCANCUSTOMER) {
-            userBean=bean;
+            userBean = bean;
             llShowMember.setVisibility(View.VISIBLE);
             Glide.with(MyApplication.getContextObject()).load(userBean.getAvatar()).into(userAvatar);
             userTel.setText("用户手机号:" + userBean.getUsername());
             userStored.setText("消费金:" + userBean.getStored());
             userWhitebar.setText("白条:" + userBean.getBalance());
             userMeatweight.setText("牛肉额度:" + userBean.getMeatWeight() + "kg");
-            hasMeatWeight=userBean.getMeatWeight();
+            hasMeatWeight = userBean.getMeatWeight();
             userId = userBean.getId();
+            useMeatId = userBean.getMeatId();
             if (userBean.getSvip()) {
                 svipAvatar.setVisibility(View.VISIBLE);
                 userType.setText("超牛会员");
+                isSvip = true;
             } else {
                 svipAvatar.setVisibility(View.GONE);
                 userType.setText("普通会员");
+                isSvip = false;
             }
             signUser.setText("退出登录");
             setData();
         }
     }
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(CouponEvent event) {
 
-        if (event.getType() == 1) {
-            onlineCouponEvent = event;
-            setData();
-        } else if (event.getType() == 2) {
-            offlineCouponEvent = event;
-            setData();
-        }
-
-    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode==1){
+        if (resultCode == 1) {
             Intent intent = getIntent();
-            setResult(1,intent);
+            setResult(1, intent);
             finish();
         }
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(CouponEvent event) {
+        if (event.getType() == 1) {
+            onlineCouponEvent = event;
+        } else if (event.getType() == 2) {
+            offlineCouponEvent = event;
+        }
+        setData();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // TODO: add setContentView(...) invocation
+        ButterKnife.bind(this);
     }
 }

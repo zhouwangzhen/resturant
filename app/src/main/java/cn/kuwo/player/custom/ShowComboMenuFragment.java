@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVObject;
@@ -49,10 +50,11 @@ import cn.kuwo.player.util.ProductUtil;
 public class ShowComboMenuFragment extends DialogFragment implements View.OnClickListener {
     private List<List<String>> comboMenu;
     private QMUITipDialog tipDialog;
-    private LinearLayout llRoot,llComment;
+    private LinearLayout llRoot, llComment;
     private View view;
-    private TextView title, price, close, addbt, subbt, tvNumber, giveName,comboDetail;
-    private LinearLayout llRootPage, llHasCombo, llChooseCombo, llChooseSerial;
+    private TextView title, price, close, addbt, subbt, tvNumber, giveName, comboDetail;
+    private LinearLayout llHasCombo, llChooseCombo, llChooseSerial;
+    private ScrollView llRootPage;
     private EditText editRemark;
     private FlowRadioGroup radioSerial;
     private List<Integer> chooseTypes = new ArrayList<>();
@@ -158,7 +160,7 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         } else {
             comboDetail.setVisibility(View.GONE);
         }
-        llRootPage.scrollBy(0, 0);
+        llRootPage.smoothScrollTo(0, 0);
     }
 
     private void initData() {
@@ -166,19 +168,18 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
                 .setTipWord("加载中")
                 .create();
-        title.setText(productBean.getSerial()+"  "+productBean.getName());
-        Logger.d(productBean.getComments().size());
-        for (int i=0;i<productBean.getComments().size();i++) {
+        title.setText(productBean.getSerial() + "  " + productBean.getName());
+        for (int i = 0; i < productBean.getComments().size(); i++) {
             Button button = new Button(context);
             button.setText(productBean.getComments().get(i).toString());
             final int finalI = i;
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (editRemark.getText().toString().trim().length()==0){
+                    if (editRemark.getText().toString().trim().length() == 0) {
                         editRemark.setText(productBean.getComments().get(finalI).toString());
-                    }else{
-                        editRemark.setText(editRemark.getText().toString()+"+"+productBean.getComments().get(finalI).toString());
+                    } else {
+                        editRemark.setText(editRemark.getText().toString() + "+" + productBean.getComments().get(finalI).toString());
                     }
 
                 }
@@ -248,15 +249,15 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         } else {
             price.setText("￥" + productBean.getPrice());
         }
-        if (productBean.getGivecode() != null && MyUtils.getProductById(productBean.getGivecode())!=null) {
+        if (productBean.getGivecode().length() > 0 && MyUtils.getProductById(productBean.getGivecode()) != null) {
             try {
-                String giveContent="";
-                if (productBean.getGiveRule()==1){
-                    giveContent="(会员专享)";
-                }else if(productBean.getGiveRule()==2){
-                    giveContent="(超牛会员专享)";
+                String giveContent = "";
+                if (productBean.getGiveRule() == 1) {
+                    giveContent = "(会员专享)";
+                } else if (productBean.getGiveRule() == 2) {
+                    giveContent = "(超牛会员专享)";
                 }
-                giveName.setText(MyUtils.getProductById(productBean.getGivecode()).getName()+giveContent);
+                giveName.setText(MyUtils.getProductById(productBean.getGivecode()).getName() + giveContent);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -349,13 +350,13 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                 getDialog().dismiss();
                 break;
             case R.id.subbt:
-                if (isEdit){
+                if (isEdit) {
                     if (Double.parseDouble(tvNumber.getText().toString().trim()) >= 1) {
                         tvNumber.setText(Double.parseDouble(tvNumber.getText().toString().trim()) - 1.0 + "");
                         commodityNumber = Double.parseDouble(tvNumber.getText().toString().trim());
                         price.setText("￥" + MyUtils.formatDouble(commodityNumber * productBean.getPrice()));
                     }
-                }else{
+                } else {
                     if (Double.parseDouble(tvNumber.getText().toString().trim()) >= 2) {
                         tvNumber.setText(Double.parseDouble(tvNumber.getText().toString().trim()) - 1.0 + "");
                         commodityNumber = Double.parseDouble(tvNumber.getText().toString().trim());

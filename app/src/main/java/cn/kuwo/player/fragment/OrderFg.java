@@ -67,6 +67,7 @@ import cn.kuwo.player.custom.RefundFragment;
 import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.custom.ShowComboMenuFragment;
 import cn.kuwo.player.custom.ShowPreOrderFragment;
+import cn.kuwo.player.event.ClearEvent;
 import cn.kuwo.player.event.ComboEvent;
 import cn.kuwo.player.event.CouponEvent;
 import cn.kuwo.player.event.SuccessEvent;
@@ -299,8 +300,12 @@ public class OrderFg extends BaseFragment {
                     HashMap<String, Object> hashMap = new HashMap<>();
                     if (productBeans.size() > 0) {
                         ProductBean productBean = productBeans.get(0);
-                        ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(MyApplication.getContextObject(), productBean, false);
-                        showComboMenuFragment.show(getActivity().getFragmentManager(), "showcomboMenu");
+                        if (!ProductUtil.checkIsGive(productBean.getType()) || (ProductUtil.checkIsGive(productBean.getType()) && tableAVObject.getAVObject("user") != null)) {
+                            ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(MyApplication.getContextObject(), productBean, false);
+                            showComboMenuFragment.show(getActivity().getFragmentManager(), "showcomboMenu");
+                        }else{
+                            ToastUtil.showShort(MyApplication.getContextObject(), "登录会员后选取");
+                        }
                     } else {
                         ToastUtil.showShort(MyApplication.getContextObject(), "没有查到此编号商品");
                     }
@@ -392,28 +397,14 @@ public class OrderFg extends BaseFragment {
         });
     }
 
+    /**
+     * 保存修改状态
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (preOrders.size() >= 0 && orders.size() > 0) {
-            if (tableAVObject != null && preOrders.size() >= 0 && saveData) {
-                if (tableAVObject.getInt("customer") == 0) {
-                    tableAVObject.put("customer", 1);
-                }
-                tableAVObject.put("startedAt", new Date());
-                tableAVObject.put("preOrder", preOrders);
-                tableAVObject.saveInBackground(new SaveCallback() {
-                    @Override
-                    public void done(AVException e) {
-                        if (e == null) {
-                            Logger.d("保存");
-                        } else {
-                            ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙");
-                        }
-                    }
-                });
-            }
-        } else if (preOrders.size() == 0 && orders.size() == 0) {
+        EventBus.getDefault().post(new ClearEvent(0));
+        if (preOrders.size() == 0 && orders.size() == 0) {
             if (tableAVObject != null) {
                 AVQuery<AVObject> query = new AVQuery<>("Table");
                 query.getInBackground(tableId, new GetCallback<AVObject>() {
@@ -431,16 +422,41 @@ public class OrderFg extends BaseFragment {
                                 table.saveInBackground(new SaveCallback() {
                                     @Override
                                     public void done(AVException e) {
+                                        EventBus.getDefault().post(new ClearEvent(1));
                                     }
                                 });
+                            } else {
+                                EventBus.getDefault().post(new ClearEvent(1));
                             }
+                        } else {
+                            ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙");
+                            EventBus.getDefault().post(new ClearEvent(1));
+                        }
+                    }
+                });
+            } else {
+                hideDialog();
+            }
+        } else {
+            if (tableAVObject != null && preOrders.size() >= 0 && saveData) {
+                if (tableAVObject.getInt("customer") == 0) {
+                    tableAVObject.put("customer", 1);
+                }
+                tableAVObject.put("startedAt", new Date());
+                tableAVObject.put("preOrder", preOrders);
+                tableAVObject.saveInBackground(new SaveCallback() {
+                    @Override
+                    public void done(AVException e) {
+                        EventBus.getDefault().post(new ClearEvent(1));
+                        if (e == null) {
+                            Logger.d("保存");
                         } else {
                             ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙");
                         }
                     }
                 });
             } else {
-                hideDialog();
+                EventBus.getDefault().post(new ClearEvent(1));
             }
         }
     }
@@ -490,6 +506,7 @@ public class OrderFg extends BaseFragment {
                                                                         ArrayList<Object> objects = new ArrayList<>();
                                                                         tableAVObject.put("order", new List[0]);
                                                                         tableAVObject.put("preOrder", new List[0]);
+                                                                        tableAVObject.put("refundOrder", new List[0]);
                                                                         tableAVObject.put("customer", 0);
                                                                         tableAVObject.put("startedAt", null);
                                                                         tableAVObject.put("user", null);
@@ -699,8 +716,12 @@ public class OrderFg extends BaseFragment {
     }
 
 
+    /**
+     * 添加商品
+     */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(ComboEvent event) {
+        Logger.d(event);
         if (!event.getEdit()) {
             HashMap<String, Object> hashMap = new HashMap<>();
             hashMap.put("id", event.getProductBean().getObjectId());
@@ -717,8 +738,9 @@ public class OrderFg extends BaseFragment {
             preOrders.add(hashMap);
             ArrayList<Object> objects = new ArrayList<>();
             objects.add(hashMap);
-            ProductUtil.saveOperateLog(1,objects,tableAVObject);
+            ProductUtil.saveOperateLog(1, objects, tableAVObject);
         } else {
+
             if (event.getOrderIndex() != -1) {
                 if (event.getCommodityNumber() > 0) {
                     Object o = preOrders.get(event.getOrderIndex());
@@ -735,12 +757,12 @@ public class OrderFg extends BaseFragment {
                     format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
                     format.put("cookSerial", event.getCookSerial());
                     ArrayList<Object> objects = new ArrayList<>();
-                    objects.add(objects);
-                    ProductUtil.saveOperateLog(2,objects,tableAVObject);
+                    objects.add(preOrders.get(event.getOrderIndex()));
+                    ProductUtil.saveOperateLog(2, objects, tableAVObject);
                 } else {
                     ArrayList<Object> objects = new ArrayList<>();
                     objects.add(preOrders.get(event.getOrderIndex()));
-                    ProductUtil.saveOperateLog(2,objects,tableAVObject);
+                    ProductUtil.saveOperateLog(2, objects, tableAVObject);
                     preOrders.remove(event.getOrderIndex());
                 }
 

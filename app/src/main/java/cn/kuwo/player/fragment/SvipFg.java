@@ -241,6 +241,7 @@ public class SvipFg extends BaseFragment {
             case R.id.btn_cancel_card:
                 card="";
                 tvCardCode.setText("无");
+                btnScanCard.setVisibility(View.VISIBLE);
                 break;
         }
     }
