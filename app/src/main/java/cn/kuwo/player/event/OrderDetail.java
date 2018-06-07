@@ -30,6 +30,7 @@ public class OrderDetail implements Serializable {
     private List<String> selectTableIds;
     private List<String> selectTableNumbers;
     private Double fullReduceMoney;
+    private boolean isHangUp;
 
     public OrderDetail(AVObject avObject,
                        Double myMeatWeight,
@@ -50,7 +51,8 @@ public class OrderDetail implements Serializable {
                        List<Object> finalOrders,
                        List<String> selectTableIds,
                        List<String> selectTableNumbers,
-                       Double fullReduceMoney) {//餐饮版
+                       Double fullReduceMoney,
+                       boolean isHangUp) {//餐饮版
         this.avObject = avObject;
         this.myMeatWeight = myMeatWeight;
         this.totalMoney = totalMoney;
@@ -71,6 +73,7 @@ public class OrderDetail implements Serializable {
         this.selectTableIds = selectTableIds;
         this.selectTableNumbers = selectTableNumbers;
         this.fullReduceMoney = fullReduceMoney;
+        this.isHangUp=isHangUp;
 
     }
 
@@ -288,6 +291,14 @@ public class OrderDetail implements Serializable {
 
     public void setFullReduceMoney(Double fullReduceMoney) {
         this.fullReduceMoney = fullReduceMoney;
+    }
+
+    public boolean isHangUp() {
+        return isHangUp;
+    }
+
+    public void setHangUp(boolean hangUp) {
+        isHangUp = hangUp;
     }
 
     @Override

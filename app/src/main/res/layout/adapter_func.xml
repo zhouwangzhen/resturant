@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cn.kuwo.player.custom.SquareLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/ll_root"
+    android:background="@drawable/btn_material_orange"
+    >
+    <TextView
+        android:id="@+id/func_name"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:layout_centerInParent="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</cn.kuwo.player.custom.SquareLayout>

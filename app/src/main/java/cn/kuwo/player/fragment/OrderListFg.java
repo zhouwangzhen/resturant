@@ -44,6 +44,7 @@ import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.custom.ShowStatisticsDialog;
+import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.DateUtil;
 import cn.kuwo.player.util.MyUtils;
@@ -259,11 +260,12 @@ public class OrderListFg extends BaseFragment {
                 holder.show_detail = view.findViewById(R.id.show_detail);
                 holder.order_memberstyle = view.findViewById(R.id.order_memberstyle);
                 holder.card_order = view.findViewById(R.id.card_order);
+                holder.btn_reprint = view.findViewById(R.id.btn_reprint);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
             }
-            AVObject avObject = orders.get(position);
+            final AVObject avObject = orders.get(position);
             if (avObject.getDate("startedAt") != null) {
                 holder.order_date.setText("用餐时间:" + DateUtil.formatDate(avObject.getDate("startedAt")) + "~" + DateUtil.formatDate(avObject.getDate("endAt")));
                 holder.order_table_number.setText("桌号:" + avObject.getString("tableNumber"));
@@ -288,10 +290,14 @@ public class OrderListFg extends BaseFragment {
                 HashMap<String, Object> commodityDetail = ObjectUtil.format(avObject.getList("commodityDetail").get(i));
                 commodityList += commodityDetail.get("name").toString() + "*" + commodityDetail.get("number").toString() + "份\n";
             }
-            if (avObject.getBoolean("outside")){
-                holder.order_state_img.setBackgroundResource(R.drawable.order_retail);
-            }else{
-                holder.order_state_img.setBackgroundResource(R.drawable.order_res);
+            if (!avObject.getBoolean("hangUp")) {
+                if (avObject.getBoolean("outside")) {
+                    holder.order_state_img.setBackgroundResource(R.drawable.order_retail);
+                } else {
+                    holder.order_state_img.setBackgroundResource(R.drawable.order_res);
+                }
+            }else {
+                holder.order_state_img.setBackgroundResource(R.drawable.icon_hangup_state);
             }
             holder.order_detail.setText(commodityList);
             String settleContent = "                                     结账详情\n";
@@ -331,29 +337,35 @@ public class OrderListFg extends BaseFragment {
             if (position != selectIndex) {
                 holder.show_detail.setVisibility(View.GONE);
             }
-            holder.card_order.setOnLongClickListener(new View.OnLongClickListener() {
+            holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public boolean onLongClick(View v) {
-                    new QMUIDialog.MessageDialogBuilder(getActivity())
-                            .setTitle("温馨提示")
-                            .setMessage("是否确定整单退款?")
-                            .addAction("取消", new QMUIDialogAction.ActionListener() {
-                                @Override
-                                public void onClick(QMUIDialog dialog, int index) {
-                                    dialog.dismiss();
-                                }
-                            })
-                            .addAction("确定", new QMUIDialogAction.ActionListener() {
-                                @Override
-                                public void onClick(QMUIDialog dialog, int index) {
-                                    dialog.dismiss();
-                                }
-                            })
-                            .setCanceledOnTouchOutside(false)
-                            .create(mCurrentDialogStyle).show();
-                    return false;
+                public void onClick(View v) {
+                    Bill.reprintBill(MyApplication.getContextObject(),avObject);
                 }
             });
+//            holder.card_order.setOnLongClickListener(new View.OnLongClickListener() {
+//                @Override
+//                public boolean onLongClick(View v) {
+//                    new QMUIDialog.MessageDialogBuilder(getActivity())
+//                            .setTitle("温馨提示")
+//                            .setMessage("是否确定整单退款?")
+//                            .addAction("取消", new QMUIDialogAction.ActionListener() {
+//                                @Override
+//                                public void onClick(QMUIDialog dialog, int index) {
+//                                    dialog.dismiss();
+//                                }
+//                            })
+//                            .addAction("确定", new QMUIDialogAction.ActionListener() {
+//                                @Override
+//                                public void onClick(QMUIDialog dialog, int index) {
+//                                    dialog.dismiss();
+//                                }
+//                            })
+//                            .setCanceledOnTouchOutside(false)
+//                            .create(mCurrentDialogStyle).show();
+//                    return false;
+//                }
+//            });
             return view;
         }
 
@@ -366,6 +378,7 @@ public class OrderListFg extends BaseFragment {
             TextView order_settle;
             TextView order_state_img;
             TextView order_memberstyle;
+            Button btn_reprint;
             LinearLayout show_detail;
             CardView card_order;
         }

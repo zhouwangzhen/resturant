@@ -601,13 +601,13 @@ public class OrderFg extends BaseFragment {
                                         public void onClick(QMUIDialog dialog, int index) {
                                             dialog.dismiss();
                                             FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                                            ft.replace(R.id.fragment_content, SettleFg.newInstance(tableAVObject.getObjectId())).commit();
+                                            ft.replace(R.id.fragment_content, SettleFg.newInstance(tableAVObject.getObjectId(),false)).commit();
                                         }
                                     })
                                     .create(mCurrentDialogStyle).show();
                         } else {
                             FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                            ft.replace(R.id.fragment_content, SettleFg.newInstance(tableAVObject.getObjectId())).commit();
+                            ft.replace(R.id.fragment_content, SettleFg.newInstance(tableAVObject.getObjectId(),false)).commit();
                         }
                     } else {
                         ToastUtil.showShort(MyApplication.getContextObject(), "至少下单一个商品");

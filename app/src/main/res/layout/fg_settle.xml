@@ -98,13 +98,12 @@
                             android:layout_height="wrap_content"
                             android:text="付款信息"
                             android:textSize="16sp" />
-
                         <Button
-                            android:id="@+id/merge_settle"
+                            android:id="@+id/more_fuc"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentRight="true"
-                            android:text="多订单结账" />
+                            android:text="更多功能" />
                     </RelativeLayout>
 
                     <LinearLayout

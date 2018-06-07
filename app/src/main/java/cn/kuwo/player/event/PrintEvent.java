@@ -8,6 +8,7 @@ public class PrintEvent {
     private OrderDetail orderDetail;
     private JSONObject jsonObject;
     private int escrow;
+    private String tableNumber;
 
 
     public PrintEvent(int code, String message) {
@@ -15,12 +16,13 @@ public class PrintEvent {
         this.message = message;
     }
 
-    public PrintEvent(int code, String message, OrderDetail orderDetail, JSONObject jsonObject, int escrow) {
+    public PrintEvent(int code, String message, OrderDetail orderDetail, JSONObject jsonObject, int escrow,String tableNumber) {
         this.code = code;
         this.message = message;
         this.orderDetail = orderDetail;
         this.jsonObject = jsonObject;
         this.escrow = escrow;
+        this.tableNumber=tableNumber;
     }
 
     public int getCode() {
@@ -61,6 +63,14 @@ public class PrintEvent {
 
     public void setEscrow(int escrow) {
         this.escrow = escrow;
+    }
+
+    public String getTableNumber() {
+        return tableNumber;
+    }
+
+    public void setTableNumber(String tableNumber) {
+        this.tableNumber = tableNumber;
     }
 
     @Override

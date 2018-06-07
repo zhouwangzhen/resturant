@@ -670,7 +670,7 @@ public class ProductUtil {
             return code;
         } else if (code.length() == 18) {
             return code.substring(2, 7);
-        } else{
+        } else {
             return code;
         }
     }
@@ -747,7 +747,7 @@ public class ProductUtil {
         });
         detail.put("onlineMoney", MyUtils.formatDouble(online) + "元");
         detail.put("offlineMoney", MyUtils.formatDouble(offline) + "元");
-        detail.put("totalMoney", MyUtils.formatDouble(offline+online) + "元");
+        detail.put("totalMoney", MyUtils.formatDouble(offline + online) + "元");
         detail.put("member", member + "单");
         detail.put("noMember", noMember + "单");
         detail.put("retailNumber", retail + "单");
@@ -873,5 +873,13 @@ public class ProductUtil {
             }
         }
         return false;
+    }
+
+    public static String calOtherTable(List<String> selectTableNumbers) {
+        String content = "";
+        for (int i = 0; i < selectTableNumbers.size(); i++) {
+            content += "+" + selectTableNumbers.get(i);
+        }
+        return content;
     }
 }

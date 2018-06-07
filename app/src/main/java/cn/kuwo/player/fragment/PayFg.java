@@ -108,6 +108,8 @@ public class PayFg extends BaseFragment {
     @BindView(R.id.full_reduce_money)
     TextView fullreduceMoney;
     Unbinder unbinder1;
+    @BindView(R.id.table_info)
+    TextView tableInfo;
 
     private Activity mActivity;
     private OrderDetail orderDetail;
@@ -177,7 +179,7 @@ public class PayFg extends BaseFragment {
         if (orderDetail.getAvObject().getAVObject("user") != null) {
             if (escrow == 1 || escrow == 11 || escrow == 12) {//纯消费金和白条支付
                 parameters.put("paymentType", "577b364a79bc440032772ba5");
-            } else if (escrow == 3 || escrow == 4 || escrow == 5 || escrow == 6|| escrow == 21 || escrow == 22) {//纯线下第三方支付
+            } else if (escrow == 3 || escrow == 4 || escrow == 5 || escrow == 6 || escrow == 21 || escrow == 22) {//纯线下第三方支付
                 parameters.put("paymentType", "59794daf128fe10056f43170");
             } else {//混合支付
                 parameters.put("paymentType", "59794db8ac502e0069a377d0");
@@ -208,28 +210,32 @@ public class PayFg extends BaseFragment {
                     mallOrder.put("offline", true);
                     mallOrder.put("store", 1);
                     mallOrder.put("refundDetail", orderDetail.getAvObject().getList("refundOrder"));
-
-                    String tableContent = "当前桌号:" + orderDetail.getAvObject().getString("tableNumber");
-                    for (int i = 0; i < orderDetail.getSelectTableNumbers().size(); i++) {
-                        tableContent += "+" + orderDetail.getSelectTableNumbers().get(i);
-                    }
-                    mallOrder.put("tableNumber", orderDetail.getAvObject().getString("tableNumber"));
-                    mallOrder.put("commodityDetail", orderDetail.getAvObject().getList("order"));
+                    final String finalTableNumber=orderDetail.getAvObject().getString("tableNumber") +ProductUtil.calOtherTable(orderDetail.getSelectTableNumbers());
+                    mallOrder.put("tableNumber", finalTableNumber);
+                    mallOrder.put("commodityDetail", orderDetail.getFinalOrders());
+                    mallOrder.put("maxMeatDeduct",orderDetail.getSvipMaxExchangeList());
+                    mallOrder.put("realMeatDeduct",orderDetail.getUseExchangeList());
                     if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null) {
                         mallOrder.put("meatWeights", ProductUtil.listToList(orderDetail.getUseExchangeList()));
                         mallOrder.put("meatDetail", ProductUtil.listToObject(orderDetail.getUseExchangeList()));
                         mallOrder.put("useMeat", AVObject.createWithoutData("Meat", orderDetail.getUseMeatId()));
 
                     }
+                    if (orderDetail.isHangUp()) {
+                        mallOrder.put("hangUp", true);
+                        mallOrder.put("message",orderDetail.getAvObject().getString("remark"));
+                    }
                     jsonReduce = new JSONObject();
+                    Map<String, Double> escrowDetail = ProductUtil.managerEscrow(orderDetail.getActualMoney(), escrow, orderDetail.getUserBean());
+                    mallOrder.put("escrowDetail", escrowDetail);
                     try {
                         if (orderDetail.getOnlineCouponEvent() != null) {
                             jsonReduce.put(orderDetail.getOnlineCouponEvent().getContent(), orderDetail.getOnlineCouponEvent().getMoney());
-                            mallOrder.put("useUserCoupon",AVObject.createWithoutData("Coupon",orderDetail.getOnlineCouponEvent().getId()));
+                            mallOrder.put("useUserCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOnlineCouponEvent().getId()));
                         }
                         if (orderDetail.getOfflineCouponEvent() != null) {
                             jsonReduce.put(orderDetail.getOfflineCouponEvent().getContent(), orderDetail.getOfflineCouponEvent().getMoney());
-                            mallOrder.put("useSystemCoupon",AVObject.createWithoutData("Coupon",orderDetail.getOfflineCouponEvent().getId()));
+                            mallOrder.put("useSystemCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOfflineCouponEvent().getId()));
                         }
                         if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null) {
                             jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
@@ -241,6 +247,7 @@ public class PayFg extends BaseFragment {
                             jsonReduce.put("满减优惠", orderDetail.getFullReduceMoney());
                         }
                         mallOrder.put("reduceDetail", jsonReduce);
+
                     } catch (JSONException e1) {
                         e1.printStackTrace();
                     }
@@ -251,8 +258,8 @@ public class PayFg extends BaseFragment {
                             hideDialog();
                             if (e == null) {
                                 showDialog();
-                                ProductUtil.saveOperateLog(4,orderDetail.getFinalOrders(),orderDetail.getAvObject());
-                                Bill.printSettleBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow);
+                                ProductUtil.saveOperateLog(4, orderDetail.getFinalOrders(), orderDetail.getAvObject());
+                                Bill.printSettleBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow,finalTableNumber);
                                 ToastUtil.showShort(MyApplication.getContextObject(), "订单结算完成");
                             } else {
                                 ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
@@ -270,47 +277,88 @@ public class PayFg extends BaseFragment {
 
     private void resetTable() {
         showDialog();
-        AVObject avObject = orderDetail.getAvObject();
-        avObject.put("order", new List[0]);
-        avObject.put("preOrder", new List[0]);
-        avObject.put("refundOrder", new List[0]);
-        avObject.put("customer", 0);
-        avObject.put("startedAt", null);
-        avObject.put("user", null);
-        avObject.saveInBackground(new SaveCallback() {
-            @Override
-            public void done(AVException e) {
-                if (e == null) {
-                    hideDialog();
-                    for (int i = 0; i < orderDetail.getSelectTableIds().size(); i++) {
-                        AVObject table = AVObject.createWithoutData("Table", orderDetail.getSelectTableIds().get(i));
-                        table.put("order", new List[0]);
-                        table.put("preOrder", new List[0]);
-                        table.put("refundOrder", new List[0]);
-                        table.put("customer", 0);
-                        table.put("startedAt", null);
-                        table.put("user", null);
-                        table.saveInBackground(new SaveCallback() {
-                            @Override
-                            public void done(AVException e) {
-                                if (e == null) {
-                                    hideDialog();
-                                } else {
-                                    hideDialog();
-                                    resetTable();
+        if (orderDetail.isHangUp()) {
+            Logger.d("zzzzzzz");
+            AVObject avObject = orderDetail.getAvObject();
+            avObject.put("active", 0);
+            avObject.put("settledAt", new Date());
+            avObject.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(AVException e) {
+                    if (e == null) {
+                        hideDialog();
+                        for (int i = 0; i < orderDetail.getSelectTableIds().size(); i++) {
+                            AVObject table = AVObject.createWithoutData("Table", orderDetail.getSelectTableIds().get(i));
+                            table.put("order", new List[0]);
+                            table.put("preOrder", new List[0]);
+                            table.put("refundOrder", new List[0]);
+                            table.put("customer", 0);
+                            table.put("startedAt", null);
+                            table.put("user", null);
+                            table.saveInBackground(new SaveCallback() {
+                                @Override
+                                public void done(AVException e) {
+                                    if (e == null) {
+                                        hideDialog();
+                                    } else {
+                                        hideDialog();
+                                        resetTable();
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
+                        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                        ft.replace(R.id.fragment_content, TableFg.newInstance(""), "table").commit();
+                    } else {
+                        hideDialog();
+                        ToastUtil.showShort(MyApplication.getContextObject(), "网络错误" + e.getMessage());
+                        resetTable();
                     }
-                    FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                    ft.replace(R.id.fragment_content, TableFg.newInstance(""), "table").commit();
-                } else {
-                    ToastUtil.showShort(MyApplication.getContextObject(), "网络错误" + e.getMessage());
-                    resetTable();
                 }
-            }
-        });
-
+            });
+        } else {
+            Logger.d("aaaaaa");
+            AVObject avObject = orderDetail.getAvObject();
+            avObject.put("order", new List[0]);
+            avObject.put("preOrder", new List[0]);
+            avObject.put("refundOrder", new List[0]);
+            avObject.put("customer", 0);
+            avObject.put("startedAt", null);
+            avObject.put("user", null);
+            avObject.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(AVException e) {
+                    if (e == null) {
+                        hideDialog();
+                        for (int i = 0; i < orderDetail.getSelectTableIds().size(); i++) {
+                            AVObject table = AVObject.createWithoutData("Table", orderDetail.getSelectTableIds().get(i));
+                            table.put("order", new List[0]);
+                            table.put("preOrder", new List[0]);
+                            table.put("refundOrder", new List[0]);
+                            table.put("customer", 0);
+                            table.put("startedAt", null);
+                            table.put("user", null);
+                            table.saveInBackground(new SaveCallback() {
+                                @Override
+                                public void done(AVException e) {
+                                    if (e == null) {
+                                        hideDialog();
+                                    } else {
+                                        hideDialog();
+                                        resetTable();
+                                    }
+                                }
+                            });
+                        }
+                        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                        ft.replace(R.id.fragment_content, TableFg.newInstance(""), "table").commit();
+                    } else {
+                        ToastUtil.showShort(MyApplication.getContextObject(), "网络错误" + e.getMessage());
+                        resetTable();
+                    }
+                }
+            });
+        }
     }
 
     private void setData() {
@@ -322,7 +370,7 @@ public class PayFg extends BaseFragment {
         mySvipReduceMoney.setText(orderDetail.getMyReduceMoney() + "");
         storeReduceMoney.setText("-" + orderDetail.getActivityMoney());
         totalMoney.setText("￥" + orderDetail.getActualMoney());
-        fullreduceMoney.setText("-"+orderDetail.getFullReduceMoney());
+        fullreduceMoney.setText("-" + orderDetail.getFullReduceMoney());
         if (orderDetail.getOfflineCouponEvent() != null) {
             tvOfflineContent.setText(orderDetail.getOfflineCouponEvent().getContent());
             tvOfflineMoeny.setText("-" + orderDetail.getOfflineCouponEvent().getMoney());
@@ -331,6 +379,8 @@ public class PayFg extends BaseFragment {
             tvOnlineContent.setText(orderDetail.getOnlineCouponEvent().getContent());
             tvOnlineMoeny.setText("-" + orderDetail.getOnlineCouponEvent().getMoney());
         }
+        String tableContent = "结账桌号:" + orderDetail.getAvObject().getString("tableNumber") + ProductUtil.calOtherTable(orderDetail.getSelectTableNumbers());
+        tableInfo.setText(tableContent);
         AVObject avObject = orderDetail.getAvObject();
         if (avObject.getAVObject("user") != null) {
             setUserInfo(avObject.getAVObject("user"));

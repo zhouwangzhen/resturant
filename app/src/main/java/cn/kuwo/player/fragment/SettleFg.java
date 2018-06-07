@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,12 +18,14 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVFile;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.DeleteCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.FunctionCallback;
 import com.avos.avoscloud.GetCallback;
@@ -32,6 +35,7 @@ import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.yzq.zxinglibrary.android.CaptureActivity;
 import com.yzq.zxinglibrary.common.Constant;
 
@@ -56,10 +60,13 @@ import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.adapter.ShowGoodAdapter;
 import cn.kuwo.player.api.CouponApi;
+import cn.kuwo.player.api.HangUpApi;
+import cn.kuwo.player.api.TableApi;
 import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.custom.ShowCouponFragment;
+import cn.kuwo.player.custom.ShowFuncFragment;
 import cn.kuwo.player.custom.ShowReduceListFragment;
 import cn.kuwo.player.event.CouponEvent;
 import cn.kuwo.player.event.OrderDetail;
@@ -74,6 +81,7 @@ import static android.app.Activity.RESULT_OK;
 
 public class SettleFg extends BaseFragment {
     private static String tableId = "param_key";
+    private static boolean isHangUp = false;
     @BindView(R.id.user_avatar)
     QMUIRadiusImageView userAvatar;
     @BindView(R.id.svip_avatar)
@@ -135,12 +143,11 @@ public class SettleFg extends BaseFragment {
     TextView payContent;
     @BindView(R.id.table_number)
     TextView tableNumber;
-    @BindView(R.id.merge_settle)
-    Button mergeSettle;
     @BindView(R.id.full_reduce_money)
     TextView fullreduceMoney;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private int REQUEST_CODE_SCAN = 111;
+    private int REQUEST_FUNC = 100;
     private Activity mActivity;
     private AVObject tableAVObject;
     private String userId = "";
@@ -178,7 +185,13 @@ public class SettleFg extends BaseFragment {
     @Override
     public void initData() {
         showDialog();
-        final AVQuery<AVObject> table = new AVQuery<>("Table");
+        final AVQuery<AVObject> table;
+        if (isHangUp){
+             table = new AVQuery<>("HangUpOrder");
+        }else{
+             table = new AVQuery<>("Table");
+        }
+
         table.include("user");
         table.getInBackground(tableId, new GetCallback<AVObject>() {
             @Override
@@ -231,7 +244,10 @@ public class SettleFg extends BaseFragment {
                         signUser.setText("用户登录");
                     }
 
+                }else{
+                    ToastUtil.showShort(getContext(), "获取订单信息错误"+e.getMessage());
                 }
+
             }
         });
         cbUseSvip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -295,10 +311,11 @@ public class SettleFg extends BaseFragment {
         }
     }
 
-    public static SettleFg newInstance(String str) {
+    public static SettleFg newInstance(String str,Boolean isHangUp) {
         SettleFg settleFg = new SettleFg();
         Bundle bundle = new Bundle();
         bundle.putString(tableId, str);
+        bundle.putBoolean("isHangUp", isHangUp);
         settleFg.setArguments(bundle);
         return settleFg;
     }
@@ -307,6 +324,7 @@ public class SettleFg extends BaseFragment {
         super.onAttach(context);
         mActivity = (Activity) context;
         tableId = getArguments().getString(tableId);  //获取参数
+        isHangUp=getArguments().getBoolean("isHangUp");
     }
 
     private void fetchCommodity(AVObject tableAVObject) {
@@ -428,10 +446,10 @@ public class SettleFg extends BaseFragment {
             storeReduceMoney.setText("-" + activityReduceMoney);
         }
 
-        fullReduceMoney=MyUtils.formatDouble(ProductUtil.calFullReduceMoney(actualTotalMoneny)>actualTotalMoneny?actualTotalMoneny:ProductUtil.calFullReduceMoney(actualTotalMoneny));
-        fullreduceMoney.setText("-"+fullReduceMoney);
-        actualTotalMoneny-=fullReduceMoney;
-        actualTotalMoneny=MyUtils.formatDouble(actualTotalMoneny);
+        fullReduceMoney = MyUtils.formatDouble(ProductUtil.calFullReduceMoney(actualTotalMoneny) > actualTotalMoneny ? actualTotalMoneny : ProductUtil.calFullReduceMoney(actualTotalMoneny));
+        fullreduceMoney.setText("-" + fullReduceMoney);
+        actualTotalMoneny -= fullReduceMoney;
+        actualTotalMoneny = MyUtils.formatDouble(actualTotalMoneny);
         totalMoney.setText("￥" + actualTotalMoneny + "元");
         minPayMoney.setText("-" + meatReduceMoney);
     }
@@ -450,7 +468,7 @@ public class SettleFg extends BaseFragment {
         unbinder.unbind();
     }
 
-    @OnClick({R.id.sign_user, R.id.btn_pay, R.id.ll_max_reduce, R.id.ll_my_reduce, R.id.merge_settle})
+    @OnClick({R.id.sign_user, R.id.btn_pay, R.id.ll_max_reduce, R.id.ll_my_reduce, R.id.more_fuc})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.sign_user:
@@ -495,7 +513,7 @@ public class SettleFg extends BaseFragment {
                 Bundle bundle = new Bundle();
                 OrderDetail orderDetail = new OrderDetail(tableAVObject, hasMeatWeight, originTotalMoneny,
                         actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
-                        onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), orders, selectTableIds, selectTableNumber,fullReduceMoney);
+                        onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), orders, selectTableIds, selectTableNumber, fullReduceMoney,isHangUp);
                 bundle.putSerializable("table", (Serializable) orderDetail);
                 payFg.setArguments(bundle);
                 ft.replace(R.id.fragment_content, payFg, "pay").commit();
@@ -508,85 +526,14 @@ public class SettleFg extends BaseFragment {
                 showReduceListFragment = new ShowReduceListFragment(useExchangeList, 1);
                 showReduceListFragment.show(getFragmentManager(), "showreducelist");
                 break;
-            case R.id.merge_settle:
-                chooseMerge();
+            case R.id.more_fuc:
+                ShowFuncFragment showFuncFragment = new ShowFuncFragment();
+                showFuncFragment.setTargetFragment(this, REQUEST_FUNC);
+                showFuncFragment.show(getFragmentManager(), "showfunc");
                 break;
         }
     }
 
-    private void chooseMerge() {
-        showDialog();
-        AVQuery<AVObject> tables = new AVQuery<>("Table");
-        tables.whereNotEqualTo("objectId", tableAVObject.getObjectId());
-        tables.whereGreaterThan("customer", 0);
-        tables.whereExists("order");
-        tables.findInBackground(new FindCallback<AVObject>() {
-            @Override
-            public void done(final List<AVObject> list, AVException e) {
-                if (e == null) {
-                    if (list.size() == 0) {
-                        hideDialog();
-                        ToastUtil.showShort(MyApplication.getContextObject(), "暂无可合并结账的订单");
-                    } else {
-                        hideDialog();
-                        final String[] items = new String[list.size()];
-                        final String[] tableIds = new String[list.size()];
-                        for (int i = 0; i < list.size(); i++) {
-                            items[i] = list.get(i).getString("tableNumber");
-                            tableIds[i] = list.get(i).getObjectId();
-                        }
-                        final QMUIDialog.MultiCheckableDialogBuilder builder = new QMUIDialog.MultiCheckableDialogBuilder(getActivity())
-                                .setTitle("选择合并结账的桌号")
-                                .addItems(items, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                    }
-                                });
-                        builder.addAction("取消", new QMUIDialogAction.ActionListener() {
-                            @Override
-                            public void onClick(QMUIDialog dialog, int index) {
-                                dialog.dismiss();
-                            }
-                        });
-                        builder.addAction("确定合并", new QMUIDialogAction.ActionListener() {
-                            @Override
-                            public void onClick(QMUIDialog dialog, int index) {
-                                final String[] tableSelectIds = new String[builder.getCheckedItemIndexes().length];
-                                for (int i = 0; i < builder.getCheckedItemIndexes().length; i++) {
-                                    tableSelectIds[i] = tableIds[builder.getCheckedItemIndexes()[i]];
-                                }
-                                AVQuery<AVObject> table = new AVQuery<>("Table");
-                                table.whereContainedIn("objectId", Arrays.asList(tableSelectIds));
-                                table.findInBackground(new FindCallback<AVObject>() {
-                                    @Override
-                                    public void done(List<AVObject> list, AVException e) {
-                                        if (e == null) {
-                                            otherTableOrders = new HashMap<>();
-                                            selectTableNumber = new ArrayList<>();
-                                            selectTableIds = new ArrayList<>();
-                                            for (int i = 0; i < list.size(); i++) {
-                                                selectTableNumber.add(list.get(i).getString("tableNumber"));
-                                                selectTableIds.add(list.get(i).getObjectId());
-                                                otherTableOrders.put(tableSelectIds[i], list.get(i).getList("order"));
-                                            }
-                                            refreshList();
-                                        }
-                                    }
-                                });
-                                dialog.dismiss();
-                            }
-                        });
-                        builder.create(mCurrentDialogStyle).show();
-                    }
-                } else {
-                    hideDialog();
-                    ToastUtil.showShort(MyApplication.getContextObject(), "网络异常");
-                }
-            }
-        });
-
-    }
 
     /**
      * 判断是否有摄像头
@@ -672,8 +619,11 @@ public class SettleFg extends BaseFragment {
                 });
 
             }
+        } else if (requestCode == REQUEST_FUNC) {
+            setFunc(resultCode);
         }
     }
+
 
     @Override
     public void onResume() {
@@ -734,6 +684,172 @@ public class SettleFg extends BaseFragment {
             }
             signUser.setText("退出登录");
             Logger.d(userBean);
+        }
+    }
+
+
+    private void setFunc(int resultCode) {
+        switch (resultCode) {
+            case 0:
+                chooseMerge();//合并订单结账
+                break;
+            case 1:
+                if (isHangUp){
+                    ToastUtil.showShort(MyApplication.getContextObject(),"挂账订单不可继续挂账");
+                }else{
+                    hangUp();//挂账
+                }
+
+                break;
+        }
+
+    }
+
+    private void chooseMerge() {
+        showDialog();
+        AVQuery<AVObject> tables = new AVQuery<>("Table");
+        tables.whereNotEqualTo("objectId", tableAVObject.getObjectId());
+        tables.whereGreaterThan("customer", 0);
+        tables.whereExists("order");
+        tables.findInBackground(new FindCallback<AVObject>() {
+            @Override
+            public void done(final List<AVObject> list, AVException e) {
+                if (e == null) {
+                    if (list.size() == 0) {
+                        hideDialog();
+                        ToastUtil.showShort(MyApplication.getContextObject(), "暂无可合并结账的订单");
+                    } else {
+                        hideDialog();
+                        final String[] items = new String[list.size()];
+                        final String[] tableIds = new String[list.size()];
+                        for (int i = 0; i < list.size(); i++) {
+                            items[i] = list.get(i).getString("tableNumber");
+                            tableIds[i] = list.get(i).getObjectId();
+                        }
+                        final QMUIDialog.MultiCheckableDialogBuilder builder = new QMUIDialog.MultiCheckableDialogBuilder(getActivity())
+                                .setTitle("选择合并结账的桌号")
+                                .addItems(items, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+
+                                    }
+                                });
+                        builder.addAction("取消", new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                dialog.dismiss();
+                            }
+                        });
+                        builder.addAction("确定合并", new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                final String[] tableSelectIds = new String[builder.getCheckedItemIndexes().length];
+                                for (int i = 0; i < builder.getCheckedItemIndexes().length; i++) {
+                                    tableSelectIds[i] = tableIds[builder.getCheckedItemIndexes()[i]];
+                                }
+                                AVQuery<AVObject> table = new AVQuery<>("Table");
+                                table.whereContainedIn("objectId", Arrays.asList(tableSelectIds));
+                                table.findInBackground(new FindCallback<AVObject>() {
+                                    @Override
+                                    public void done(List<AVObject> list, AVException e) {
+                                        if (e == null) {
+                                            otherTableOrders = new HashMap<>();
+                                            selectTableNumber = new ArrayList<>();
+                                            selectTableIds = new ArrayList<>();
+                                            for (int i = 0; i < list.size(); i++) {
+                                                selectTableNumber.add(list.get(i).getString("tableNumber"));
+                                                selectTableIds.add(list.get(i).getObjectId());
+                                                otherTableOrders.put(tableSelectIds[i], list.get(i).getList("order"));
+                                            }
+                                            refreshList();
+                                        }
+                                    }
+                                });
+                                dialog.dismiss();
+                            }
+                        });
+                        builder.create(mCurrentDialogStyle).show();
+                    }
+                } else {
+                    hideDialog();
+                    ToastUtil.showShort(MyApplication.getContextObject(), "网络异常");
+                }
+            }
+        });
+
+    }
+
+    private void hangUp() {
+        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
+        builder.setTitle("提示")
+                .setPlaceholder("在此输入挂单原因")
+                .setInputType(InputType.TYPE_CLASS_TEXT)
+                .setCanceledOnTouchOutside(false)
+                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        dialog.dismiss();
+                    }
+                })
+                .addAction("确定", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        String  text = builder.getEditText().getText().toString();
+                        if (text != null && text.length() > 0) {
+                            HangUpOrder(text);
+                            dialog.dismiss();
+                        } else {
+                            Toast.makeText(getActivity(), "请输入挂单原因", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .create(mCurrentDialogStyle).show();
+
+
+
+
+
+    }
+    private void HangUpOrder(String content){
+        showDialog();
+        if (tableAVObject != null) {
+            final AVObject hangUpOrder = HangUpApi.saveHangUpOrder(tableAVObject, content);
+            hangUpOrder.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(AVException e) {
+                    if (e == null) {
+                        TableApi.clearTable(tableAVObject).saveInBackground(new SaveCallback() {
+                            @Override
+                            public void done(AVException e) {
+                                hideDialog();
+                                if (e == null) {
+                                    FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                                    TableFg tableFg = TableFg.newInstance("");
+                                    ft.replace(R.id.fragment_content, tableFg, "table").commit();
+                                    new QMUITipDialog.Builder(getContext())
+                                            .setIconType(QMUITipDialog.Builder.ICON_TYPE_SUCCESS)
+                                            .setTipWord("挂单成功")
+                                            .create();
+                                } else {
+                                    ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage() + "订单信息错误");
+                                    hangUpOrder.deleteInBackground(new DeleteCallback() {
+                                        @Override
+                                        public void done(AVException e) {
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    } else {
+                        hideDialog();
+                        ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage() + "订单信息错误");
+                    }
+                }
+            });
+
+        } else {
+            hideDialog();
+            ToastUtil.showShort(MyApplication.getContextObject(), "订单信息错误");
         }
     }
 }

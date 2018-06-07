@@ -8,19 +8,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +30,8 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
+import cn.kuwo.player.api.HangUpApi;
 import cn.kuwo.player.base.BaseFragment;
-import cn.kuwo.player.util.AppUtils;
 import cn.kuwo.player.util.DateUtil;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.ToastUtil;
@@ -48,8 +48,15 @@ public class TableFg extends BaseFragment {
     RadioButton radioSmallTable;
     @BindView(R.id.rg_choose_table_style)
     RadioGroup rgChooseTableStyle;
+    @BindView(R.id.tv_hangup_number)
+    TextView tvHangupNumber;
+    @BindView(R.id.rl_hangup)
+    RelativeLayout rlHangup;
+    Unbinder unbinder;
+    @BindView(R.id.btn_hangup)
+    TextView btnHangup;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
-    private boolean chooseBigTable=true;
+    private boolean chooseBigTable = true;
 
     @Override
     protected int getLayoutId() {
@@ -61,13 +68,30 @@ public class TableFg extends BaseFragment {
         showDialog();
         setListener();
         fetchTable();
+        fetchHangUp();
 
+    }
+
+    private void fetchHangUp() {
+        HangUpApi.getHangUpOrders().countInBackground(new CountCallback() {
+            @Override
+            public void done(int i, AVException e) {
+                if (e == null) {
+                    if (i > 0) {
+                        rlHangup.setVisibility(View.VISIBLE);
+                        tvHangupNumber.setText(i + "");
+                    } else {
+                        rlHangup.setVisibility(View.INVISIBLE);
+                    }
+                }
+            }
+        });
     }
 
     private void fetchTable() {
         final AVQuery<AVObject> table = new AVQuery<>("Table");
         table.orderByAscending("tableNumber");
-        table.whereEqualTo("spread",!chooseBigTable);
+        table.whereEqualTo("spread", !chooseBigTable);
         table.whereEqualTo("active", 1);
         table.findInBackground(new FindCallback<AVObject>() {
             @Override
@@ -100,18 +124,25 @@ public class TableFg extends BaseFragment {
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 switch (checkedId) {
                     case R.id.radio_big_table:
-                        chooseBigTable=true;
+                        chooseBigTable = true;
                         fetchTable();
                         break;
                     case R.id.radio_small_table:
-                        chooseBigTable=false;
+                        chooseBigTable = false;
                         fetchTable();
                         break;
                 }
             }
         });
+        btnHangup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                HangUpFragment hangUpFragment = HangUpFragment.newInstance("");
+                ft.replace(R.id.fragment_content, hangUpFragment, "hangup").commit();
+            }
+        });
     }
-
 
 
     public static TableFg newInstance(String str) {
@@ -120,6 +151,20 @@ public class TableFg extends BaseFragment {
         bundle.putString(ARG_PARAM, str);
         tableFg.setArguments(bundle);
         return tableFg;
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // TODO: inflate a fragment view
+        View rootView = super.onCreateView(inflater, container, savedInstanceState);
+        unbinder = ButterKnife.bind(this, rootView);
+        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
     }
 
 

@@ -521,7 +521,7 @@ public class MainActivity extends BaseActivity {
 
                         mRealmHleper.addRule(ruleBean);
                         for (String reduce : ruleBean.getFullReduce()) {
-                            Logger.d(reduce);
+//                            Logger.d(reduce);
                         }
                     }
 
@@ -574,7 +574,7 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onClick(Dialog dialog, boolean confirm) {
                     if (confirm) {
-                        Bill.printSettleBill(MyApplication.getContextObject(), event.getOrderDetail(), event.getJsonObject(), event.getEscrow());
+                        Bill.printSettleBill(MyApplication.getContextObject(), event.getOrderDetail(), event.getJsonObject(), event.getEscrow(),event.getTableNumber());
                         dialog.dismiss();
                     }
 
