@@ -210,6 +210,10 @@ public class PayActivity extends BaseActivity {
                         mallOrder.put("useMeat", AVObject.createWithoutData("Meat", orderDetail.getUseMeatId()));
 
                     }
+                    mallOrder.put("maxMeatDeduct",orderDetail.getSvipMaxExchangeList());
+                    mallOrder.put("realMeatDeduct",orderDetail.getUseExchangeList());
+                    Map<String, Double> escrowDetail = ProductUtil.managerEscrow(orderDetail.getActualMoney(), escrow, orderDetail.getUserBean());
+                    mallOrder.put("escrowDetail", escrowDetail);
                     jsonReduce = new JSONObject();
                     try {
                         if (orderDetail.getOnlineCouponEvent() != null) {

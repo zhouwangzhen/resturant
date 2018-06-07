@@ -75,6 +75,7 @@ import cn.kuwo.player.interfaces.MyItemClickListener;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
+import cn.kuwo.player.util.DataUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
@@ -295,10 +296,9 @@ public class OrderFg extends BaseFragment {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String serial = editMemberAmount.getText().toString().trim();
                 if (serial.length() == 3) {
-                    editMemberAmount.setText("");
                     List<ProductBean> productBeans = ProductUtil.searchBySerial(serial);
-                    HashMap<String, Object> hashMap = new HashMap<>();
                     if (productBeans.size() > 0) {
+                        editMemberAmount.setText("");
                         ProductBean productBean = productBeans.get(0);
                         if (!ProductUtil.checkIsGive(productBean.getType()) || (ProductUtil.checkIsGive(productBean.getType()) && tableAVObject.getAVObject("user") != null)) {
                             ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(MyApplication.getContextObject(), productBean, false);
@@ -721,55 +721,66 @@ public class OrderFg extends BaseFragment {
      */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(ComboEvent event) {
-        Logger.d(event);
-        if (!event.getEdit()) {
-            HashMap<String, Object> hashMap = new HashMap<>();
-            hashMap.put("id", event.getProductBean().getObjectId());
-            hashMap.put("number", event.getCommodityNumber());
-            hashMap.put("comment", event.getContent());
-            hashMap.put("name", event.getProductBean().getName());
-            if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
-                hashMap.put("comboList", event.getComboList());
+        if (tableAVObject!=null) {
+            if (!event.getEdit()) {
+//                HashMap<String, Object> hashMap = new HashMap<>();
+//                hashMap.put("id", event.getProductBean().getObjectId());
+//                hashMap.put("number", event.getCommodityNumber());
+//                hashMap.put("comment", event.getContent());
+//                hashMap.put("name", event.getProductBean().getName());
+//                if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
+//                    hashMap.put("comboList", event.getComboList());
+//                } else {
+//                    hashMap.put("comboList", new ArrayList<>());
+//                }
+//                hashMap.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
+//                hashMap.put("cookSerial", event.getCookSerial());
+
+                preOrders.add(DataUtil.addHashMap(
+                        event,
+                        tableAVObject,
+                        isSvip));
+//                ArrayList<Object> objects = new ArrayList<>();
+//                objects.add(hashMap);
+//                ProductUtil.saveOperateLog(1, objects, tableAVObject);
             } else {
-                hashMap.put("comboList", new ArrayList<>());
+
+//                if (event.getOrderIndex() != -1) {
+//                    if (event.getCommodityNumber() > 0) {
+//                        Object o = preOrders.get(event.getOrderIndex());
+//                        HashMap<String, Object> format = ObjectUtil.format(o);
+//                        format.put("id", event.getProductBean().getObjectId());
+//                        format.put("number", event.getCommodityNumber());
+//                        format.put("comment", event.getContent());
+//                        format.put("name", event.getProductBean().getName());
+//                        if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
+//                            format.put("comboList", event.getComboList());
+//                        } else {
+//                            format.put("comboList", new ArrayList<>());
+//                        }
+//                        format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
+//                        format.put("cookSerial", event.getCookSerial());
+////                        ArrayList<Object> objects = new ArrayList<>();
+////                        objects.add(preOrders.get(event.getOrderIndex()));
+////                        ProductUtil.saveOperateLog(2, objects, tableAVObject);
+//                    } else {
+////                        ArrayList<Object> objects = new ArrayList<>();
+////                        objects.add(preOrders.get(event.getOrderIndex()));
+////                        ProductUtil.saveOperateLog(2, objects, tableAVObject);
+//                        preOrders.remove(event.getOrderIndex());
+//                    }
+//
+//                }
+                DataUtil.updateIndexOder(
+                        event,
+                        preOrders,
+                        tableAVObject,
+                        isSvip
+                );
+
             }
-            hashMap.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
-            hashMap.put("cookSerial", event.getCookSerial());
-            preOrders.add(hashMap);
-            ArrayList<Object> objects = new ArrayList<>();
-            objects.add(hashMap);
-            ProductUtil.saveOperateLog(1, objects, tableAVObject);
-        } else {
-
-            if (event.getOrderIndex() != -1) {
-                if (event.getCommodityNumber() > 0) {
-                    Object o = preOrders.get(event.getOrderIndex());
-                    HashMap<String, Object> format = ObjectUtil.format(o);
-                    format.put("id", event.getProductBean().getObjectId());
-                    format.put("number", event.getCommodityNumber());
-                    format.put("comment", event.getContent());
-                    format.put("name", event.getProductBean().getName());
-                    if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
-                        format.put("comboList", event.getComboList());
-                    } else {
-                        format.put("comboList", new ArrayList<>());
-                    }
-                    format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
-                    format.put("cookSerial", event.getCookSerial());
-                    ArrayList<Object> objects = new ArrayList<>();
-                    objects.add(preOrders.get(event.getOrderIndex()));
-                    ProductUtil.saveOperateLog(2, objects, tableAVObject);
-                } else {
-                    ArrayList<Object> objects = new ArrayList<>();
-                    objects.add(preOrders.get(event.getOrderIndex()));
-                    ProductUtil.saveOperateLog(2, objects, tableAVObject);
-                    preOrders.remove(event.getOrderIndex());
-                }
-
-            }
-
+            refreshList();
         }
-        refreshList();
     }
 
     @Override

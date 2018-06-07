@@ -398,6 +398,7 @@ public class SettleActivity extends BaseActivity {
             userStored.setText("消费金:" + userBean.getStored());
             userWhitebar.setText("白条:" + userBean.getBalance());
             userMeatweight.setText("牛肉额度:" + userBean.getMeatWeight() + "kg");
+            userMeatweight.setText("牛肉额度:" + userBean.getMeatWeight() + "kg");
             hasMeatWeight = userBean.getMeatWeight();
             userId = userBean.getId();
             useMeatId = userBean.getMeatId();

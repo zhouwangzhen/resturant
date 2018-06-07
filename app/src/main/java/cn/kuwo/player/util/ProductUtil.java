@@ -195,7 +195,12 @@ public class ProductUtil {
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             if (productBean.getScale() > 0) {
                 try {
-                    format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
+                    if (productBean.getCode().length()==5){
+                        format.put("meatWeight", MyUtils.formatDouble(ObjectUtil.getDouble(format,"weight") * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
+                    }else{
+                        format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
+                    }
+
                 } catch (Exception e) {
                     format.put("meatWeight", 0.0);
 
@@ -303,7 +308,12 @@ public class ProductUtil {
             HashMap<String, Object> format = ObjectUtil.format(useExchangeList.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             if (productBean.getScale() > 0) {
-                TotalMeatReduceMoney += (productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number");
+                if(MyUtils.getProductById(ObjectUtil.getString((HashMap<String, Object>) format,"id")).getCode().length()==5){
+                    TotalMeatReduceMoney += (MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number");
+                }else{
+                    TotalMeatReduceMoney += (productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number");
+                }
+
             }
         }
         return MyUtils.formatDouble(TotalMeatReduceMoney);

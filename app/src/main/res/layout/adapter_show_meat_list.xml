@@ -9,7 +9,7 @@
         android:id="@+id/meat_name"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_weight="2"
         android:gravity="center"/>
 
 
@@ -19,7 +19,12 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:gravity="center"/>
-
+    <TextView
+        android:id="@+id/meat_weight"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"/>
     <TextView
         android:id="@+id/meat_reduce_weight"
         android:layout_width="0dp"

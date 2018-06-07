@@ -28,6 +28,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import cn.kuwo.player.MainActivity;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.api.HangUpApi;
@@ -69,7 +70,8 @@ public class TableFg extends BaseFragment {
         setListener();
         fetchTable();
         fetchHangUp();
-
+        MainActivity activity = (MainActivity) getActivity();
+        activity.fetchTable();
     }
 
     private void fetchHangUp() {

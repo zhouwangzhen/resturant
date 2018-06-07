@@ -314,7 +314,7 @@ public class MainActivity extends BaseActivity {
         view.setTextColor(getResources().getColor(R.color.white));
     }
 
-    private void fetchTable() {
+    public void fetchTable() {
         table = new AVQuery<>("Table");
         table.orderByAscending("tableNumber");
         table.whereEqualTo("active", 1);
