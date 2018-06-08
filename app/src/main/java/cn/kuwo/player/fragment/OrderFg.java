@@ -725,13 +725,15 @@ public class OrderFg extends BaseFragment {
                 preOrders.add(DataUtil.addHashMap(
                         event,
                         tableAVObject,
-                        isSvip));
+                        isSvip,
+                        userId));
             } else {
                 DataUtil.updateIndexOder(
                         event,
                         preOrders,
                         tableAVObject,
-                        isSvip
+                        isSvip,
+                        userId
                 );
 
             }

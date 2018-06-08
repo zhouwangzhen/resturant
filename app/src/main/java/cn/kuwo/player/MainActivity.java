@@ -28,6 +28,7 @@ import com.avos.avoscloud.AVUser;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.LogInCallback;
+import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 
 import org.greenrobot.eventbus.EventBus;
@@ -41,6 +42,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import cn.kuwo.player.activity.RetailActivity;
+import cn.kuwo.player.api.CommodityApi;
+import cn.kuwo.player.api.RuleApi;
 import cn.kuwo.player.base.BaseActivity;
 import cn.kuwo.player.bean.NetBean;
 import cn.kuwo.player.bean.ProductBean;
@@ -65,6 +68,7 @@ import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.RealmHelper;
+import cn.kuwo.player.util.RealmUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
 import io.realm.RealmList;
@@ -165,12 +169,10 @@ public class MainActivity extends BaseActivity {
                             loadCommodity();
                         } else {
                             fetchTable();
-                            subscribeQuery();
                             initializeFragment();
                         }
                     } else {
                         fetchTable();
-                        subscribeQuery();
                         initializeFragment();
                     }
                 }
@@ -270,7 +272,7 @@ public class MainActivity extends BaseActivity {
             setSelectState(menuUpdate, R.drawable.icon_update);
             SettingFg settingFg = SettingFg.newInstance("");
             ft.replace(R.id.fragment_content, settingFg, "setting").commit();
-        }else if (tag == "stored") {
+        } else if (tag == "stored") {
             setSelectState(menuStored, R.drawable.icon_recharge_nor);
             StoredFg storedFg = StoredFg.newInstance("");
             ft.replace(R.id.fragment_content, storedFg, "stored").commit();
@@ -345,12 +347,12 @@ public class MainActivity extends BaseActivity {
                     } catch (Exception e1) {
                         ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
                     }
-
                 } else {
                     ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
                 }
             }
         });
+        subscribeQuery();
 
     }
 
@@ -381,7 +383,6 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // TODO: add setContentView(...) invocation
         ButterKnife.bind(this);
     }
 
@@ -421,7 +422,6 @@ public class MainActivity extends BaseActivity {
             AVObject avObject = tables.get(i);
             holder.tableNumber.setText(avObject.getString("tableNumber") + "号桌");
             if (avObject.getInt("customer") != 0) {
-
                 holder.tablePrice.setText("￥" + ProductUtil.calculateTotalMoney(avObject));
                 holder.tableSvipPrice.setText("超牛价钱￥" + ProductUtil.calculateMinMoney(avObject));
                 holder.tableCommodity.setText(avObject.getList("order").size() + avObject.getList("preOrder").size() + "道菜品");
@@ -437,11 +437,7 @@ public class MainActivity extends BaseActivity {
         }
 
         private class ViewHolder {
-            TextView tableNumber;
-            TextView tableCommodity;
-            TextView tablePrice;
-            TextView tableSvipPrice;
-            TextView tablePeople;
+            TextView tableNumber,tableCommodity,tablePrice,tableSvipPrice,tablePeople;
             RelativeLayout rlTableDetail;
             LinearLayout llTable;
         }
@@ -450,48 +446,11 @@ public class MainActivity extends BaseActivity {
 
     public void loadCommodity() {
         fetchRule();
-        final RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
-        final AVQuery<AVObject> offlineCommodity = new AVQuery<>("OfflineCommodity");
-        offlineCommodity.addAscendingOrder("type");
-        offlineCommodity.whereEqualTo("store", 1);
-        offlineCommodity.addAscendingOrder("serial");
-        offlineCommodity.limit(500);
-        offlineCommodity.findInBackground(new FindCallback<AVObject>() {
+        CommodityApi.getOfflineCommodity().findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(final List<AVObject> list, AVException e) {
                 if (e == null) {
-                    mRealmHleper.deleteAll(ProductBean.class);
-                    for (int i = 0; i < list.size(); i++) {
-                        AVObject avObject = list.get(i);
-                        ProductBean productBean = new ProductBean();
-                        productBean.setName(avObject.get("name").toString());
-                        productBean.setCode(avObject.get("code").toString());
-                        productBean.setObjectId(avObject.getAVObject("commodity").getObjectId());
-                        productBean.setPrice(avObject.getDouble("price"));
-                        productBean.setWeight(avObject.getDouble("weight"));
-                        productBean.setType(avObject.getInt("type"));
-                        productBean.setSale(avObject.getInt("sale"));
-                        productBean.setCombo(avObject.getInt("combo"));
-                        productBean.setRate(avObject.getDouble("rate"));
-                        productBean.setPerformance(avObject.getInt("performance"));
-                        productBean.setGivecode(TextUtils.isEmpty(avObject.getString("givecode")) ? "" : avObject.getString("givecode"));
-                        productBean.setStore(avObject.getInt("store"));
-                        productBean.setMeatWeight(avObject.getDouble("meatWeight"));
-                        productBean.setSerial(avObject.getString("serial"));
-                        productBean.setUrl(avObject.getAVFile("avatar").getUrl());
-                        productBean.setScale(avObject.getDouble("scale"));
-                        productBean.setRemainMoney(avObject.getDouble("remainMoney"));
-                        productBean.setActive(avObject.getInt("active"));
-                        productBean.setComboMenu(avObject.getString("comboMenu") == null ? "" : MyUtils.replaceBlank(avObject.getString("comboMenu").trim().replace(" ", "")));
-                        RealmList<String> commentsList = new RealmList<>();
-                        for (int k = 0; k < avObject.getList("comments").size(); k++) {
-                            commentsList.add(avObject.getList("comments").get(k).toString());
-                        }
-                        productBean.setGiveRule(avObject.getInt("giveRule"));
-                        productBean.setComments(commentsList);
-                        mRealmHleper.addProduct(productBean);
-
-                    }
+                    RealmUtil.setProductBeanRealm(list);
                     fetchTable();
                     initializeFragment();
                 }
@@ -500,39 +459,11 @@ public class MainActivity extends BaseActivity {
     }
 
     private void fetchRule() {
-        AVQuery<AVObject> offlinePromotionRule = new AVQuery<>("OffineControl");
-        offlinePromotionRule.whereEqualTo("store", 1);
-        offlinePromotionRule.whereEqualTo("active", 1);
-        offlinePromotionRule.findInBackground(new FindCallback<AVObject>() {
+        RuleApi.getRule().findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(List<AVObject> list, AVException e) {
                 if (e == null) {
-                    for (int i = 0; i < list.size(); i++) {
-                        RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
-                        mRealmHleper.deleteAll(RuleBean.class);
-                        AVObject avObject = list.get(i);
-                        RuleBean ruleBean = new RuleBean();
-                        ruleBean.setNoMemberJoin(avObject.getBoolean("noMemberJoin"));
-                        ruleBean.setDrinkJoin(avObject.getBoolean("drinkJoin"));
-                        ruleBean.setOnlyMeatJoin(avObject.getBoolean("onlyMeatJoin"));
-                        ruleBean.setMemberNoMoneyJoin(avObject.getBoolean("MemberNoMoneyJoin"));
-                        ruleBean.setAllDiscount(avObject.getDouble("allDiscount"));
-                        ruleBean.setDiscountContent(avObject.getString("discountContent"));
-                        ruleBean.setNoMemberBOGO(avObject.getBoolean("NoMemberBOGO"));
-                        ruleBean.setMemberDiscountJoin(avObject.getBoolean("MemberDiscountJoin"));
-                        ruleBean.setWineJoin(avObject.getBoolean("wineJoin"));
-                        ruleBean.setFoldOnFoldJoin(avObject.getBoolean("foldOnFoldJoin"));
-                        RealmList<String> reduceList = new RealmList<>();
-                        for (int k = 0; k < avObject.getList("fullReduce").size(); k++) {
-                            reduceList.add(avObject.getList("fullReduce").get(k).toString());
-                        }
-                        ruleBean.setFullReduce(reduceList);
-
-                        mRealmHleper.addRule(ruleBean);
-                        for (String reduce : ruleBean.getFullReduce()) {
-//                            Logger.d(reduce);
-                        }
-                    }
+                    RealmUtil.setRuleBeanRealm(list);
 
                 }
 

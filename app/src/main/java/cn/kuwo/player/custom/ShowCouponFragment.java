@@ -144,10 +144,7 @@ public class ShowCouponFragment extends DialogFragment {
         }
 
         private class ViewHolder {
-            TextView show_list_name;
-            TextView show_list_content;
-            TextView show_list_number;
-            TextView show_list_give;
+            TextView show_list_name,show_list_content,show_list_number,show_list_give;
         }
     }
 

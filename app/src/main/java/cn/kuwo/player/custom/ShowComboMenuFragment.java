@@ -134,7 +134,6 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                     radioButton.setLayoutParams(layoutParams);
                     radioButton.setText(comboMenu.get(i).get(j));
                     radioButton.setTextSize(12);
-//                    radioButton.setButtonDrawable(android.R.color.transparent);//隐藏单选圆形按钮
                     radioButton.setGravity(Gravity.CENTER);
                     radioButton.setPadding(20, 20, 20, 20);
                     radioGroup.addView(radioButton);

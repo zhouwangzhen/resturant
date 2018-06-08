@@ -54,7 +54,9 @@ public class Bill {
      * 下单小票
      * type 0,正常 1,收银的坏了  厨房的好使 2,收银的好使 厨房的坏了
      */
-    public static void printCateringFore(final List<Object> orders, final AVObject tableAVObject, final int type) {
+    public static void printCateringFore(final List<Object> orders,
+                                         final AVObject tableAVObject,
+                                         final int type) {
         new Thread() {
             public void run() {
                 mContext = MyApplication.getContextObject();
@@ -584,7 +586,20 @@ public class Bill {
         }.start();
     }
 
-    public static void resturateGenerate(final Context context, final AVObject tableAvObject, final String payStyleContent, final String userId, Double stored, Double balance, final Double originMoney, final Double finalMoney, final UserBean userBean, final int payment, final Double couponMoney, final String couponContent, final List<MeatBean> ableExchangeMeatList, final Double cartMeatsMoney) {
+    public static void resturateGenerate(final Context context,
+                                         final AVObject tableAvObject,
+                                         final String payStyleContent,
+                                         final String userId,
+                                         Double stored,
+                                         Double balance,
+                                         final Double originMoney,
+                                         final Double finalMoney,
+                                         final UserBean userBean,
+                                         final int payment,
+                                         final Double couponMoney,
+                                         final String couponContent,
+                                         final List<MeatBean> ableExchangeMeatList,
+                                         final Double cartMeatsMoney) {
         new Thread() {
             public void run() {
                 try {
@@ -899,7 +914,11 @@ public class Bill {
     /**
      * 打印结账账单
      */
-    public static void printSettleBill(final Context context, final OrderDetail orderDetail, final JSONObject jsonReduce, final int escrow, final String finalTableNumber) {
+    public static void printSettleBill(final Context context,
+                                       final OrderDetail orderDetail,
+                                       final JSONObject jsonReduce,
+                                       final int escrow,
+                                       final String finalTableNumber) {
         new Thread() {
             @Override
             public void run() {
@@ -1215,7 +1234,11 @@ public class Bill {
         }.start();
     }
 
-    public static void printRechargeSvip(final String tel, final int escrow, final String chargeStyle, final Double payMoeny, final Double reduceMoney) {
+    public static void printRechargeSvip(final String tel,
+                                         final int escrow,
+                                         final String chargeStyle,
+                                         final Double payMoeny,
+                                         final Double reduceMoney) {
         new Thread() {
             public void run() {
                 try {
@@ -1312,7 +1335,9 @@ public class Bill {
     /**
      * 打印总账单
      */
-    public static void printTotalBill(final Context context, final HashMap<String, Object> ordersDetail, final Date orderDate) {
+    public static void printTotalBill(final Context context,
+                                      final HashMap<String, Object> ordersDetail,
+                                      final Date orderDate) {
         new Thread() {
             @Override
             public void run() {
@@ -1406,7 +1431,11 @@ public class Bill {
     /**
      * 打印零售账单
      */
-    public static void printRetailBill(final Context context, final OrderDetail orderDetail, final JSONObject jsonReduce, final int escrow, UserBean userBean) {
+    public static void printRetailBill(final Context context,
+                                       final OrderDetail orderDetail,
+                                       final JSONObject jsonReduce,
+                                       final int escrow,
+                                       UserBean userBean) {
         new Thread() {
             @Override
             public void run() {
@@ -1711,7 +1740,11 @@ public class Bill {
     /**
      * 超牛充值账单
      */
-    public static void printSvipBill(final String svipStyle, final Double money, final Double reduce, final Double finalMoney, final int escrow) {
+    public static void printSvipBill(final String svipStyle,
+                                     final Double money,
+                                     final Double reduce,
+                                     final Double finalMoney,
+                                     final int escrow) {
         new Thread() {
             @Override
             public void run() {
@@ -1818,7 +1851,11 @@ public class Bill {
         }.start();
     }
 
-    public static void reprintBill(final Context context, final AVObject avObject) {
+    /**
+     * 补打订单
+     */
+    public static void reprintBill(final Context context,
+                                   final AVObject avObject) {
         new Thread() {
             @Override
             public void run() {
@@ -1987,6 +2024,9 @@ public class Bill {
         }.start();
     }
 
+    /**
+     * 充值订单
+     */
     public static void printRechargeStored(final Context context,
                                            final String username,
                                            final int rechargeMoney,
