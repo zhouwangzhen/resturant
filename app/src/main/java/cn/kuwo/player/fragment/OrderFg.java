@@ -418,7 +418,6 @@ public class OrderFg extends BaseFragment {
                                 table.put("refundOrder", new List[0]);
                                 table.put("startedAt", null);
                                 table.put("user", null);
-                                table.put("refundOrder", new List[0]);
                                 table.saveInBackground(new SaveCallback() {
                                     @Override
                                     public void done(AVException e) {
@@ -723,54 +722,11 @@ public class OrderFg extends BaseFragment {
     public void onMessageEvent(ComboEvent event) {
         if (tableAVObject!=null) {
             if (!event.getEdit()) {
-//                HashMap<String, Object> hashMap = new HashMap<>();
-//                hashMap.put("id", event.getProductBean().getObjectId());
-//                hashMap.put("number", event.getCommodityNumber());
-//                hashMap.put("comment", event.getContent());
-//                hashMap.put("name", event.getProductBean().getName());
-//                if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
-//                    hashMap.put("comboList", event.getComboList());
-//                } else {
-//                    hashMap.put("comboList", new ArrayList<>());
-//                }
-//                hashMap.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
-//                hashMap.put("cookSerial", event.getCookSerial());
-
                 preOrders.add(DataUtil.addHashMap(
                         event,
                         tableAVObject,
                         isSvip));
-//                ArrayList<Object> objects = new ArrayList<>();
-//                objects.add(hashMap);
-//                ProductUtil.saveOperateLog(1, objects, tableAVObject);
             } else {
-
-//                if (event.getOrderIndex() != -1) {
-//                    if (event.getCommodityNumber() > 0) {
-//                        Object o = preOrders.get(event.getOrderIndex());
-//                        HashMap<String, Object> format = ObjectUtil.format(o);
-//                        format.put("id", event.getProductBean().getObjectId());
-//                        format.put("number", event.getCommodityNumber());
-//                        format.put("comment", event.getContent());
-//                        format.put("name", event.getProductBean().getName());
-//                        if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
-//                            format.put("comboList", event.getComboList());
-//                        } else {
-//                            format.put("comboList", new ArrayList<>());
-//                        }
-//                        format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
-//                        format.put("cookSerial", event.getCookSerial());
-////                        ArrayList<Object> objects = new ArrayList<>();
-////                        objects.add(preOrders.get(event.getOrderIndex()));
-////                        ProductUtil.saveOperateLog(2, objects, tableAVObject);
-//                    } else {
-////                        ArrayList<Object> objects = new ArrayList<>();
-////                        objects.add(preOrders.get(event.getOrderIndex()));
-////                        ProductUtil.saveOperateLog(2, objects, tableAVObject);
-//                        preOrders.remove(event.getOrderIndex());
-//                    }
-//
-//                }
                 DataUtil.updateIndexOder(
                         event,
                         preOrders,

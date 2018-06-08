@@ -126,7 +126,7 @@ public class ShowReduceListFragment extends DialogFragment {
                 e.printStackTrace();
             }
             holder.meat_reduce_weight.setText(ObjectUtil.getDouble(hashMap,"meatWeight")+"kg");
-            holder.meat_extra_money.setText(MyUtils.formatDouble(MyUtils.getProductById(ObjectUtil.getString(hashMap,"id")).getRemainMoney()*ObjectUtil.getDouble(hashMap,"number"))+"元");
+            holder.meat_extra_money.setText(MyUtils.formatDouble(ObjectUtil.getDouble(hashMap,"price")-ObjectUtil.getDouble(hashMap,"reduceMoeny"))+"元");
             return view;
         }
 

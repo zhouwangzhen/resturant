@@ -58,35 +58,42 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
         if (position < preOrders.size()) {//添加新的
             HashMap<String, Object> format = ObjectUtil.format(preOrders.get(preOrders.size() - position - 1));
             ProductBean preProductBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            String contnet=preProductBean.getName();
-            if (format.containsKey("comboList")&&ObjectUtil.getList(format,"comboList").size()>0){
+            String contnet = preProductBean.getName();
+            if (format.containsKey("comboList") && ObjectUtil.getList(format, "comboList").size() > 0) {
                 List<String> comboList = ObjectUtil.getList(format, "comboList");
-                for (int j=0;j<comboList.size();j++){
-                    if (j==0){
-                        contnet+=" (";
+                for (int j = 0; j < comboList.size(); j++) {
+                    if (j == 0) {
+                        contnet += " (";
                     }
-                    contnet+=comboList.get(j);
-                    if (j==comboList.size()-1){
-                        contnet+=")";
-                    }else{
-                        contnet+=",";
+                    contnet += comboList.get(j);
+                    if (j == comboList.size() - 1) {
+                        contnet += ")";
+                    } else {
+                        contnet += ",";
                     }
                 }
 
             }
             holder.tvName.setText(contnet);
             Drawable drawable = mContext.getResources().getDrawable(R.mipmap.icon_dot);
-            holder.tvNumber.setText("x"+ObjectUtil.getDouble(format, "number") + "份");
-            holder.tvPrice.setText("￥" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * preProductBean.getPrice()));
+            holder.tvNumber.setText("x" + ObjectUtil.getDouble(format, "number") + "份");
+            holder.tvPrice.setText("￥" + ObjectUtil.getDouble(format, "price"));
             Glide.with(MyApplication.getContextObject()).load(preProductBean.getUrl()).into(holder.imageAvatar);
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(preProductBean.getSerial());
-            holder.tvWeight.setText("菜品重量:" + preProductBean.getWeight() + "kg" + (preProductBean.getScale() > 0 ? "   超牛会员可抵扣" + MyUtils.formatDouble(preProductBean.getScale() * preProductBean.getWeight()) + "kg" : ""));
+            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + "kg";
+            if (preProductBean.getScale() > 0) {
+                weightContent += "超牛会员可抵扣" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")*preProductBean.getScale()) + "kg";
+                if (preProductBean.getRemainMoney() > 0) {
+                    weightContent += ",额外需要" + MyUtils.formatDouble(preProductBean.getRemainMoney() * ObjectUtil.getDouble(format, "number"));
+                }
+            }
+            holder.tvWeight.setText(weightContent);
             holder.tvComment.setText(ObjectUtil.getString(format, "comment").length() > 0 ? "备注:" + ObjectUtil.getString(format, "comment") : "备注:无");
-            if (ObjectUtil.getString(format,"presenter").length()> 0) {
+            if (ObjectUtil.getString(format, "presenter").length() > 0) {
                 holder.tvGive.setVisibility(View.VISIBLE);
                 try {
-                    holder.tvGive.setText("赠送:" + MyUtils.getProductById(ObjectUtil.getString(format,"presenter")).getName());
+                    holder.tvGive.setText("赠送:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
                 } catch (Exception e) {
                 }
 
@@ -96,34 +103,41 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
         } else if (position < preOrders.size() + orders.size()) {//已经下单的
             HashMap<String, Object> format = ObjectUtil.format(orders.get(orders.size() - (position - preOrders.size()) - 1));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            String contnet=productBean.getName();
-            if (format.containsKey("comboList")&&ObjectUtil.getList(format,"comboList").size()>0){
+            String contnet = productBean.getName();
+            if (format.containsKey("comboList") && ObjectUtil.getList(format, "comboList").size() > 0) {
                 List<String> comboList = ObjectUtil.getList(format, "comboList");
-                for (int j=0;j<comboList.size();j++){
-                    if (j==0){
-                        contnet+=" (";
+                for (int j = 0; j < comboList.size(); j++) {
+                    if (j == 0) {
+                        contnet += " (";
                     }
-                    contnet+=comboList.get(j);
-                    if (j==comboList.size()-1){
-                        contnet+=")";
-                    }else{
-                        contnet+=",";
+                    contnet += comboList.get(j);
+                    if (j == comboList.size() - 1) {
+                        contnet += ")";
+                    } else {
+                        contnet += ",";
                     }
                 }
 
             }
             holder.tvName.setText(contnet);
             Drawable drawable = mContext.getResources().getDrawable(R.mipmap.icon_already);
-            holder.tvNumber.setText("*"+ObjectUtil.getDouble(format, "number") + "份");
-            holder.tvPrice.setText("x" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * productBean.getPrice()));
+            holder.tvNumber.setText("x" + ObjectUtil.getDouble(format, "number") + "份");
+            holder.tvPrice.setText("￥" + ObjectUtil.getDouble(format, "price"));
             Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(productBean.getSerial());
-            holder.tvWeight.setText("菜品重量:" + productBean.getWeight() + "kg" + (productBean.getScale() > 0 ? "   超牛会员可抵扣" + MyUtils.formatDouble(productBean.getScale() * productBean.getWeight()) + "kg" : ""));
-            if (ObjectUtil.getString(format,"presenter").length() > 0) {
+            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + "kg";
+            if (productBean.getScale() > 0) {
+                weightContent += "超牛会员可抵扣" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")*productBean.getScale()) + "kg";
+                if (productBean.getRemainMoney() > 0) {
+                    weightContent += ",额外需要" + MyUtils.formatDouble(productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number"));
+                }
+            }
+            holder.tvWeight.setText(weightContent);
+            if (ObjectUtil.getString(format, "presenter").length() > 0) {
                 holder.tvGive.setVisibility(View.VISIBLE);
                 try {
-                    holder.tvGive.setText("赠送:" + MyUtils.getProductById(ObjectUtil.getString(format,"presenter")).getName());
+                    holder.tvGive.setText("赠送:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
                 } catch (Exception e) {
                 }
             } else {
@@ -131,20 +145,27 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             }
             holder.tvComment.setText(ObjectUtil.getString(format, "comment").length() > 0 ? "备注:" + ObjectUtil.getString(format, "comment") : "备注:无");
         } else {
-            HashMap<String, Object> format = ObjectUtil.format(refundOrders.get(refundOrders.size() - (position - preOrders.size()-orders.size()) - 1));
+            HashMap<String, Object> format = ObjectUtil.format(refundOrders.get(refundOrders.size() - (position - preOrders.size() - orders.size()) - 1));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             holder.tvName.setText(productBean.getName());
             Drawable drawable = mContext.getResources().getDrawable(R.mipmap.icon_delete);
-            holder.tvNumber.setText(ObjectUtil.getDouble(format, "number") + "");
-            holder.tvPrice.setText("￥" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * productBean.getPrice()));
+            holder.tvNumber.setText("x" + ObjectUtil.getDouble(format, "number"));
+            holder.tvPrice.setText("￥" + ObjectUtil.getDouble(format, "price"));
             Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(productBean.getSerial());
-            holder.tvWeight.setText("菜品重量:" + productBean.getWeight() + "kg" + (productBean.getScale() > 0 ? "   超牛会员可抵扣" + MyUtils.formatDouble(productBean.getScale() * productBean.getWeight()) + "kg" : ""));
-            if (ObjectUtil.getString(format,"presenter").length() > 0) {
+            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + "kg";
+            if (productBean.getScale() > 0) {
+                weightContent += "超牛会员可抵扣" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")*productBean.getScale()) + "kg";
+                if (productBean.getRemainMoney() > 0) {
+                    weightContent += ",额外需要" + MyUtils.formatDouble(productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number"));
+                }
+            }
+            holder.tvWeight.setText(weightContent);
+            if (ObjectUtil.getString(format, "presenter").length() > 0) {
                 holder.tvGive.setVisibility(View.VISIBLE);
                 try {
-                    holder.tvGive.setText("赠送:" + MyUtils.getProductById(MyUtils.getProductById(ObjectUtil.getString(format,"presenter")).getName()).getName());
+                    holder.tvGive.setText("赠送:" + MyUtils.getProductById(MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName()).getName());
                 } catch (Exception e) {
                 }
             } else {

@@ -346,10 +346,13 @@ public class SettleActivity extends BaseActivity {
                 break;
             case R.id.btn_pay:
                 Intent intent = new Intent(SettleActivity.this, PayActivity.class);
+                Bundle bundle = new Bundle();
                 OrderDetail orderDetail = new OrderDetail(null, hasMeatWeight, originTotalMoneny,
                         actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
                         onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), userBean, orders,fullReduceMoney);
-                intent.putExtra("table", (Serializable) orderDetail);
+//                intent.putExtra("table", (Serializable) orderDetail);
+                bundle.putSerializable("table", (Serializable) orderDetail);
+                intent.putExtras(bundle);
                 startActivityForResult(intent, 1);
                 break;
             case R.id.ll_max_reduce:

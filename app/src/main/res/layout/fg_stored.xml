@@ -4,13 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-<TextView
-    android:layout_width="match_parent"
-    android:layout_height="60dp"
-    android:gravity="center"
-    android:text="超牛会员充值"
-    android:textColor="@color/white"
-    android:background="@color/blue"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/blue"
+        android:gravity="center"
+        android:text="消费金充值"
+        android:textColor="@color/white" />
+
     <LinearLayout
         android:id="@+id/ll_no_user"
         android:layout_width="match_parent"
@@ -61,16 +63,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="白条：" />
+
             <TextView
                 android:id="@+id/tv_meatweight"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="牛肉额度：" />
+
             <TextView
                 android:id="@+id/tv_is_buy"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="是否购买过超牛会员：" />
+
             <TextView
                 android:id="@+id/tv_is_svip"
                 android:layout_width="match_parent"
@@ -78,97 +83,51 @@
                 android:text="用户会员等级：" />
         </LinearLayout>
     </android.support.v7.widget.CardView>
-<LinearLayout
-    android:id="@+id/recharge_content"
-    android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_weight="1"
-    android:orientation="vertical">
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="5dp"
-        app:cardElevation="4dp"
-        app:contentPadding="10dp">
-        <TextView
-            android:text="超牛会员充值类型:"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"/>
-        <cn.kuwo.player.custom.FlowRadioGroup
-            android:id="@+id/rg_vipstyle"
-            android:layout_marginLeft="100dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="horizontal">
-            <RadioButton
-                android:id="@+id/vipdate_1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:padding="6dp"
-                android:text="超牛会员体验(1个月)"
-                android:textColor="#000000" />
 
-            <RadioButton
-                android:id="@+id/vipdate_12"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:padding="6dp"
-                android:checked="true"
-                android:text="超牛会员年费(12个月)"
-                android:textColor="#000000" />
-        </cn.kuwo.player.custom.FlowRadioGroup>
-    </android.support.v7.widget.CardView>
     <android.support.v7.widget.CardView
+        android:id="@+id/card_recharge_money"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/card_bind_card"
         android:layout_margin="20dp"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="5dp"
         app:cardElevation="4dp"
         app:contentPadding="10dp">
-        <LinearLayout
+
+        <RelativeLayout
+            android:id="@+id/rl_recharge"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-        <TextView
-            android:text="绑定会员卡号:"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"/>
-        <TextView
-            android:id="@+id/tv_card_code"
-            android:text="无"
-            android:layout_marginLeft="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"/>
-        <Button
-            android:id="@+id/btn_scan_card"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginLeft="20dp"
-            android:text="去绑定"/>
-            <Button
-                android:id="@+id/btn_cancel_card"
+
+
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="20dp"
-                android:visibility="gone"
-                android:text="取消绑定"/>
-        </LinearLayout>
+                android:text="充值金额:"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/tv_recharge_money"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:text="500元"
+                android:textColor="@color/black" />
+            <TextView
+                android:id="@+id/recharge_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:text="充值500送50"
+                android:layout_marginTop="40dp"
+                android:textColor="@color/red" />
+        </RelativeLayout>
     </android.support.v7.widget.CardView>
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
+        android:id="@+id/gv_payment"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="5dp"
         app:cardElevation="4dp"
@@ -185,16 +144,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:orientation="horizontal">
-            <RadioButton
-                android:id="@+id/pay_balance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:padding="6dp"
-                android:text="白条支付"
-                android:checked="true"
-                android:visibility="gone"
-                android:textColor="#000000" />
             <RadioButton
                 android:id="@+id/pay_ali"
                 android:layout_width="wrap_content"
@@ -231,13 +180,6 @@
                 android:textColor="#000000" />
         </cn.kuwo.player.custom.FlowRadioGroup>
     </android.support.v7.widget.CardView>
-    <TextView
-        android:id="@+id/tv_final_money"
-        android:textSize="18sp"
-        android:gravity="center"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="需支付5000元"/>
     <Button
         android:id="@+id/btn_recharge"
         android:layout_width="wrap_content"
@@ -245,22 +187,24 @@
         android:layout_gravity="center_horizontal"
         android:text="去充值"/>
 
-</LinearLayout>
-    <Button
-        android:id="@+id/btn_refrsh"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="刷新"/>
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:gravity="center_horizontal|bottom">
-        <TextView
+        <Button
+            android:id="@+id/btn_refrsh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:text="刷新"/>
+        <Button
             android:id="@+id/reset_data"
             android:padding="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
             android:text="重置"/>
-    </LinearLayout>
+    </RelativeLayout>
 </LinearLayout>

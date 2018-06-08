@@ -25,13 +25,14 @@ public class UserBean implements Serializable{
      *
      * 销售扫描登录
      */
-    public UserBean(int callbackCode,String id, String username,Double balance,Boolean test,int clerk) {
+    public UserBean(int callbackCode,String id, String username,Double balance,Boolean test,int clerk,String realName) {
         this.callbackCode = callbackCode;
         this.id = id;
         this.username = username;
         this.balance=balance;
         this.test=test;
         this.clerk=clerk;
+        this.realName=realName;
     }
 
     /**

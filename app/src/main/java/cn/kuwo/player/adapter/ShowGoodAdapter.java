@@ -58,7 +58,14 @@ public class ShowGoodAdapter extends RecyclerView.Adapter<ShowGoodAdapter.MyView
         Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
         holder.imageState.setImageDrawable(drawable);
         holder.tvSerial.setText(productBean.getSerial());
-        holder.tvWeight.setText("菜品重量:" + productBean.getWeight() + "kg" + (productBean.getScale() > 0 ? "   超牛会员可抵扣" + MyUtils.formatDouble(productBean.getScale() * productBean.getWeight()) + "kg" : ""));
+        String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + "kg";
+        if (productBean.getScale() > 0) {
+            weightContent += "超牛会员可抵扣" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")*productBean.getScale()) + "kg";
+            if (productBean.getRemainMoney() > 0) {
+                weightContent += ",额外需要" + MyUtils.formatDouble(productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number"));
+            }
+        }
+        holder.tvWeight.setText(weightContent);
         holder.tvNumber.setText("￥"+productBean.getPrice()+"*"+ObjectUtil.getDouble(format, "number")+"份");
     }
 

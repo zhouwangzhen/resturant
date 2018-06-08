@@ -74,7 +74,7 @@
                 android:id="@+id/menu_retail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_menu_nor"
+                android:drawableLeft="@drawable/icon_retail_nor"
                 android:drawablePadding="10dp"
                 android:gravity="center_vertical"
                 android:padding="10dp"
@@ -90,7 +90,6 @@
                 android:gravity="center_vertical"
                 android:padding="10dp"
                 android:text="菜品信息"
-                android:textSize="@dimen/text_zise_14"
                 android:textColor="@color/purple" />
 
             <TextView
@@ -107,7 +106,7 @@
                 android:id="@+id/menu_svip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_recharge"
+                android:drawableLeft="@drawable/icon_svip_nor"
                 android:drawablePadding="10dp"
                 android:gravity="center_vertical"
                 android:padding="10dp"
@@ -133,6 +132,17 @@
                 android:padding="10dp"
                 android:textSize="14sp"
                 android:text="设置"
+                android:textColor="@color/purple" />
+            <TextView
+                android:id="@+id/menu_stored"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/icon_recharge"
+                android:drawablePadding="10dp"
+                android:gravity="center_vertical"
+                android:padding="10dp"
+                android:textSize="14sp"
+                android:text="消费金充值"
                 android:textColor="@color/purple" />
 
         </LinearLayout>

@@ -3,7 +3,6 @@ package cn.kuwo.player;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
@@ -14,7 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -30,7 +28,6 @@ import com.avos.avoscloud.AVUser;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.LogInCallback;
-import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 
 import org.greenrobot.eventbus.EventBus;
@@ -59,13 +56,12 @@ import cn.kuwo.player.fragment.NetConnectFg;
 import cn.kuwo.player.fragment.OrderFg;
 import cn.kuwo.player.fragment.OrderListFg;
 import cn.kuwo.player.fragment.SettingFg;
+import cn.kuwo.player.fragment.StoredFg;
 import cn.kuwo.player.fragment.SvipFg;
 import cn.kuwo.player.fragment.TableFg;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.receiver.NetWorkStateReceiver;
-import cn.kuwo.player.util.AppUtils;
 import cn.kuwo.player.util.CameraProvider;
-import cn.kuwo.player.util.DimenTool;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.RealmHelper;
@@ -74,6 +70,8 @@ import cn.kuwo.player.util.ToastUtil;
 import io.realm.RealmList;
 
 public class MainActivity extends BaseActivity {
+    @BindView(R.id.menu_stored)
+    TextView menuStored;
     private int REQUEST_CODE_SCAN = 111;
     @BindView(R.id.menu_retail)
     TextView menuRetail;
@@ -137,7 +135,7 @@ public class MainActivity extends BaseActivity {
         if (sharedHelper.readBoolean("cashierLogin")) {
             waiterName.setText(sharedHelper.read("cashierName"));
         } else {
-            sharedHelper.saveBoolean("cashierLogin",false);
+            sharedHelper.saveBoolean("cashierLogin", false);
             ScanUserFragment scanUserFragment = new ScanUserFragment(0);
             scanUserFragment.show(getSupportFragmentManager(), "scanuser");
         }
@@ -182,7 +180,6 @@ public class MainActivity extends BaseActivity {
     }
 
 
-
     /**
      * 设置监听
      */
@@ -191,7 +188,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public boolean onLongClick(View v) {
                 SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
-                sharedHelper.saveBoolean("cashierLogin",false);
+                sharedHelper.saveBoolean("cashierLogin", false);
                 ScanUserFragment scanUserFragment = new ScanUserFragment(0);
                 scanUserFragment.show(getSupportFragmentManager(), "scanuser");
                 return false;
@@ -214,7 +211,7 @@ public class MainActivity extends BaseActivity {
         ft.replace(R.id.fragment_content, tableFg, "table").commitAllowingStateLoss();
     }
 
-    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order})
+    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.ll_table:
@@ -235,6 +232,9 @@ public class MainActivity extends BaseActivity {
                 break;
             case R.id.menu_order:
                 switchFragment("order");
+                break;
+            case R.id.menu_stored:
+                switchFragment("stored");
                 break;
         }
     }
@@ -259,7 +259,7 @@ public class MainActivity extends BaseActivity {
             NetConnectFg netConnectFg = NetConnectFg.newInstance("");
             ft.replace(R.id.fragment_content, netConnectFg, "netconnect").commit();
         } else if (tag == "svip") {
-            setSelectState(menuSvip, R.drawable.icon_recharge_nor);
+            setSelectState(menuSvip, R.drawable.icon_svip_sel);
             SvipFg svipFg = SvipFg.newInstance("");
             ft.replace(R.id.fragment_content, svipFg, "svip").commit();
         } else if (tag == "order") {
@@ -270,6 +270,10 @@ public class MainActivity extends BaseActivity {
             setSelectState(menuUpdate, R.drawable.icon_update);
             SettingFg settingFg = SettingFg.newInstance("");
             ft.replace(R.id.fragment_content, settingFg, "setting").commit();
+        }else if (tag == "stored") {
+            setSelectState(menuStored, R.drawable.icon_recharge_nor);
+            StoredFg storedFg = StoredFg.newInstance("");
+            ft.replace(R.id.fragment_content, storedFg, "stored").commit();
         }
 
     }
@@ -291,12 +295,15 @@ public class MainActivity extends BaseActivity {
         left = getResources().getDrawable(R.drawable.icon_update_nor);
         left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
         menuUpdate.setCompoundDrawables(left, null, null, null);
-        left = getResources().getDrawable(R.drawable.icon_recharge);
+        left = getResources().getDrawable(R.drawable.icon_svip_nor);
         left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
         menuSvip.setCompoundDrawables(left, null, null, null);
         left = getResources().getDrawable(R.drawable.icon_order_nor);
         left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
         menuOrder.setCompoundDrawables(left, null, null, null);
+        left = getResources().getDrawable(R.drawable.icon_recharge);
+        left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
+        menuStored.setCompoundDrawables(left, null, null, null);
         menuCommodity.setTextColor(getResources().getColor(R.color.purple));
         menuTable.setTextColor(getResources().getColor(R.color.purple));
         menuPrint.setTextColor(getResources().getColor(R.color.purple));
@@ -304,6 +311,7 @@ public class MainActivity extends BaseActivity {
         remainTable.setTextColor(getResources().getColor(R.color.purple));
         menuSvip.setTextColor(getResources().getColor(R.color.purple));
         menuOrder.setTextColor(getResources().getColor(R.color.purple));
+        menuStored.setTextColor(getResources().getColor(R.color.purple));
     }
 
     private void setSelectState(TextView view, int resourceId) {
@@ -490,6 +498,7 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
+
     private void fetchRule() {
         AVQuery<AVObject> offlinePromotionRule = new AVQuery<>("OffineControl");
         offlinePromotionRule.whereEqualTo("store", 1);
@@ -530,6 +539,7 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -574,7 +584,7 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onClick(Dialog dialog, boolean confirm) {
                     if (confirm) {
-                        Bill.printSettleBill(MyApplication.getContextObject(), event.getOrderDetail(), event.getJsonObject(), event.getEscrow(),event.getTableNumber());
+                        Bill.printSettleBill(MyApplication.getContextObject(), event.getOrderDetail(), event.getJsonObject(), event.getEscrow(), event.getTableNumber());
                         dialog.dismiss();
                     }
 
@@ -596,11 +606,12 @@ public class MainActivity extends BaseActivity {
             }
         }
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(ClearEvent clearEvent){
-        if (clearEvent.getCode()==0){
+    public void onMessageEvent(ClearEvent clearEvent) {
+        if (clearEvent.getCode() == 0) {
             showDialog();
-        }else {
+        } else {
             hideDialog();
         }
     }

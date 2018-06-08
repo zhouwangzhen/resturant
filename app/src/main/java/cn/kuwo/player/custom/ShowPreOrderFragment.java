@@ -35,6 +35,7 @@ import java.util.Map;
 
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
+import cn.kuwo.player.api.TableApi;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.fragment.OrderFg;
 import cn.kuwo.player.fragment.TableFg;
@@ -93,50 +94,56 @@ public class ShowPreOrderFragment extends DialogFragment {
     private void findView() {
         gvTable = view.findViewById(R.id.gv_table);
         btnSureOrder = view.findViewById(R.id.btn_sure_order);
+        setBackground();
+        btnSureOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (tableAVObject!=null) {
+                    showDialog();
+//                    List order = tableAVObject.getList("order");
+//                    List<Object> orderList = new ArrayList<>();
+//                    orderList.addAll(order);
+//                    for (int i = 0; i < preOrders.size(); i++) {
+//                        orderList.add(preOrders.get(i));
+//                    }
+//                    tableAVObject.put("order", orderList);
+//                    tableAVObject.put("preOrder", new List[0]);
+//                    if (tableAVObject.getDate("startedAt") == null) {
+//                        tableAVObject.put("startedAt", new Date());
+//                    }
+//                    if (tableAVObject.getInt("customer") == 0) {
+//                        tableAVObject.put("customer", 1);
+//                    }
+                    TableApi.addOrder(tableAVObject,preOrders).saveInBackground(new SaveCallback() {
+                        @Override
+                        public void done(AVException e) {
+                            if (e == null) {
+                                hideDialog();
+                                getDialog().dismiss();
+                                Bill.printCateringFore(preOrders, tableAVObject, 0);
+                                ToastUtil.showShort(MyApplication.getContextObject(), "下单成功");
+                                FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                                ft.replace(R.id.fragment_content, OrderFg.newInstance(tableAVObject.getObjectId(), true), "order").commit();
+                                ProductUtil.saveOperateLog(0, preOrders, tableAVObject);
+                            } else {
+                                hideDialog();
+                                ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+    }
+
+    private void setBackground() {
         WindowManager.LayoutParams lp = getDialog().getWindow().getAttributes();
         lp.dimAmount = 0.8f;
         getDialog().getWindow().setAttributes(lp);
         DisplayMetrics dm = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
         getDialog().getWindow().setLayout((int) (dm.widthPixels * 0.75), ViewGroup.LayoutParams.WRAP_CONTENT);
-        btnSureOrder.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDialog();
-                List order = tableAVObject.getList("order");
-                List<Object> orderList = new ArrayList<>();
-                orderList.addAll(order);
-                for (int i = 0; i < preOrders.size(); i++) {
-                    orderList.add(preOrders.get(i));
-                }
-                tableAVObject.put("order", orderList);
-                tableAVObject.put("preOrder", new List[0]);
-                if (tableAVObject.getDate("startedAt") == null) {
-                    tableAVObject.put("startedAt", new Date());
-                }
-                if (tableAVObject.getInt("customer") == 0) {
-                    tableAVObject.put("customer", 1);
-                }
-                tableAVObject.saveInBackground(new SaveCallback() {
-                    @Override
-                    public void done(AVException e) {
-                        if (e == null) {
-                            hideDialog();
-                            getDialog().dismiss();
-                            Bill.printCateringFore(preOrders, tableAVObject, 0);
-                            ToastUtil.showShort(MyApplication.getContextObject(), "下单成功");
-                            FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                            ft.replace(R.id.fragment_content, OrderFg.newInstance(tableAVObject.getObjectId(), true), "order").commit();
-                            ProductUtil.saveOperateLog(0,preOrders,tableAVObject);
-                        } else {
-                            hideDialog();
-                            ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
-                        }
-                    }
-                });
-            }
-        });
-
     }
 
     public class ListAdapter extends BaseAdapter {

@@ -514,6 +514,7 @@ public class SettleFg extends BaseFragment {
                 OrderDetail orderDetail = new OrderDetail(tableAVObject, hasMeatWeight, originTotalMoneny,
                         actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
                         onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), orders, selectTableIds, selectTableNumber, fullReduceMoney,isHangUp);
+                Logger.d(useExchangeList);
                 bundle.putSerializable("table", (Serializable) orderDetail);
                 payFg.setArguments(bundle);
                 ft.replace(R.id.fragment_content, payFg, "pay").commit();

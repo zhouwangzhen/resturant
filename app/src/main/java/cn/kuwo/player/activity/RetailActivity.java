@@ -85,7 +85,7 @@ public class RetailActivity extends BaseActivity {
         public void run() {
             scanMeatcode.setText("");
             if (MyUtils.getProductBean(barcode).size() > 0) {
-                addProduct(barcode);
+                 addProduct(barcode);
             } else {
                 ToastUtil.showShort(MyApplication.getContextObject(), "扫码商品有误");
             }

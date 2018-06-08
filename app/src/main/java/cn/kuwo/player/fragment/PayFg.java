@@ -226,7 +226,8 @@ public class PayFg extends BaseFragment {
                         mallOrder.put("message",orderDetail.getAvObject().getString("remark"));
                     }
                     jsonReduce = new JSONObject();
-                    Map<String, Double> escrowDetail = ProductUtil.managerEscrow(orderDetail.getActualMoney(), escrow, orderDetail.getUserBean());
+                    AVObject avObject = orderDetail.getAvObject();
+                    Map<String, Double> escrowDetail = ProductUtil.managerEscrow(orderDetail.getActualMoney(), escrow,orderDetail.getUserBean());
                     mallOrder.put("escrowDetail", escrowDetail);
                     try {
                         if (orderDetail.getOnlineCouponEvent() != null) {
@@ -317,7 +318,6 @@ public class PayFg extends BaseFragment {
                 }
             });
         } else {
-            Logger.d("aaaaaa");
             AVObject avObject = orderDetail.getAvObject();
             avObject.put("order", new List[0]);
             avObject.put("preOrder", new List[0]);

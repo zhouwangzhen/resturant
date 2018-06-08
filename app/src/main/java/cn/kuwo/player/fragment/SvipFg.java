@@ -161,6 +161,7 @@ public class SvipFg extends BaseFragment {
                 }
             }
         });
+        rgPaystyle.check(R.id.pay_ali);
         rgVipstyle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -226,6 +227,7 @@ public class SvipFg extends BaseFragment {
                 break;
             case R.id.reset_data:
                 reset();
+                rgPaystyle.check(R.id.pay_ali);
                 userId = "";
                 card="";
                 llNoUser.setVisibility(View.VISIBLE);

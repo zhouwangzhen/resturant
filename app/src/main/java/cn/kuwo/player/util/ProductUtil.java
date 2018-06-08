@@ -197,12 +197,15 @@ public class ProductUtil {
                 try {
                     if (productBean.getCode().length()==5){
                         format.put("meatWeight", MyUtils.formatDouble(ObjectUtil.getDouble(format,"weight") * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
+                        format.put("reduceMoeny",calReduceMoney(productBean,format));
                     }else{
                         format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
+                        format.put("reduceMoeny",calReduceMoney(productBean,format));
                     }
 
                 } catch (Exception e) {
                     format.put("meatWeight", 0.0);
+                    format.put("reduceMoeny",0.0);
 
                 }
                 meatList.add(format);
@@ -212,9 +215,20 @@ public class ProductUtil {
     }
 
     /**
+     *计算商品的优惠价格
+     */
+    private static Double calReduceMoney(ProductBean productBean, HashMap<String, Object> format) {
+        Double number = ObjectUtil.getDouble(format, "number");
+        Double totalMoney = ObjectUtil.getDouble(format, "price");
+        double totalRemainMoney = productBean.getRemainMoney() * number;
+        return MyUtils.formatDouble(totalMoney-totalRemainMoney);
+    }
+
+    /**
      * 计算出可扣得最大的牛肉列表
      */
     public static List<Object> canExchangeMeatList(List<Object> orders, Double hasMeatWeight, List<Double> weights) {
+        Logger.d(orders);
         List<Object> meatList = new ArrayList<>();
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
@@ -249,8 +263,10 @@ public class ProductUtil {
         for (int i = 0; i < meatList.size(); i++) {
             Object o = meatList.get(i);
             HashMap<String, Object> format = ObjectUtil.format(o);
+            ProductBean productBean1 = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             if (totalWeight + ObjectUtil.getDouble(format, "meatWeight") <= hasMeatWeight) {
                 totalWeight += ObjectUtil.getDouble(format, "meatWeight");
+                format.put("reduceMoeny",MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")-productBean1.getRemainMoney()*ObjectUtil.getDouble(format,"number")));
                 exchangeMeatList.add(format);
             } else if (totalWeight + MyUtils.formatDouble(ObjectUtil.getDouble(format, "meatWeight") / ObjectUtil.getDouble(format, "number")) <= hasMeatWeight) {
                 int number = ObjectUtil.getDouble(format, "number").intValue();
@@ -265,11 +281,12 @@ public class ProductUtil {
                 }
                 if (num > 0) {
                     format.put("number", num);
-                    format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * num));
+                    format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight()*productBean.getScale() * num));
+                    format.put("reduceMoeny",MyUtils.formatDouble((productBean1.getPrice()-productBean1.getRemainMoney())*num));
+                    format.put("price",MyUtils.formatDouble((productBean1.getPrice())*num));
                     exchangeMeatList.add(format);
                 }
             } else {
-                Logger.d("signIndex" + signIndex);
                 break;
 
             }
@@ -278,8 +295,10 @@ public class ProductUtil {
         for (int k = meatList.size() - 1; k >= signIndex; k--) {
             Object o = meatList.get(k);
             HashMap<String, Object> format = ObjectUtil.format(o);
+            ProductBean productBean1 = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             if (totalWeight + ObjectUtil.getDouble(format, "meatWeight") <= hasMeatWeight) {
                 totalWeight += ObjectUtil.getDouble(format, "meatWeight");
+                format.put("reduceMoeny",MyUtils.formatDouble((ObjectUtil.getDouble(format,"price")-productBean1.getRemainMoney()*ObjectUtil.getDouble(format,"number"))));
                 exchangeMeatList.add(format);
             } else if (totalWeight + MyUtils.formatDouble(ObjectUtil.getDouble(format, "meatWeight") / ObjectUtil.getDouble(format, "number")) <= hasMeatWeight) {
                 int number = ObjectUtil.getDouble(format, "number").intValue();
@@ -293,7 +312,9 @@ public class ProductUtil {
                 }
                 if (num > 0) {
                     format.put("number", num);
-                    format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * num));
+                    format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight()*productBean.getScale() * num));
+                    format.put("reduceMoeny",MyUtils.formatDouble((productBean1.getPrice()-productBean1.getRemainMoney())*num));
+                    format.put("price",MyUtils.formatDouble((productBean1.getPrice())*num));
                     exchangeMeatList.add(format);
                 }
             }
@@ -891,5 +912,20 @@ public class ProductUtil {
             content += "+" + selectTableNumbers.get(i);
         }
         return content;
+    }
+
+    /**
+     * 判断是否是超牛会员订单
+     */
+    public static Boolean isRechargeSvipOrder(AVObject avObject) {
+        List<String> commoditys = avObject.getList("commodity");
+        if (commoditys.size()==1){
+            String id = commoditys.get(0);
+            Logger.d(id);
+            if (id.equals(CONST.SVIPSTYLE.DATE_12_MONTH)||id.equals(CONST.SVIPSTYLE.DATE_1_MONTH)){
+                return true;
+            }
+        }
+        return false;
     }
 }

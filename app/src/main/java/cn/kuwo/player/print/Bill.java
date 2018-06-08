@@ -1009,17 +1009,18 @@ public class Bill {
                         pos.printLocation(0);
                         pos.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
                         pos.printLine(1);
+                        Double actualReduce=0.0;
                         for (int i = 0; i < orderDetail.getUseExchangeList().size(); i++) {
                             Object o = orderDetail.getUseExchangeList().get(i);
                             HashMap<String, Object> format = ObjectUtil.format(o);
                             pos.printTextNewLine(ObjectUtil.getString(format, "name"));
                             pos.printLine(1);
-                            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                            Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
-                            pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", reduce + "");
+                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format,"reduceMoeny"));
+                            actualReduce+=reduce;
+                            pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(reduce) + "");
                             pos.printLine(1);
                         }
-                        pos.printFourColumn("总计", "    ", "    " + orderDetail.getMyReduceWeight() + "kg", orderDetail.getMaxReduceMoney() + "");
+                        pos.printFourColumn("总计", "    ", "    " + orderDetail.getMyReduceWeight() + "kg", MyUtils.formatDouble(actualReduce) + "");
                         pos.printLine(2);
                     }
                     if (orderDetail.getSvipMaxExchangeList().size() > 0) {
@@ -1070,7 +1071,7 @@ public class Bill {
                     pos1.bold(false);
                     pos1.printLine(1);
                     pos1.printLocation(0);
-                    pos1.printText("桌号:" + tableAVObject.getString("tableNumber"));
+                    pos1.printText("桌号:" + finalTableNumber);
                     pos1.printLine(1);
                     pos1.printText("人数:" + tableAVObject.getInt("customer"));
                     pos1.printLine(1);
@@ -1154,17 +1155,18 @@ public class Bill {
                         pos1.printLocation(0);
                         pos1.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
                         pos1.printLine(1);
+                        Double actualReduce=0.0;
                         for (int i = 0; i < orderDetail.getUseExchangeList().size(); i++) {
                             Object o = orderDetail.getUseExchangeList().get(i);
                             HashMap<String, Object> format = ObjectUtil.format(o);
                             pos1.printTextNewLine(ObjectUtil.getString(format, "name"));
                             pos1.printLine(1);
-                            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                            Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
-                            pos1.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", reduce + "");
+                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format,"reduceMoeny"));
+                            actualReduce+=reduce;
+                            pos1.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(reduce) + "");
                             pos1.printLine(1);
                         }
-                        pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMyReduceWeight(), orderDetail.getMaxReduceMoney() + "");
+                        pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMyReduceWeight()+"kg", MyUtils.formatDouble(actualReduce) + "");
                         pos1.printLine(2);
                     }
                     if (orderDetail.getSvipMaxExchangeList().size() > 0) {
@@ -1176,17 +1178,19 @@ public class Bill {
                         pos1.printLocation(0);
                         pos1.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
                         pos1.printLine(1);
+                        Double maxReduce=0.0;
                         for (int i = 0; i < orderDetail.getSvipMaxExchangeList().size(); i++) {
                             Object o = orderDetail.getSvipMaxExchangeList().get(i);
                             HashMap<String, Object> format = ObjectUtil.format(o);
                             pos1.printTextNewLine(ObjectUtil.getString(format, "name"));
                             pos1.printLine(1);
                             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                            Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
-                            pos1.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", reduce + "");
+                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format,"reduceMoeny"));
+                            maxReduce+=reduce;
+                            pos1.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(reduce) + "");
                             pos1.printLine(1);
                         }
-                        pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMaxReduceWeight() + "kg", orderDetail.getMaxReduceMoney() + "");
+                        pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMaxReduceWeight() + "kg", MyUtils.formatDouble(maxReduce) + "");
                         pos1.printLine(2);
                     }
                     pos1.printTextNewLine("------------------------------------------------");
@@ -1457,9 +1461,9 @@ public class Bill {
                         pos.printText(ObjectUtil.getDouble(format, "number") + "");
                         pos.printLocation(90, 1);
                         pos.printWordSpace(1);
-                        if (ObjectUtil.getDouble(format, "weight")>20){
+                        if (ObjectUtil.getDouble(format, "weight") > 20) {
                             pos.printText(ObjectUtil.getDouble(format, "weight") + "ml");
-                        }else{
+                        } else {
                             pos.printText(ObjectUtil.getDouble(format, "weight") + "kg");
                         }
 
@@ -1515,7 +1519,7 @@ public class Bill {
                             pos.printLine(1);
                             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
                             Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
-                            pos.printFourColumn("    ", MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight"))+"", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
+                            pos.printFourColumn("    ", MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")) + "", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
                             pos.printLine(1);
                         }
                         pos.printFourColumn("总计", "    ", "    " + orderDetail.getMyReduceWeight() + "kg", orderDetail.getMaxReduceMoney() + "");
@@ -1537,7 +1541,7 @@ public class Bill {
                             pos.printLine(1);
                             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
                             Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
-                            pos.printFourColumn("    ", MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight"))+"", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
+                            pos.printFourColumn("    ", MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")) + "", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
                             pos.printLine(1);
                         }
                         pos.printFourColumn("总计", "    ", "    " + orderDetail.getMaxReduceWeight() + "kg", orderDetail.getMaxReduceMoney() + "");
@@ -1599,9 +1603,9 @@ public class Bill {
                         pos1.printText(ObjectUtil.getDouble(format, "number") + "");
                         pos1.printLocation(90, 1);
                         pos1.printWordSpace(1);
-                        if (ObjectUtil.getDouble(format, "weight")>20){
+                        if (ObjectUtil.getDouble(format, "weight") > 20) {
                             pos1.printText(ObjectUtil.getDouble(format, "weight") + "ml");
-                        }else{
+                        } else {
                             pos1.printText(ObjectUtil.getDouble(format, "weight") + "kg");
                         }
                         pos1.printWordSpace(2);
@@ -1655,7 +1659,7 @@ public class Bill {
                             pos1.printTextNewLine(ObjectUtil.getString(format, "name"));
                             pos1.printLine(1);
                             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                            pos1.printFourColumn("    ", MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight"))+"", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
+                            pos1.printFourColumn("    ", MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")) + "", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
                             pos1.printLine(1);
                         }
                         pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMyReduceWeight(), orderDetail.getMaxReduceMoney() + "");
@@ -1676,7 +1680,7 @@ public class Bill {
                             pos1.printTextNewLine(ObjectUtil.getString(format, "name"));
                             pos1.printLine(1);
                             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                            pos1.printFourColumn("    ", MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight"))+"", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
+                            pos1.printFourColumn("    ", MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")) + "", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
                             pos1.printLine(1);
                         }
                         pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMaxReduceWeight() + "kg", orderDetail.getMaxReduceMoney() + "");
@@ -1878,7 +1882,7 @@ public class Bill {
                         pos.printWordSpace(1);
                         pos.printText("  ");
                         pos.printWordSpace(2);
-                        pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * productBean.getPrice()) + "");
+                        pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
                         pos.printLine(1);
                     }
                     pos.printTextNewLine("------------------------------------------------");
@@ -1912,7 +1916,7 @@ public class Bill {
                         pos.printTwoColumn(key + " :", escrowDetail.get(key) + "");
                         pos.printLine(1);
                     }
-                    if (realMeatDeduct!=null&&realMeatDeduct.size() > 0) {
+                    if (realMeatDeduct != null && realMeatDeduct.size() > 0) {
                         pos.printTextNewLine("------------------------------------------------");
                         pos.printLine(1);
                         pos.printLocation(1);
@@ -1929,7 +1933,7 @@ public class Bill {
                             pos.printTextNewLine(ObjectUtil.getString(format, "name"));
                             pos.printLine(1);
                             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                            Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
+                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format, "reduceMoeny"));
                             myReduceWeight += ObjectUtil.getDouble(format, "meatWeight");
                             myReduceMoney += reduce;
                             pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", reduce + "");
@@ -1938,11 +1942,11 @@ public class Bill {
                         pos.printFourColumn("总计", "    ", "    " + MyUtils.formatDouble(myReduceWeight) + "kg", MyUtils.formatDouble(myReduceMoney) + "");
                         pos.printLine(2);
                     }
-                    if (maxMeatDeduct!=null&&maxMeatDeduct.size() > 0) {
+                    if (maxMeatDeduct != null && maxMeatDeduct.size() > 0) {
                         pos.printTextNewLine("------------------------------------------------");
                         pos.printLine(1);
                         pos.printLocation(1);
-                        pos.printText("我的牛肉抵扣详情");
+                        pos.printText("超牛会员牛肉充足抵扣详情");
                         pos.printLine();
                         pos.printLocation(0);
                         pos.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
@@ -1955,7 +1959,7 @@ public class Bill {
                             pos.printTextNewLine(ObjectUtil.getString(format, "name"));
                             pos.printLine(1);
                             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                            Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
+                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format, "reduceMoeny"));
                             myReduceWeight += ObjectUtil.getDouble(format, "meatWeight");
                             myReduceMoney += reduce;
                             pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", reduce + "");
@@ -1981,5 +1985,88 @@ public class Bill {
                 }
             }
         }.start();
+    }
+
+    public static void printRechargeStored(final Context context,
+                                           final String username,
+                                           final int rechargeMoney,
+                                           final int escrow,
+                                           final String cashierName,
+                                           final String marketName) {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    SharedHelper sharedHelper = new SharedHelper(context);
+                    String url = SharedHelper.read("ip1") + "." + SharedHelper.read("ip2") + "." + SharedHelper.read("ip3") + "." + SharedHelper.read("ip4");
+                    Pos pos;
+                    pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+
+                    //初始化打印机
+                    pos.initPos();
+                    pos.printLocation(1);
+                    Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.logo);
+                    pos.printBitmap(bitmap);
+                    pos.bold(true);
+                    pos.printLargeText("BEEF X-用户联");
+                    pos.printLine(1);
+                    pos.bold(false);
+                    pos.printLine(1);
+                    pos.printLocation(0);
+                    pos.printText("时间:" + MyUtils.dateFormat(new Date()));
+                    pos.printLine(1);
+                    pos.printText("服务员:" + cashierName);
+                    pos.printLine(1);
+                    pos.printText("销售:" + marketName);
+                    pos.printLine(1);
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printLocation(0);
+                    pos.printLine(1);
+                    pos.printTwoColumn("电话号:", username.replaceAll("(\\d{3})\\d{4}(\\d{4})", "$1****$2"));
+                    pos.printLine(1);
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printLocation(0);
+                    pos.printLine(1);
+                    pos.printTwoColumn("消费金充值:", rechargeMoney + "元");
+                    pos.printLine(1);
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printLocation(0);
+                    pos.printLine(1);
+                    String payContent = "";
+                    switch (escrow) {
+                        case 3:
+                            payContent = "支付宝支付";
+                            break;
+                        case 4:
+                            payContent = "微信支付";
+                            break;
+                        case 5:
+                            payContent = "银行卡支付";
+                            break;
+                        case 6:
+                            payContent = "现金支付";
+                            break;
+                    }
+                    pos.printTwoColumn(payContent+":", rechargeMoney + "元");
+                    pos.printLine(1);
+                    pos.printTextNewLine("------------------------------------------------");
+                    pos.printLocation(1);
+                    pos.printLine(1);
+                    pos.printText("地址:" + CONST.ADDRESS);
+                    pos.printLine(2);
+                    pos.printText("电话:" + CONST.TEL);
+                    pos.printLine(2);
+                    pos.printText("祝您生活越来越牛!");
+                    pos.printLine(4);
+                    pos.feedAndCut();
+                    pos.closeIOAndSocket();
+                } catch (Exception e) {
+
+                }
+
+
+            }
+        }.start();
+
     }
 }

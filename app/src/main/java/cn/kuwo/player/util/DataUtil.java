@@ -26,7 +26,7 @@ public class DataUtil {
         hashMap.put("number", event.getCommodityNumber());
         hashMap.put("comment", event.getContent());
         hashMap.put("name", event.getProductBean().getName());
-        hashMap.put("weight", productBean.getWeight());
+        hashMap.put("weight", MyUtils.formatDouble(productBean.getWeight()* event.getCommodityNumber()));
         hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
         hashMap.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
         hashMap.put("cookSerial", event.getCookSerial());
@@ -51,12 +51,16 @@ public class DataUtil {
                                        Boolean isSvip) {
         if (event.getOrderIndex() != -1) {
             if (event.getCommodityNumber() > 0) {
+                String commodityId = event.getProductBean().getObjectId();
+                ProductBean productBean = MyUtils.getProductById(commodityId);
                 Object o = preOrders.get(event.getOrderIndex());
                 HashMap<String, Object> format = ObjectUtil.format(o);
                 format.put("id", event.getProductBean().getObjectId());
                 format.put("number", event.getCommodityNumber());
                 format.put("comment", event.getContent());
                 format.put("name", event.getProductBean().getName());
+                format.put("weight", MyUtils.formatDouble(productBean.getWeight()* event.getCommodityNumber()));
+                format.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
                 if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
                     format.put("comboList", event.getComboList());
                 } else {
@@ -65,8 +69,9 @@ public class DataUtil {
                 format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
                 format.put("cookSerial", event.getCookSerial());
             }
-        }else{
-            preOrders.remove(event.getOrderIndex());
+            else{
+                preOrders.remove(event.getOrderIndex());
+            }
         }
     }
 

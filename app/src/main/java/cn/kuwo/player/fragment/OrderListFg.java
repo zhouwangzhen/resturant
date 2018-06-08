@@ -125,7 +125,7 @@ public class OrderListFg extends BaseFragment {
             public void done(List<AVObject> list, AVException e) {
                 if (e == null) {
                     testUsers = list;
-                     currentDate = DateUtil.getCurrentDate();
+                    currentDate = DateUtil.getCurrentDate();
                     currentDate.setHours(0);
                     currentDate.setMinutes(0);
                     currentDate.setSeconds(0);
@@ -194,7 +194,7 @@ public class OrderListFg extends BaseFragment {
     }
 
     private void statisticsData() {
-         ordersDetail = ProductUtil.statisticsTotalOrder(orders);
+        ordersDetail = ProductUtil.statisticsTotalOrder(orders);
     }
 
     public void onAttach(Context context) {
@@ -219,8 +219,8 @@ public class OrderListFg extends BaseFragment {
                 setDatePickerView();
                 break;
             case R.id.btn_print:
-                ShowStatisticsDialog showStatisticsDialog = new ShowStatisticsDialog(ordersDetail,currentDate);
-                showStatisticsDialog.show(getActivity().getFragmentManager(),"showstatistic");
+                ShowStatisticsDialog showStatisticsDialog = new ShowStatisticsDialog(ordersDetail, currentDate);
+                showStatisticsDialog.show(getActivity().getFragmentManager(), "showstatistic");
                 break;
         }
     }
@@ -270,7 +270,7 @@ public class OrderListFg extends BaseFragment {
                 holder.order_date.setText("用餐时间:" + DateUtil.formatDate(avObject.getDate("startedAt")) + "~" + DateUtil.formatDate(avObject.getDate("endAt")));
                 holder.order_table_number.setText("桌号:" + avObject.getString("tableNumber"));
                 holder.order_paysum.setText("用餐人数:" + avObject.getInt("customer"));
-            }else{
+            } else {
                 holder.order_date.setText("点单时间:" + DateUtil.formatDate(avObject.getDate("createdAt")));
                 holder.order_paysum.setText("");
                 holder.order_table_number.setText("");
@@ -290,14 +290,18 @@ public class OrderListFg extends BaseFragment {
                 HashMap<String, Object> commodityDetail = ObjectUtil.format(avObject.getList("commodityDetail").get(i));
                 commodityList += commodityDetail.get("name").toString() + "*" + commodityDetail.get("number").toString() + "份\n";
             }
-            if (!avObject.getBoolean("hangUp")) {
-                if (avObject.getBoolean("outside")) {
-                    holder.order_state_img.setBackgroundResource(R.drawable.order_retail);
+            if (ProductUtil.isRechargeSvipOrder(avObject)) {
+                holder.order_state_img.setBackgroundResource(R.drawable.order_recharge);
+            } else {
+                if (!avObject.getBoolean("hangUp")) {
+                    if (avObject.getBoolean("outside")) {
+                        holder.order_state_img.setBackgroundResource(R.drawable.order_retail);
+                    } else {
+                        holder.order_state_img.setBackgroundResource(R.drawable.order_res);
+                    }
                 } else {
-                    holder.order_state_img.setBackgroundResource(R.drawable.order_res);
+                    holder.order_state_img.setBackgroundResource(R.drawable.icon_hangup_state);
                 }
-            }else {
-                holder.order_state_img.setBackgroundResource(R.drawable.icon_hangup_state);
             }
             holder.order_detail.setText(commodityList);
             String settleContent = "                                     结账详情\n";
@@ -319,7 +323,7 @@ public class OrderListFg extends BaseFragment {
             for (int i = 0; i < meatWeights.size(); i++) {
                 meatweigth += Double.parseDouble(meatWeights.get(i).toString());
             }
-            settleContent += "牛肉抵扣重量:" + meatweigth + "kg\n";
+            settleContent += "牛肉抵扣重量:" + MyUtils.formatDouble(meatweigth) + "kg\n";
             settleContent += "实付金额:" + MyUtils.formatDouble(avObject.getDouble("paysum") - avObject.getDouble("reduce")) + "\n";
             holder.order_settle.setText(settleContent);
             holder.card_order.setOnClickListener(new View.OnClickListener() {
@@ -340,7 +344,7 @@ public class OrderListFg extends BaseFragment {
             holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Bill.reprintBill(MyApplication.getContextObject(),avObject);
+                    Bill.reprintBill(MyApplication.getContextObject(), avObject);
                 }
             });
 //            holder.card_order.setOnLongClickListener(new View.OnLongClickListener() {

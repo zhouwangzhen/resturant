@@ -79,11 +79,16 @@ public class TableFg extends BaseFragment {
             @Override
             public void done(int i, AVException e) {
                 if (e == null) {
-                    if (i > 0) {
-                        rlHangup.setVisibility(View.VISIBLE);
-                        tvHangupNumber.setText(i + "");
-                    } else {
-                        rlHangup.setVisibility(View.INVISIBLE);
+                    try {
+
+                        if (i > 0) {
+                            rlHangup.setVisibility(View.VISIBLE);
+                            tvHangupNumber.setText(i + "");
+                        } else {
+                            rlHangup.setVisibility(View.INVISIBLE);
+                        }
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
                     }
                 }
             }
