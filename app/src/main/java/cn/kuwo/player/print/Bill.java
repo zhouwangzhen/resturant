@@ -20,8 +20,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
@@ -35,6 +37,7 @@ import cn.kuwo.player.event.SuccessEvent;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
+import cn.kuwo.player.util.PayInfoUtil;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
@@ -76,9 +79,7 @@ public class Bill {
                         pos.printTextNewLine("----------------------------------------------");
                         pos.printTextNewLine("操作时间:" + MyUtils.dateFormat(new Date()));
                         pos.printTextNewLine("----------------------------------------------");
-                        pos.printTextNewLine("台 号:" + tableAVObject.getString("tableNumber"));
-                        pos.printTextNewLine("单号:" + 1);
-                        pos.printTextNewLine("人数:" + tableAVObject.getInt("customer"));
+                        pos.printTwoColumn("台 号:" + tableAVObject.getString("tableNumber"), "人数:" + tableAVObject.getInt("customer"));
                         pos.printLine(1);
                         pos.printTextNewLine("----------------------------------------------");
                         pos.printLine(1);
@@ -94,7 +95,6 @@ public class Bill {
                         for (int i = 0; i < orders.size(); i++) {
                             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
                             pos.printTextNewLine(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName());
-                            pos.printLine(1);
                             pos.printText("");
                             pos.printLocation(20, 1);
                             pos.printText(ObjectUtil.getDouble(format, "number") + "");
@@ -104,14 +104,18 @@ public class Bill {
                             pos.printWordSpace(2);
                             pos.printText(MyUtils.formatDouble(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getPrice() * ObjectUtil.getDouble(format, "number")) + "");
                             pos.printLine(1);
-                            if (ObjectUtil.getList(format, "comboList").size() > 0) {
-                                List<String> comboList = ObjectUtil.getList(format, "comboList");
-                                for (int j = 0; j < comboList.size(); j++) {
-                                    pos.printLine();
-                                    pos.printWordSpace(1);
-                                    pos.printText(comboList.get(j));
-                                    pos.printLine();
+                            try {
+                                if (ObjectUtil.getList(format, "comboList").size() > 0) {
+                                    List<String> comboList = ObjectUtil.getList(format, "comboList");
+                                    for (int j = 0; j < comboList.size(); j++) {
+                                        pos.printLine();
+                                        pos.printWordSpace(1);
+                                        pos.printText(comboList.get(j));
+                                        pos.printLine();
+                                    }
                                 }
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
                             if (ObjectUtil.getString(format, "presenter").length() > 0) {
                                 pos.printLine();
@@ -476,7 +480,6 @@ public class Bill {
                             for (int k = -1; k < 6; k++) {
                                 pos1.bold(true);
                                 int serial = ProductUtil.indexOfSerial(orders, k);
-                                Logger.d(serial);
                                 if (k == 1 && serial > 0) {
                                     pos1.printText("-----------------------------------------------");
                                     pos1.printLine(1);
@@ -539,8 +542,8 @@ public class Bill {
                                         pos1.printWordSpace(2);
                                         pos1.printText("   x" + ObjectUtil.getDouble(format, "number") + "份");
                                         pos1.printLine(1);
-                                        Logger.d(ObjectUtil.getList(format, "comboList").size());
-                                        if (ObjectUtil.getList(format, "comboList").size() > 0) {
+                                        Logger.d(ObjectUtil.getList(format, "comboList"));
+                                        if (format.containsKey("comboList") && ObjectUtil.getList(format, "comboList").size() > 0) {
                                             List<String> comboList = ObjectUtil.getList(format, "comboList");
                                             for (int j = 0; j < comboList.size(); j++) {
                                                 pos1.printLine();
@@ -634,7 +637,6 @@ public class Bill {
                     pos.printTextNewLine("操作时间:" + MyUtils.dateFormat(new Date()));
                     pos.printTextNewLine("----------------------------------------------");
                     pos.printTextNewLine("台 号:" + tableAvObject.getString("tableNumber"));
-                    pos.printTextNewLine("单号:" + 1);
                     pos.printTextNewLine("人数:" + tableAvObject.getInt("customer"));
                     pos.printTextNewLine("----------------------------------------------");
                     pos.printLine(1);
@@ -772,7 +774,6 @@ public class Bill {
                     pos1.printTextNewLine("操作时间:" + MyUtils.dateFormat(new Date()));
                     pos1.printTextNewLine("----------------------------------------------");
                     pos1.printTextNewLine("台 号:" + tableAvObject.getString("tableNumber"));
-                    pos1.printTextNewLine("单号:" + 1);
                     pos1.printTextNewLine("人数:" + tableAvObject.getInt("customer"));
                     pos1.printLine(1);
                     pos1.printTextNewLine("----------------------------------------------");
@@ -1000,7 +1001,7 @@ public class Bill {
                     pos.printLine(1);
                     pos.printTextNewLine("------------------------------------------------");
                     pos.printLine(1);
-                    Map<String, Double> secrowMap = ProductUtil.managerEscrow(actualMoney, escrow, orderDetail.getUserBean());
+                    Map<String, Double> secrowMap = PayInfoUtil.managerEscrowByRest(actualMoney, escrow, orderDetail.getAvObject());
                     for (String key : secrowMap.keySet()) {
                         pos.printTwoColumn(key + " :", secrowMap.get(key) + "");
                         pos.printLine(1);
@@ -1028,14 +1029,14 @@ public class Bill {
                         pos.printLocation(0);
                         pos.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
                         pos.printLine(1);
-                        Double actualReduce=0.0;
+                        Double actualReduce = 0.0;
                         for (int i = 0; i < orderDetail.getUseExchangeList().size(); i++) {
                             Object o = orderDetail.getUseExchangeList().get(i);
                             HashMap<String, Object> format = ObjectUtil.format(o);
                             pos.printTextNewLine(ObjectUtil.getString(format, "name"));
                             pos.printLine(1);
-                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format,"reduceMoeny"));
-                            actualReduce+=reduce;
+                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format, "reduceMoeny"));
+                            actualReduce += reduce;
                             pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(reduce) + "");
                             pos.printLine(1);
                         }
@@ -1146,7 +1147,7 @@ public class Bill {
                     pos1.printLine(1);
                     pos1.printTextNewLine("------------------------------------------------");
                     pos1.printLine(1);
-                    Map<String, Double> secrowMap1 = ProductUtil.managerEscrow(actualMoney, escrow, orderDetail.getUserBean());
+                    Map<String, Double> secrowMap1 = PayInfoUtil.managerEscrowByRest(actualMoney, escrow, orderDetail.getAvObject());
                     for (String key : secrowMap1.keySet()) {
                         pos1.printTwoColumn(key + " :", secrowMap1.get(key) + "");
                         pos1.printLine(1);
@@ -1174,18 +1175,18 @@ public class Bill {
                         pos1.printLocation(0);
                         pos1.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
                         pos1.printLine(1);
-                        Double actualReduce=0.0;
+                        Double actualReduce = 0.0;
                         for (int i = 0; i < orderDetail.getUseExchangeList().size(); i++) {
                             Object o = orderDetail.getUseExchangeList().get(i);
                             HashMap<String, Object> format = ObjectUtil.format(o);
                             pos1.printTextNewLine(ObjectUtil.getString(format, "name"));
                             pos1.printLine(1);
-                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format,"reduceMoeny"));
-                            actualReduce+=reduce;
+                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format, "reduceMoeny"));
+                            actualReduce += reduce;
                             pos1.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(reduce) + "");
                             pos1.printLine(1);
                         }
-                        pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMyReduceWeight()+"kg", MyUtils.formatDouble(actualReduce) + "");
+                        pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMyReduceWeight() + "kg", MyUtils.formatDouble(actualReduce) + "");
                         pos1.printLine(2);
                     }
                     if (orderDetail.getSvipMaxExchangeList().size() > 0) {
@@ -1197,15 +1198,15 @@ public class Bill {
                         pos1.printLocation(0);
                         pos1.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
                         pos1.printLine(1);
-                        Double maxReduce=0.0;
+                        Double maxReduce = 0.0;
                         for (int i = 0; i < orderDetail.getSvipMaxExchangeList().size(); i++) {
                             Object o = orderDetail.getSvipMaxExchangeList().get(i);
                             HashMap<String, Object> format = ObjectUtil.format(o);
                             pos1.printTextNewLine(ObjectUtil.getString(format, "name"));
                             pos1.printLine(1);
                             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format,"reduceMoeny"));
-                            maxReduce+=reduce;
+                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format, "reduceMoeny"));
+                            maxReduce += reduce;
                             pos1.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(reduce) + "");
                             pos1.printLine(1);
                         }
@@ -1366,6 +1367,7 @@ public class Bill {
                     pos.printTwoColumn("零售单数", ordersDetail.get("restaurarntNumber").toString());
                     pos.printTwoColumn("抵扣牛肉重量", ordersDetail.get("reduceWeight").toString());
                     pos.printTextNewLine("------------------------------------------------");
+                    HashMap<String, Double> weights = (HashMap<String, Double>) ordersDetail.get("weights");
                     pos.printLocation(0);
                     List<Map.Entry<String, Double>> numbersList = (List<Map.Entry<String, Double>>) ordersDetail.get("numbers");
                     for (Map.Entry<String, Double> mapping : numbersList) {
@@ -1373,6 +1375,10 @@ public class Bill {
                         pos.printLine(1);
                         pos.printTwoColumn("", mapping.getValue() + "份");
                         pos.printLine(1);
+                        if (weights.containsKey(mapping.getKey())) {
+                            pos.printTwoColumn("", weights.get(mapping.getValue()) + "kg");
+                            pos.printLine(1);
+                        }
                     }
                     pos.printTextNewLine("------------------------------------------------");
                     pos.printLine(1);
@@ -1744,7 +1750,8 @@ public class Bill {
                                      final Double money,
                                      final Double reduce,
                                      final Double finalMoney,
-                                     final int escrow) {
+                                     final int escrow,
+                                     final AVObject avObject) {
         new Thread() {
             @Override
             public void run() {
@@ -1759,6 +1766,10 @@ public class Bill {
                     pos.printText("超牛充值");
                     pos.bold(false);
                     pos.printLine(1);
+                    pos.printLocation(0);
+                    pos.printTextNewLine("操作人:" + (avObject.getAVObject("cashier") != null ? avObject.getAVObject("cashier").getString("realName") : avObject.getAVObject("cashier").getString("nickName")));
+                    pos.printTextNewLine("负责人:" + (avObject.getAVObject("market") != null ? avObject.getAVObject("market").getString("realName") : avObject.getAVObject("market").getString("nickName")));
+                    pos.printTextNewLine("时间:" + MyUtils.dateFormat(avObject.getCreatedAt()));
                     pos.printTextNewLine("----------------------------------------------");
                     pos.printLine(1);
                     pos.printLocation(0);
@@ -1837,9 +1848,9 @@ public class Bill {
                     pos1.printLocation(1);
                     pos1.printLine(1);
                     pos1.printText("地址:" + CONST.ADDRESS);
-                    pos1.printLine(2);
+                    pos1.printLine(1);
                     pos1.printText("电话:" + CONST.TEL);
-                    pos1.printLine(2);
+                    pos1.printLine(1);
                     pos1.printText("祝您生活越来越牛!");
                     pos1.printLine(4);
                     pos1.feedAndCut();
@@ -2087,7 +2098,7 @@ public class Bill {
                             payContent = "现金支付";
                             break;
                     }
-                    pos.printTwoColumn(payContent+":", rechargeMoney + "元");
+                    pos.printTwoColumn(payContent + ":", rechargeMoney + "元");
                     pos.printLine(1);
                     pos.printTextNewLine("------------------------------------------------");
                     pos.printLocation(1);
@@ -2108,5 +2119,354 @@ public class Bill {
             }
         }.start();
 
+    }
+
+    public static void printPreOrder(final Context context, final AVObject tableAVObject, final Double originTotalMoneny, final Double actualTotalMoneny, final HashMap<String, Double> reduceMap, final List<Object> useExchangeList, final List<Object> canExchangeList) {
+        new Thread() {
+            @Override
+            public void run() {
+                mContext = context;
+                SharedHelper sharedHelper = new SharedHelper(context);
+                try {
+                    String url = SharedHelper.read("ip1") + "." + SharedHelper.read("ip2") + "." + SharedHelper.read("ip3") + "." + SharedHelper.read("ip4");
+                    Pos pos;
+                    final DecimalFormat df = new DecimalFormat("######0.00");
+                    pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+                    pos.initPos();
+                    pos.printLocation(1);
+                    pos.bold(true);
+                    pos.printText("点单(客户联)");
+                    pos.bold(false);
+                    pos.printLocation(0);
+                    pos.printTextNewLine("----------------------------------------------");
+                    if (tableAVObject.getDate("startedAt") != null) {
+                        pos.printTextNewLine("开单时间:" + MyUtils.dateFormat(tableAVObject.getDate("startedAt")));
+                    } else {
+                        pos.printTextNewLine("开单时间:" + MyUtils.dateFormat(new Date()));
+                    }
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printTextNewLine("台 号:" + tableAVObject.getString("tableNumber"));
+                    pos.printTextNewLine("人数:" + tableAVObject.getInt("customer"));
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printLine(1);
+                    pos.printText("品名");
+                    pos.printLocation(20, 1);
+                    pos.printText("数量");
+                    pos.printLocation(90, 1);
+                    pos.printWordSpace(1);
+                    pos.printText("单价");
+                    pos.printWordSpace(2);
+                    pos.printText("金额");
+                    List orders = tableAVObject.getList("order");
+                    pos.printTextNewLine("----------------------------------------------");
+                    for (int i = 0; i < orders.size(); i++) {
+                        HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
+                        ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+                        pos.printTextNewLine(productBean.getName());
+                        pos.printLine(1);
+                        pos.printText("  ");
+                        pos.printLocation(20, 1);
+                        pos.printText(ObjectUtil.getDouble(format, "number") + "");
+                        pos.printLocation(90, 1);
+                        pos.printWordSpace(1);
+                        pos.printText(productBean.getPrice() + "");
+                        pos.printWordSpace(2);
+                        pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * productBean.getPrice()) + "");
+                    }
+                    pos.printTextNewLine("------------------------------------------------");
+                    pos.printLocation(0);
+                    pos.printLine(1);
+                    pos.printTwoColumn("原价合计 :", MyUtils.formatDouble(originTotalMoneny) + "");
+                    pos.printLine(1);
+                    if (MyUtils.formatDouble(originTotalMoneny - actualTotalMoneny) > 0) {
+                        pos.printTwoColumn("优惠金额 :", MyUtils.formatDouble(originTotalMoneny - actualTotalMoneny) + "");
+                    }
+                    pos.printLine(1);
+                    pos.printTwoColumn("实付金额 :", MyUtils.formatDouble(actualTotalMoneny) + "");
+                    if (reduceMap != null && !reduceMap.isEmpty()) {
+                        pos.printTextNewLine("------------------------------------------------");
+                        pos.printLine(1);
+                        Set<String> keySet = reduceMap.keySet();
+                        //有了Set集合就可以获取其迭代器，取值
+                        Iterator<String> iterator = keySet.iterator();
+                        while (iterator.hasNext()) {
+                            String key = (String) iterator.next();
+                            Double value = reduceMap.get(key);
+                            pos.printTwoColumn(key + " :", value + "");
+                        }
+                    }
+                    if (useExchangeList.size() > 0) {
+                        pos.printTextNewLine("------------------------------------------------");
+                        pos.printLine(1);
+                        pos.printLocation(1);
+                        pos.printText("我的牛肉可抵扣详情");
+                        pos.printLine();
+                        pos.printLocation(0);
+                        pos.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
+                        pos.printLine(1);
+                        Double actualReduce = 0.0;
+                        Double actualWeight = 0.0;
+                        for (int i = 0; i < useExchangeList.size(); i++) {
+                            Object o = useExchangeList.get(i);
+                            HashMap<String, Object> format = ObjectUtil.format(o);
+                            pos.printTextNewLine(ObjectUtil.getString(format, "name"));
+                            pos.printLine(1);
+                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format, "reduceMoeny"));
+                            actualReduce += reduce;
+                            actualWeight += ObjectUtil.getDouble(format, "meatWeight");
+                            pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(reduce) + "");
+                            pos.printLine(1);
+                        }
+                        pos.printFourColumn("总计", "    ", "    " + MyUtils.formatDouble(actualWeight) + "kg", MyUtils.formatDouble(actualReduce) + "");
+                        pos.printLine(1);
+                    }
+                    if (canExchangeList.size() > 0) {
+                        pos.printTextNewLine("------------------------------------------------");
+                        pos.printLine(1);
+                        pos.printLocation(1);
+                        pos.printText("超牛牛肉充足可抵扣详情");
+                        pos.printLine();
+                        pos.printLocation(0);
+                        pos.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
+                        pos.printLine(1);
+                        Double actualReduce = 0.0;
+                        Double actualWeight = 0.0;
+                        for (int i = 0; i < canExchangeList.size(); i++) {
+                            Object o = canExchangeList.get(i);
+                            HashMap<String, Object> format = ObjectUtil.format(o);
+                            pos.printTextNewLine(ObjectUtil.getString(format, "name"));
+                            pos.printLine(1);
+                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format, "reduceMoeny"));
+                            actualReduce += reduce;
+                            actualWeight += ObjectUtil.getDouble(format, "meatWeight");
+                            pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(reduce) + "");
+                            pos.printLine(1);
+                        }
+                        pos.printFourColumn("总计", "    ", "    " + MyUtils.formatDouble(actualWeight) + "kg", MyUtils.formatDouble(actualReduce) + "");
+                        pos.printLine(1);
+                    }
+                    pos.printTextNewLine("------------------------------------------------");
+                    pos.printLocation(1);
+                    pos.printLine(1);
+                    pos.printText("地址:" + CONST.ADDRESS);
+                    pos.printLine(1);
+                    pos.printText("电话:" + CONST.TEL);
+                    pos.printLine(1);
+                    pos.printText("祝您生活越来越牛!");
+                    pos.printLine(2);
+                    pos.feedAndCut();
+                    pos.closeIOAndSocket();
+                } catch (Exception e) {
+                    Logger.d(e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
+
+    public static void reprintSvipBill(final AVObject avObject) {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    final String svipStyle = MyUtils.getProductById(avObject.getList("commodity").get(0).toString()).getName();
+                    final Double money = MyUtils.formatDouble(avObject.getDouble("paysum"));
+                    final Double reduce = MyUtils.formatDouble(avObject.getDouble("reduce"));
+                    final Double finalMoney = MyUtils.formatDouble(avObject.getDouble("paysum") - avObject.getDouble("reduce"));
+                    final int escrow = avObject.getInt("escrow");
+                    mContext = MyApplication.getContextObject();
+                    String url = SharedHelper.read("ip1") + "." + SharedHelper.read("ip2") + "." + SharedHelper.read("ip3") + "." + SharedHelper.read("ip4");
+                    Pos pos;
+                    pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+                    pos.initPos();
+                    pos.printLocation(1);
+                    pos.bold(true);
+                    pos.printText("超牛充值");
+                    pos.bold(false);
+                    pos.printLine(1);
+                    pos.printLocation(0);
+                    pos.printTextNewLine("操作人:" + (avObject.getAVObject("cashier") != null ? avObject.getAVObject("cashier").getString("realName") : avObject.getAVObject("cashier").getString("nickName")));
+                    pos.printTextNewLine("负责人:" + (avObject.getAVObject("market") != null ? avObject.getAVObject("market").getString("realName") : avObject.getAVObject("market").getString("nickName")));
+                    pos.printTextNewLine("时间:" + MyUtils.dateFormat(avObject.getCreatedAt()));
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printLine(1);
+                    pos.printLocation(0);
+                    pos.printTwoColumn("充值用户:", avObject.getAVObject("user").getString("username"));
+                    pos.printLine(1);
+                    pos.printTwoColumn("充值类型:", svipStyle);
+                    pos.printLine(1);
+                    pos.printTwoColumn("充值金额:", money + "元");
+                    pos.printLine(1);
+                    if (reduce > 0) {
+                        pos.printTwoColumn("优惠金额:", reduce + "元");
+                        pos.printLine(1);
+                    }
+                    pos.printTwoColumn("实付金额:", finalMoney + "元");
+                    pos.printLine(1);
+                    String secrowContent = "";
+                    if (escrow == 11) {
+                        secrowContent = "白条支付";
+                    } else if (escrow == 3) {
+                        secrowContent = "支付宝支付";
+                    } else if (escrow == 4) {
+                        secrowContent = "微信支付";
+                    } else if (escrow == 5) {
+                        secrowContent = "银行卡支付";
+                    } else if (escrow == 6) {
+                        secrowContent = "现金支付";
+                    }
+                    pos.printTwoColumn("支付方式:", secrowContent);
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printLocation(1);
+                    pos.printLine(1);
+                    pos.printText("地址:" + CONST.ADDRESS);
+                    pos.printLine(1);
+                    pos.printText("电话:" + CONST.TEL);
+                    pos.printLine(1);
+                    pos.printText("祝您生活越来越牛!");
+                    pos.printLine(4);
+                    pos.feedAndCut();
+                    pos.closeIOAndSocket();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
+
+    public static void printPreOrderRest(final Context context, final Double originTotalMoneny, final Double actualTotalMoneny, final LinkedHashMap<String, Double> reduceMap, final List<Object> useExchangeList, final List<Object> canExchangeList,final List<Object> orders) {
+        new Thread() {
+            @Override
+            public void run() {
+                mContext = context;
+                SharedHelper sharedHelper = new SharedHelper(context);
+                try {
+                    String url = SharedHelper.read("ip1") + "." + SharedHelper.read("ip2") + "." + SharedHelper.read("ip3") + "." + SharedHelper.read("ip4");
+                    Pos pos;
+                    final DecimalFormat df = new DecimalFormat("######0.00");
+                    pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+                    pos.initPos();
+                    pos.printLocation(1);
+                    pos.bold(true);
+                    pos.printText("点单(客户联)");
+                    pos.bold(false);
+                    pos.printLocation(0);
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printTextNewLine("下单时间:" + MyUtils.dateFormat(new Date()));
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printLine(1);
+                    pos.printText("品名");
+                    pos.printLocation(20, 1);
+                    pos.printText("数量");
+                    pos.printLocation(90, 1);
+                    pos.printWordSpace(1);
+                    pos.printText("单价");
+                    pos.printWordSpace(2);
+                    pos.printText("金额");
+                    pos.printTextNewLine("----------------------------------------------");
+                    for (int i = 0; i < orders.size(); i++) {
+                        HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
+                        ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+                        pos.printTextNewLine(productBean.getName());
+                        pos.printLine(1);
+                        pos.printText("  ");
+                        pos.printLocation(20, 1);
+                        pos.printText(ObjectUtil.getDouble(format, "number") + "");
+                        pos.printLocation(90, 1);
+                        pos.printWordSpace(1);
+                        pos.printText(productBean.getPrice() + "");
+                        pos.printWordSpace(2);
+                        pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * productBean.getPrice()) + "");
+                    }
+                    pos.printTextNewLine("------------------------------------------------");
+                    pos.printLocation(0);
+                    pos.printLine(1);
+                    pos.printTwoColumn("原价合计 :", MyUtils.formatDouble(originTotalMoneny) + "");
+                    pos.printLine(1);
+                    if (MyUtils.formatDouble(originTotalMoneny - actualTotalMoneny) > 0) {
+                        pos.printTwoColumn("优惠金额 :", MyUtils.formatDouble(originTotalMoneny - actualTotalMoneny) + "");
+                    }
+                    pos.printLine(1);
+                    pos.printTwoColumn("实付金额 :", MyUtils.formatDouble(actualTotalMoneny) + "");
+                    if (reduceMap != null && !reduceMap.isEmpty()) {
+                        pos.printTextNewLine("------------------------------------------------");
+                        pos.printLine(1);
+                        Set<String> keySet = reduceMap.keySet();
+                        //有了Set集合就可以获取其迭代器，取值
+                        Iterator<String> iterator = keySet.iterator();
+                        while (iterator.hasNext()) {
+                            String key = (String) iterator.next();
+                            Double value = reduceMap.get(key);
+                            pos.printTwoColumn(key + " :", value + "");
+                        }
+                    }
+                    if (useExchangeList.size() > 0) {
+                        pos.printTextNewLine("------------------------------------------------");
+                        pos.printLine(1);
+                        pos.printLocation(1);
+                        pos.printText("我的牛肉可抵扣详情");
+                        pos.printLine();
+                        pos.printLocation(0);
+                        pos.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
+                        pos.printLine(1);
+                        Double actualReduce = 0.0;
+                        Double actualWeight = 0.0;
+                        for (int i = 0; i < useExchangeList.size(); i++) {
+                            Object o = useExchangeList.get(i);
+                            HashMap<String, Object> format = ObjectUtil.format(o);
+                            pos.printTextNewLine(ObjectUtil.getString(format, "name"));
+                            pos.printLine(1);
+                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format, "reduceMoeny"));
+                            actualReduce += reduce;
+                            actualWeight += ObjectUtil.getDouble(format, "meatWeight");
+                            pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(reduce) + "");
+                            pos.printLine(1);
+                        }
+                        pos.printFourColumn("总计", "    ", "    " + MyUtils.formatDouble(actualWeight) + "kg", MyUtils.formatDouble(actualReduce) + "");
+                        pos.printLine(1);
+                    }
+                    if (canExchangeList.size() > 0) {
+                        pos.printTextNewLine("------------------------------------------------");
+                        pos.printLine(1);
+                        pos.printLocation(1);
+                        pos.printText("超牛牛肉充足可抵扣详情");
+                        pos.printLine();
+                        pos.printLocation(0);
+                        pos.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
+                        pos.printLine(1);
+                        Double actualReduce = 0.0;
+                        Double actualWeight = 0.0;
+                        for (int i = 0; i < canExchangeList.size(); i++) {
+                            Object o = canExchangeList.get(i);
+                            HashMap<String, Object> format = ObjectUtil.format(o);
+                            pos.printTextNewLine(ObjectUtil.getString(format, "name"));
+                            pos.printLine(1);
+                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format, "reduceMoeny"));
+                            actualReduce += reduce;
+                            actualWeight += ObjectUtil.getDouble(format, "meatWeight");
+                            pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(reduce) + "");
+                            pos.printLine(1);
+                        }
+                        pos.printFourColumn("总计", "    ", "    " + MyUtils.formatDouble(actualWeight) + "kg", MyUtils.formatDouble(actualReduce) + "");
+                        pos.printLine(1);
+                    }
+                    pos.printTextNewLine("------------------------------------------------");
+                    pos.printLocation(1);
+                    pos.printLine(1);
+                    pos.printText("地址:" + CONST.ADDRESS);
+                    pos.printLine(1);
+                    pos.printText("电话:" + CONST.TEL);
+                    pos.printLine(1);
+                    pos.printText("祝您生活越来越牛!");
+                    pos.printLine(2);
+                    pos.feedAndCut();
+                    pos.closeIOAndSocket();
+                } catch (Exception e) {
+                    Logger.d(e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 }

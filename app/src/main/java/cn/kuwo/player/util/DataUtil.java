@@ -1,6 +1,7 @@
 package cn.kuwo.player.util;
 
 import com.avos.avoscloud.AVObject;
+import com.orhanobut.logger.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,18 +32,12 @@ public class DataUtil {
         hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
         hashMap.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
         hashMap.put("cookSerial", event.getCookSerial());
-        if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
-            if ( productBean.getGiveRule() == 0) {
-                hashMap.put("comboList", event.getComboList());
-            } else if (userId.length() > 0 && productBean.getGiveRule() == 1) {
-                hashMap.put("comboList", event.getComboList());
-            }else if (userId.length() > 0 && productBean.getGiveRule() == 2) {
-                hashMap.put("comboList", event.getComboList());
-            }
-
-        } else {
-            hashMap.put("comboList", new ArrayList<>());
+        if (event.getComboList()!=null&&event.getComboList().size()>0){
+            hashMap.put("comboList",event.getComboList());
+        }else{
+            hashMap.put("comboList", new List[0]);
         }
+
         return hashMap;
     }
 
@@ -70,17 +65,12 @@ public class DataUtil {
                 format.put("name", event.getProductBean().getName());
                 format.put("weight", MyUtils.formatDouble(productBean.getWeight() * event.getCommodityNumber()));
                 format.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
+                format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
+                Logger.d(event.getProductBean().getComboMenu() );
                 if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
-                    if ( productBean.getGiveRule() == 0) {
-                        format.put("comboList", event.getComboList());
-                    } else if (userId.length() > 0 && productBean.getGiveRule() == 1) {
-                        format.put("comboList", event.getComboList());
-                    }else if (userId.length() > 0 && productBean.getGiveRule() == 2) {
-                        format.put("comboList", event.getComboList());
-                    }
-
+                    format.put("comboList", event.getComboList());
                 } else {
-                    format.put("comboList", new ArrayList<>());
+                    format.put("comboList", new List[0]);
                 }
                 format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
                 format.put("cookSerial", event.getCookSerial());

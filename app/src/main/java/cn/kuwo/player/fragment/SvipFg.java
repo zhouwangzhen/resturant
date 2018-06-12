@@ -119,10 +119,10 @@ public class SvipFg extends BaseFragment {
     private String mParam;
     private String userId = "";
     private String commodityId = CONST.SVIPSTYLE.DATE_12_MONTH;
-    private Double commodityMoney = 6000.0;
+    private Double commodityMoney = 5000.0;
     private String commodityContent = "超牛会员1年";
     private int escrow = 3;
-    private String card="";
+    private String card = "";
     private Double whiteBarBalance = 0.0;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
 
@@ -135,7 +135,7 @@ public class SvipFg extends BaseFragment {
     public void initData() {
         if (CameraProvider.hasCamera()) {
             cardBindCard.setVisibility(View.GONE);
-        }else{
+        } else {
             cardBindCard.setVisibility(View.VISIBLE);
         }
         btnScanCard.setVisibility(View.VISIBLE);
@@ -207,7 +207,7 @@ public class SvipFg extends BaseFragment {
         return svipFg;
     }
 
-    @OnClick({R.id.btn_scan_user, R.id.btn_recharge, R.id.reset_data, R.id.btn_refrsh,R.id.btn_cancel_card,R.id.btn_scan_card})
+    @OnClick({R.id.btn_scan_user, R.id.btn_recharge, R.id.reset_data, R.id.btn_refrsh, R.id.btn_cancel_card, R.id.btn_scan_card})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_scan_user:
@@ -229,7 +229,7 @@ public class SvipFg extends BaseFragment {
                 reset();
                 rgPaystyle.check(R.id.pay_ali);
                 userId = "";
-                card="";
+                card = "";
                 llNoUser.setVisibility(View.VISIBLE);
                 break;
             case R.id.btn_refrsh:
@@ -241,7 +241,7 @@ public class SvipFg extends BaseFragment {
                 scanCardFragment.show(getFragmentManager(), "scancard");
                 break;
             case R.id.btn_cancel_card:
-                card="";
+                card = "";
                 tvCardCode.setText("无");
                 btnScanCard.setVisibility(View.VISIBLE);
                 break;
@@ -310,7 +310,7 @@ public class SvipFg extends BaseFragment {
         escrow = 3;
         whiteBarBalance = 0.0;
         commodityId = CONST.SVIPSTYLE.DATE_12_MONTH;
-        commodityMoney = 6000.0;
+        commodityMoney = 5000.0;
         rechargeContent.setVisibility(View.GONE);
     }
 
@@ -336,7 +336,7 @@ public class SvipFg extends BaseFragment {
             public void done(Map<String, Map<String, Object>> map, AVException e) {
                 if (e == null) {
                     final String orderId = map.get("order").get("objectId").toString();
-                    AVObject mallOrder = AVObject.createWithoutData("MallOrder", orderId);
+                    final AVObject mallOrder = AVObject.createWithoutData("MallOrder", orderId);
                     mallOrder.put("cashier", AVObject.createWithoutData("_User", new SharedHelper(getContext()).read("cashierId")));
                     mallOrder.put("market", AVObject.createWithoutData("_User", new SharedHelper(getContext()).read("cashierId")));
                     mallOrder.put("orderStatus", AVObject.createWithoutData("MallOrderStatus", CONST.OrderState.ORDER_STATUS_FINSIH));
@@ -344,17 +344,32 @@ public class SvipFg extends BaseFragment {
                     mallOrder.put("store", CONST.STORECODE);
                     mallOrder.put("reduce", 0);
                     mallOrder.put("offline", true);
-                    HashMap<String,Object> commodityDetail=new HashMap<>();
-                    commodityDetail.put("name",commodityContent);
-                    commodityDetail.put("number",1);
-                    List<HashMap<String,Object>> detail=new ArrayList<>();
+                    mallOrder.put("type", 2);
+                    HashMap<String, Double> escrowDetail = new HashMap<>();
+                    if (escrow == 3) {
+                        escrowDetail.put("支付宝支付", commodityMoney);
+                    } else if (escrow == 4) {
+                        escrowDetail.put("微信支付", commodityMoney);
+                    } else if (escrow == 5) {
+                        escrowDetail.put("银行卡支付", commodityMoney);
+                    } else if (escrow == 6) {
+                        escrowDetail.put("现金支付", commodityMoney);
+                    }else if (escrow ==11) {
+                        escrowDetail.put("白条支付", commodityMoney);
+                    }
+                    mallOrder.put("escrowDetail", escrowDetail);
+                    HashMap<String, Object> commodityDetail = new HashMap<>();
+                    commodityDetail.put("name", commodityContent);
+                    commodityDetail.put("number", 1);
+                    commodityDetail.put("id",commodity[0]);
+                    List<HashMap<String, Object>> detail = new ArrayList<>();
                     detail.add(commodityDetail);
-                    mallOrder.put("commodityDetail",detail);
+                    mallOrder.put("commodityDetail", detail);
                     mallOrder.saveInBackground(new SaveCallback() {
                         @Override
                         public void done(AVException e) {
                             if (e == null) {
-                                bindPower(orderId);
+                                bindPower(orderId,mallOrder);
                             } else {
                                 hideDialog();
                                 ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
@@ -369,7 +384,7 @@ public class SvipFg extends BaseFragment {
     /**
      * 绑定超牛会员
      */
-    private void bindPower(String orderId) {
+    private void bindPower(String orderId , final AVObject mallOrder) {
         AVObject power = new AVObject("Power");
         Calendar c;
         if (commodityId == CONST.SVIPSTYLE.DATE_1_MONTH) {
@@ -396,8 +411,8 @@ public class SvipFg extends BaseFragment {
         power.put("active", 1);
         power.put("user", AVObject.createWithoutData("_User", userId));
         power.put("order", AVObject.createWithoutData("MallOrder", orderId));
-        if (card.length()>0){
-            power.put("card",card);
+        if (card.length() > 0) {
+            power.put("card", card);
         }
         power.saveInBackground(new SaveCallback() {
             @Override
@@ -406,7 +421,7 @@ public class SvipFg extends BaseFragment {
                     hideDialog();
                     btnRefrsh.setVisibility(View.VISIBLE);
                     ToastUtil.showShort(MyApplication.getContextObject(), "充值绑定成功");
-                    Bill.printSvipBill(commodityContent, commodityMoney, 0.0, commodityMoney, escrow);
+                    Bill.printSvipBill(commodityContent, commodityMoney, 0.0, commodityMoney, escrow,mallOrder);
                     reset();
                 } else {
                     hideDialog();
@@ -619,8 +634,8 @@ public class SvipFg extends BaseFragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void CardMessage(CardBean cardBean){
-        card=cardBean.getCard();
+    public void CardMessage(CardBean cardBean) {
+        card = cardBean.getCard();
         tvCardCode.setText(card);
         btnCancelCard.setVisibility(View.VISIBLE);
         btnScanCard.setVisibility(View.GONE);

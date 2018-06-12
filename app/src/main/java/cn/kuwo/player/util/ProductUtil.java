@@ -511,7 +511,7 @@ public class ProductUtil {
 
 
         }
-        return content;
+        return "确认使用"+content;
     }
 
     public static List<String> calTotalIds(List<Object> orders) {
@@ -549,9 +549,12 @@ public class ProductUtil {
     public static List<List<String>> getComboList(String comboMenu) {
         List<List<String>> comboList = new ArrayList<>();
         String[] split = comboMenu.split("\\|");
-        for (int i = 0; i < split.length; i++) {
-            List<String> item = Arrays.asList(split[i].split("\\,"));
-            comboList.add(item);
+        Logger.d(split);
+        if (comboMenu.length()>0) {
+            for (int i = 0; i < split.length; i++) {
+                List<String> item = Arrays.asList(split[i].split("\\,"));
+                comboList.add(item);
+            }
         }
         return comboList;
 
@@ -706,91 +709,6 @@ public class ProductUtil {
         }
     }
 
-    /**
-     * 统计总单的信息
-     */
-    public static HashMap<String, Object> statisticsTotalOrder(List<AVObject> orders) {
-        HashMap<String, Object> detail = new HashMap<>();
-        HashMap<String, Double> numbers = new HashMap<>();
-        HashMap<String, Double> weights = new HashMap<>();
-        HashMap<String, Integer> offlineCoupon = new HashMap<>();
-        HashMap<String, Integer> onlineCoupon = new HashMap<>();
-
-        Double online = 0.0;
-        Double offline = 0.0;
-        int retail = 0;
-        int restaurarnt = 0;
-        int member = 0;
-        int noMember = 0;
-        Double reduceWeight = 0.0;
-        for (AVObject order : orders) {
-            Double actualMoney = order.getDouble("paysum") - order.getDouble("reduce");
-            online += order.getDouble("actuallyPaid");
-            offline += actualMoney - order.getDouble("actuallyPaid");
-            if (order.getString("tableNumber") != null && order.getDate("startedAt") != null) {
-                retail++;
-            } else {
-                restaurarnt++;
-            }
-            if (!order.getAVObject("user").getObjectId().equals(CONST.ACCOUNT.SYSTEMACCOUNT)) {
-                member++;
-            } else {
-                noMember++;
-            }
-            if (order.getList("meatWeights").size() > 0) {
-                for (int i = 0; i < order.getList("meatWeights").size(); i++) {
-                    reduceWeight += MyUtils.formatDouble(Double.parseDouble(order.getList("meatWeights").get(i) + ""));
-                }
-            }
-            List commodityDetail = order.getList("commodityDetail");
-            for (int j = 0; j < commodityDetail.size(); j++) {
-                HashMap<String, Object> format = ObjectUtil.format(commodityDetail.get(j));
-                String name = ObjectUtil.getString(format, "name");
-                if (numbers.containsKey(name)) {
-                    numbers.put(name, numbers.get(name) + ObjectUtil.getDouble(format, "number"));
-                } else {
-                    numbers.put(name, ObjectUtil.getDouble(format, "number"));
-                }
-            }
-            if (order.getAVObject("useSystemCoupon") != null) {
-                String name = order.getAVObject("useSystemCoupon").getAVObject("type").getString("name");
-                if (offlineCoupon.containsKey(name)) {
-                    offlineCoupon.put(name, offlineCoupon.get(name) + 1);
-                } else {
-                    offlineCoupon.put(name, 1);
-                }
-            }
-            if (order.getAVObject("useUserCoupon") != null) {
-                String name = order.getAVObject("useUserCoupon").getAVObject("type").getString("name");
-                if (onlineCoupon.containsKey(name)) {
-                    onlineCoupon.put(name, onlineCoupon.get(name) + 1);
-                } else {
-                    onlineCoupon.put(name, 1);
-                }
-            }
-        }
-        List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(numbers.entrySet());
-        Collections.sort(list, new Comparator<Map.Entry<String, Double>>() {
-            @Override
-            public int compare(Map.Entry<String, Double> o1, Map.Entry<String, Double> o2) {
-                return o2.getValue().compareTo(o1.getValue());
-            }
-        });
-        detail.put("onlineMoney", MyUtils.formatDouble(online) + "元");
-        detail.put("offlineMoney", MyUtils.formatDouble(offline) + "元");
-        detail.put("totalMoney", MyUtils.formatDouble(offline + online) + "元");
-        detail.put("member", member + "单");
-        detail.put("noMember", noMember + "单");
-        detail.put("retailNumber", retail + "单");
-        detail.put("restaurarntNumber", restaurarnt + "单");
-        detail.put("reduceWeight", MyUtils.formatDouble(reduceWeight) + "kg");
-        detail.put("numbers", list);
-        detail.put("offlineCoupon", offlineCoupon);
-        detail.put("onlineCoupon", onlineCoupon);
-        Logger.d(detail);
-        return detail;
-    }
-
     public static List<Object> calOtherOder(List<Object> orders, HashMap<String, Object> otherTableOrders) {
         List<Object> finalOrders = orders;
         for (Map.Entry<String, Object> m : otherTableOrders.entrySet()) {
@@ -845,17 +763,22 @@ public class ProductUtil {
         RuleBean ruleBean = mRealmHleper.queryAllRule().get(0);
         RealmList<String> fullReduce = ruleBean.getFullReduce();
         if (fullReduce.size() > 0) {
-            int index = 0;
-            for (int i = 0; i < fullReduce.size() - 1; i++) {
-                if (Double.parseDouble(fullReduce.get(i).split("-")[0]) < actualTotalMoneny && (Double.parseDouble(fullReduce.get(i).split("-")[0]) > actualTotalMoneny)) {
+            int index = -1;
+            for (int i = 0; i < fullReduce.size()-1; i++) {
+                if ((Double.parseDouble(fullReduce.get(fullReduce.size()-1).split("-")[0]) < actualTotalMoneny)){
+                    index=fullReduce.size()-1;
+                }
+                if (Double.parseDouble(fullReduce.get(i).split("-")[0]) < actualTotalMoneny && (Double.parseDouble(fullReduce.get(i+1).split("-")[0]) > actualTotalMoneny)) {
                     index = i;
                 }
             }
-            if (index != 0) {
-                index = fullReduce.size() - 1;
+            if (index != -1) {
+                return Double.parseDouble(fullReduce.get(index).split("-")[1]);
+            }else{
+                return 0.0;
             }
 
-            return Double.parseDouble(fullReduce.get(index).split("-")[1]);
+
         } else {
             return 0.0;
         }
@@ -921,11 +844,12 @@ public class ProductUtil {
         List<String> commoditys = avObject.getList("commodity");
         if (commoditys.size()==1){
             String id = commoditys.get(0);
-            Logger.d(id);
             if (id.equals(CONST.SVIPSTYLE.DATE_12_MONTH)||id.equals(CONST.SVIPSTYLE.DATE_1_MONTH)){
                 return true;
             }
         }
         return false;
     }
+
+
 }

@@ -142,10 +142,10 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
         String ip3StringDrink = sharedHelper.read("ip3_drink");
         String ip4StringDrink = sharedHelper.read("ip4_drink");
 
-        String ip1StringCool = sharedHelper.read("ip1_drink");
-        String ip2StringCool = sharedHelper.read("ip2_drink");
-        String ip3StringCool = sharedHelper.read("ip3_drink");
-        String ip4StringCool = sharedHelper.read("ip4_drink");
+        String ip1StringCool = sharedHelper.read("ip1_cool");
+        String ip2StringCool = sharedHelper.read("ip2_cool");
+        String ip3StringCool = sharedHelper.read("ip3_cool");
+        String ip4StringCool = sharedHelper.read("ip4_cool");
 
 
 

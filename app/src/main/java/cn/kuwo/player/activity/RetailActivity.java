@@ -143,6 +143,7 @@ public class RetailActivity extends BaseActivity {
                 startActivityForResult(intent, 1);
             }
         });
+//        scanMeatcode.setText("219999911500002306");
     }
 
 

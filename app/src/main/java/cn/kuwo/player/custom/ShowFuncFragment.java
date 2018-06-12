@@ -1,5 +1,6 @@
 package cn.kuwo.player.custom;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -18,21 +19,33 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.orhanobut.logger.Logger;
 
+import org.greenrobot.eventbus.EventBus;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
+import cn.kuwo.player.bean.FuncBean;
+import cn.kuwo.player.util.ToastUtil;
 
+@SuppressLint("ValidFragment")
 public class ShowFuncFragment extends DialogFragment {
     private View view;
     private GridView gvFunc;
     private Button btnClose;
-    private String[] funList={"多桌结账","挂账"};
+    private String[] funList = {"多桌结账", "挂账", "抹零", "打印预览订单", "整单打折"};
+    private int mode;
+
+    public ShowFuncFragment(int mode) {
+        this.mode = mode;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -59,8 +72,8 @@ public class ShowFuncFragment extends DialogFragment {
     }
 
     private void findView() {
-        gvFunc=view.findViewById(R.id.gv_func);
-        btnClose=view.findViewById(R.id.btn_close);
+        gvFunc = view.findViewById(R.id.gv_func);
+        btnClose = view.findViewById(R.id.btn_close);
     }
 
     @Override
@@ -77,7 +90,8 @@ public class ShowFuncFragment extends DialogFragment {
             getDialog().setCanceledOnTouchOutside(false);
         }
     }
-    public class FuncAdapter extends BaseAdapter{
+
+    public class FuncAdapter extends BaseAdapter {
 
         @Override
         public int getCount() {
@@ -97,26 +111,34 @@ public class ShowFuncFragment extends DialogFragment {
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
             ViewHolder holder = null;
-            if (convertView==null){
-                convertView=LayoutInflater.from(getContext()).inflate(R.layout.adapter_func,parent,false);
-                holder=new ViewHolder();
-                holder.funcName=convertView.findViewById(R.id.func_name);
-                holder.llRoot=convertView.findViewById(R.id.ll_root);
+            if (convertView == null) {
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.adapter_func, parent, false);
+                holder = new ViewHolder();
+                holder.funcName = convertView.findViewById(R.id.func_name);
+                holder.llRoot = convertView.findViewById(R.id.ll_root);
                 convertView.setTag(holder);
-            }else{
-                holder= (ViewHolder) convertView.getTag();
+            } else {
+                holder = (ViewHolder) convertView.getTag();
             }
 
             holder.funcName.setText(funList[position]);
             holder.llRoot.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    getTargetFragment().onActivityResult(getTargetRequestCode(),position,getActivity().getIntent());
+                    if (mode==1&&(position==0||position==1)){
+                        if (position==0||position==1){
+                            ToastUtil.showShort(MyApplication.getContextObject(),"尚未开放此功能");
+                            return;
+                        }
+                    }
+                    EventBus.getDefault().post(new FuncBean(position));
                     getDialog().dismiss();
+
                 }
             });
             return convertView;
         }
+
         private class ViewHolder {
             TextView funcName;
             SquareLayout llRoot;

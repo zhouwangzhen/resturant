@@ -49,6 +49,7 @@ import cn.kuwo.player.event.PrintEvent;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.MyUtils;
+import cn.kuwo.player.util.PayInfoUtil;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
@@ -110,6 +111,16 @@ public class PayFg extends BaseFragment {
     Unbinder unbinder1;
     @BindView(R.id.table_info)
     TextView tableInfo;
+    @BindView(R.id.delete_odd_money)
+    TextView deleteOddMoney;
+    @BindView(R.id.ll_delete_odd)
+    LinearLayout llDeleteOdd;
+    @BindView(R.id.rate_reduce_content)
+    TextView rateReduceContent;
+    @BindView(R.id.rate_reduce_money)
+    TextView rateReduceMoney;
+    @BindView(R.id.ll_rate_reduce)
+    LinearLayout llRateReduce;
 
     private Activity mActivity;
     private OrderDetail orderDetail;
@@ -190,7 +201,7 @@ public class PayFg extends BaseFragment {
             parameters.put("customerId", CONST.ACCOUNT.SYSTEMACCOUNT);
         }
         final List order = orderDetail.getAvObject().getList("order");
-        List<String> ids = ProductUtil.calTotalIds(order);
+        final List<String> ids = ProductUtil.calTotalIds(order);
         parameters.put("commodityids", ids);
         parameters.put("paysum", orderDetail.getActualMoney());
         parameters.put("sum", orderDetail.getTotalMoney());
@@ -210,11 +221,11 @@ public class PayFg extends BaseFragment {
                     mallOrder.put("offline", true);
                     mallOrder.put("store", 1);
                     mallOrder.put("refundDetail", orderDetail.getAvObject().getList("refundOrder"));
-                    final String finalTableNumber=orderDetail.getAvObject().getString("tableNumber") +ProductUtil.calOtherTable(orderDetail.getSelectTableNumbers());
+                    final String finalTableNumber = orderDetail.getAvObject().getString("tableNumber") + ProductUtil.calOtherTable(orderDetail.getSelectTableNumbers());
                     mallOrder.put("tableNumber", finalTableNumber);
                     mallOrder.put("commodityDetail", orderDetail.getFinalOrders());
-                    mallOrder.put("maxMeatDeduct",orderDetail.getSvipMaxExchangeList());
-                    mallOrder.put("realMeatDeduct",orderDetail.getUseExchangeList());
+                    mallOrder.put("maxMeatDeduct", orderDetail.getSvipMaxExchangeList());
+                    mallOrder.put("realMeatDeduct", orderDetail.getUseExchangeList());
                     if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null) {
                         mallOrder.put("meatWeights", ProductUtil.listToList(orderDetail.getUseExchangeList()));
                         mallOrder.put("meatDetail", ProductUtil.listToObject(orderDetail.getUseExchangeList()));
@@ -223,11 +234,14 @@ public class PayFg extends BaseFragment {
                     }
                     if (orderDetail.isHangUp()) {
                         mallOrder.put("hangUp", true);
-                        mallOrder.put("message",orderDetail.getAvObject().getString("remark"));
+                        mallOrder.put("message", orderDetail.getAvObject().getString("remark"));
+                        mallOrder.put("type", 3);
+                    } else {
+                        mallOrder.put("type", 0);
                     }
+
                     jsonReduce = new JSONObject();
-                    AVObject avObject = orderDetail.getAvObject();
-                    Map<String, Double> escrowDetail = ProductUtil.managerEscrow(orderDetail.getActualMoney(), escrow,orderDetail.getUserBean());
+                    Map<String, Double> escrowDetail = PayInfoUtil.managerEscrowByRest(orderDetail.getActualMoney(), escrow, orderDetail.getAvObject());
                     mallOrder.put("escrowDetail", escrowDetail);
                     try {
                         if (orderDetail.getOnlineCouponEvent() != null) {
@@ -247,6 +261,14 @@ public class PayFg extends BaseFragment {
                         if (orderDetail.getFullReduceMoney() > 0) {
                             jsonReduce.put("满减优惠", orderDetail.getFullReduceMoney());
                         }
+
+                        if (orderDetail.getRate() != 100) {
+                            String content = "整单" + orderDetail.getRate() + "折优惠";
+                            jsonReduce.put(content, orderDetail.getRateReduceMoney());
+                        }
+                        if (orderDetail.getDeleteoddMoney() > 0) {
+                            jsonReduce.put("抹零", orderDetail.getDeleteoddMoney());
+                        }
                         mallOrder.put("reduceDetail", jsonReduce);
 
                     } catch (JSONException e1) {
@@ -260,9 +282,10 @@ public class PayFg extends BaseFragment {
                             if (e == null) {
                                 showDialog();
                                 ProductUtil.saveOperateLog(4, orderDetail.getFinalOrders(), orderDetail.getAvObject());
-                                Bill.printSettleBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow,finalTableNumber);
+                                Bill.printSettleBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow, finalTableNumber);
                                 ToastUtil.showShort(MyApplication.getContextObject(), "订单结算完成");
                             } else {
+                                Logger.d(e.getMessage());
                                 ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
                             }
                         }
@@ -279,7 +302,6 @@ public class PayFg extends BaseFragment {
     private void resetTable() {
         showDialog();
         if (orderDetail.isHangUp()) {
-            Logger.d("zzzzzzz");
             AVObject avObject = orderDetail.getAvObject();
             avObject.put("active", 0);
             avObject.put("settledAt", new Date());
@@ -379,6 +401,20 @@ public class PayFg extends BaseFragment {
             tvOnlineContent.setText(orderDetail.getOnlineCouponEvent().getContent());
             tvOnlineMoeny.setText("-" + orderDetail.getOnlineCouponEvent().getMoney());
         }
+        if (orderDetail.getDeleteoddMoney() > 0) {
+            llDeleteOdd.setVisibility(View.VISIBLE);
+            deleteOddMoney.setText("-" + orderDetail.getDeleteoddMoney());
+        } else {
+            llDeleteOdd.setVisibility(View.GONE);
+        }
+        if (orderDetail.getRate()!=100){
+            llRateReduce.setVisibility(View.VISIBLE);
+            rateReduceContent.setText("整单"+MyUtils.formatDouble((double) orderDetail.getRate()/10)+"折优惠");
+            rateReduceMoney.setText("-"+orderDetail.getRateReduceMoney());
+
+        }else{
+            llRateReduce.setVisibility(View.GONE);
+        }
         String tableContent = "结账桌号:" + orderDetail.getAvObject().getString("tableNumber") + ProductUtil.calOtherTable(orderDetail.getSelectTableNumbers());
         tableInfo.setText(tableContent);
         AVObject avObject = orderDetail.getAvObject();
@@ -419,7 +455,8 @@ public class PayFg extends BaseFragment {
     private void addPayment(Double actualMoney, Double whiteBarBalance, Double storedBalance) {
         if (whiteBarBalance < 0.0) whiteBarBalance = 0.0;
         if (storedBalance < 0) storedBalance = 0.0;
-
+        Logger.d("白条余额:" + whiteBarBalance);
+        Logger.d("消费金余额:" + storedBalance);
         if (storedBalance >= actualMoney) {
             paymentTypes.add(1);
         } else if (storedBalance == 0 && whiteBarBalance >= actualMoney) {
@@ -449,7 +486,6 @@ public class PayFg extends BaseFragment {
         paymentTypes.add(21);
         paymentTypes.add(22);
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
-
     }
 
     public static PayFg newInstance(String str) {

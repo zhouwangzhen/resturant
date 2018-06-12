@@ -1,10 +1,12 @@
 package cn.kuwo.player.activity;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -12,6 +14,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
@@ -19,6 +22,8 @@ import com.avos.avoscloud.FindCallback;
 import com.bumptech.glide.Glide;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.yzq.zxinglibrary.android.CaptureActivity;
 import com.yzq.zxinglibrary.common.Constant;
 
@@ -28,6 +33,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -38,14 +44,19 @@ import cn.kuwo.player.R;
 import cn.kuwo.player.adapter.ShowRetailAdapter;
 import cn.kuwo.player.api.CouponApi;
 import cn.kuwo.player.base.BaseActivity;
+import cn.kuwo.player.bean.FuncBean;
+import cn.kuwo.player.bean.RateBean;
 import cn.kuwo.player.bean.RetailBean;
 import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.custom.CommomDialog;
 import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.custom.ShowCouponFragment;
+import cn.kuwo.player.custom.ShowFuncFragment;
 import cn.kuwo.player.custom.ShowReduceListFragment;
+import cn.kuwo.player.custom.ShowWholeSaleFragment;
 import cn.kuwo.player.event.CouponEvent;
 import cn.kuwo.player.event.OrderDetail;
+import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.MyUtils;
@@ -114,7 +125,19 @@ public class SettleActivity extends BaseActivity {
     Button btnPay;
     @BindView(R.id.full_reduce_money)
     TextView fullreduceMoney;
-
+    @BindView(R.id.more_fuc)
+    Button moreFuc;
+    @BindView(R.id.delete_odd_money)
+    TextView deleteOddMoney;
+    @BindView(R.id.ll_delete_odd)
+    LinearLayout llDeleteOdd;
+    @BindView(R.id.rate_reduce_content)
+    TextView rateReduceContent;
+    @BindView(R.id.rate_reduce_money)
+    TextView rateReduceMoney;
+    @BindView(R.id.ll_rate_reduce)
+    LinearLayout llRateReduce;
+    private Context context;
     private RetailBean retailBean;
     private LinearLayoutManager linearLayoutManager;
     private ShowRetailAdapter showRetailAdapter;
@@ -132,6 +155,9 @@ public class SettleActivity extends BaseActivity {
     private Double activityReduceMoney = 0.0;
     private Double fullReduceMoney = 0.0;
     private Double hasMeatWeight = 0.0;
+    private Double deleteoddMoney = 0.0;
+    private int orderRate = 100;
+    private Double ratereduceMoney = 0.0;
     private CouponEvent onlineCouponEvent = null;
     private CouponEvent offlineCouponEvent = null;
     private Boolean isSvip = false;
@@ -140,7 +166,9 @@ public class SettleActivity extends BaseActivity {
     private AVObject avUser;
     private UserBean userBean;
     private int REQUEST_CODE_SCAN = 111;
-
+    private int REQUEST_FUNC = 100;
+    private int REQUEST_RATE = 102;
+    private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     @Override
     protected int getContentViewId() {
         return R.layout.activity_settle;
@@ -151,6 +179,7 @@ public class SettleActivity extends BaseActivity {
      */
     @Override
     public void initData() {
+        context=this;
         retailBean = (RetailBean) getIntent().getSerializableExtra("retailBean");
         linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         recycleScanGood.setLayoutManager(linearLayoutManager);
@@ -298,7 +327,6 @@ public class SettleActivity extends BaseActivity {
             tvOfflineContent.setText(offlineCouponEvent.getContent());
         }
         if (cbUseSvip.isChecked()) {
-            Logger.d(myMeatReduceMoney);
             activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - myMeatReduceMoney - offlineCouponMoney - onlineCouponMoney) * (1 - MyUtils.getDayRate()));
             if (activityReduceMoney < 0) activityReduceMoney = 0.0;
             actualTotalMoneny = originTotalMoneny - offlineCouponMoney - onlineCouponMoney - activityReduceMoney - myMeatReduceMoney;
@@ -313,16 +341,35 @@ public class SettleActivity extends BaseActivity {
             totalMoney.setText("￥" + actualTotalMoneny + "元");
             storeReduceMoney.setText("-" + activityReduceMoney);
         }
-
+        if (deleteoddMoney > 0) {
+            llDeleteOdd.setVisibility(View.VISIBLE);
+            deleteOddMoney.setText("-" + deleteoddMoney);
+        } else {
+            llDeleteOdd.setVisibility(View.GONE);
+            deleteOddMoney.setText("0");
+        }
         fullReduceMoney = MyUtils.formatDouble(ProductUtil.calFullReduceMoney(actualTotalMoneny) > actualTotalMoneny ? actualTotalMoneny : ProductUtil.calFullReduceMoney(actualTotalMoneny));
         fullreduceMoney.setText("-" + fullReduceMoney);
         actualTotalMoneny -= fullReduceMoney;
-        actualTotalMoneny = MyUtils.formatDouble(actualTotalMoneny);
+
+        if (orderRate!=100){
+            llRateReduce.setVisibility(View.VISIBLE);
+            ratereduceMoney=MyUtils.formatDouble(((double)actualTotalMoneny)*(100-orderRate)/100);
+            actualTotalMoneny-=ratereduceMoney;
+            rateReduceContent.setText("整单"+MyUtils.formatDouble((double) orderRate/10)+"折优惠");
+            rateReduceMoney.setText("-"+ratereduceMoney);
+        }else{
+            ratereduceMoney=0.0;
+            llRateReduce.setVisibility(View.VISIBLE);
+        }
+        actualTotalMoneny -= deleteoddMoney;
+        actualTotalMoneny = MyUtils.formatDouble(actualTotalMoneny) >= 0 ? MyUtils.formatDouble(actualTotalMoneny) : 0.0;
+
         totalMoney.setText("￥" + actualTotalMoneny + "元");
         minPayMoney.setText("-" + meatReduceMoney);
     }
 
-    @OnClick({R.id.sign_user, R.id.btn_pay, R.id.ll_max_reduce, R.id.ll_my_reduce})
+    @OnClick({R.id.sign_user, R.id.btn_pay, R.id.ll_max_reduce, R.id.ll_my_reduce,R.id.more_fuc})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.sign_user:
@@ -349,8 +396,8 @@ public class SettleActivity extends BaseActivity {
                 Bundle bundle = new Bundle();
                 OrderDetail orderDetail = new OrderDetail(null, hasMeatWeight, originTotalMoneny,
                         actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
-                        onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), userBean, orders,fullReduceMoney);
-//                intent.putExtra("table", (Serializable) orderDetail);
+                        onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), userBean, orders, fullReduceMoney,
+                        deleteoddMoney, orderRate,ratereduceMoney);
                 bundle.putSerializable("table", (Serializable) orderDetail);
                 intent.putExtras(bundle);
                 startActivityForResult(intent, 1);
@@ -362,6 +409,10 @@ public class SettleActivity extends BaseActivity {
             case R.id.ll_my_reduce:
                 showReduceListFragment = new ShowReduceListFragment(useExchangeList, 1);
                 showReduceListFragment.show(getSupportFragmentManager(), "showreducelist");
+                break;
+            case R.id.more_fuc:
+                ShowFuncFragment showFuncFragment = new ShowFuncFragment(1);
+                showFuncFragment.show(getSupportFragmentManager(), "showfunc");
                 break;
         }
     }
@@ -418,7 +469,96 @@ public class SettleActivity extends BaseActivity {
             setData();
         }
     }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(FuncBean event) {
+        setFunc(event.getCode());
 
+    }
+    private void setFunc(int resultCode) {
+        switch (resultCode) {
+            case 2://抹零
+                deleteOdd();
+                break;
+            case 3://生成预订单
+                printPreOrder();
+                break;
+            case 4://整单打折
+                ShowWholeSaleFragment showWholeSaleFragment = new ShowWholeSaleFragment(orderRate);
+                showWholeSaleFragment.show(getSupportFragmentManager(), "showwholesale");
+                break;
+        }
+
+    }
+    private void printPreOrder() {
+        LinkedHashMap<String, Double> reduceMap = new LinkedHashMap<>();
+        if (meatReduceMoney > 0&&cbUseSvip.isChecked()) {
+            reduceMap.put("牛肉抵扣金额", meatReduceMoney);
+        }
+        if (offlineCouponMoney > 0) {
+            reduceMap.put(offlineCouponEvent.getContent(), offlineCouponMoney);
+        }
+        if (onlineCouponMoney > 0) {
+            reduceMap.put(onlineCouponEvent.getContent(), onlineCouponMoney);
+        }
+        if (activityReduceMoney > 0) {
+            reduceMap.put("开业打折优惠", activityReduceMoney);
+        }
+        if (fullReduceMoney > 0) {
+            reduceMap.put("满减优惠", fullReduceMoney);
+        }
+        if (deleteoddMoney > 0) {
+            reduceMap.put("抹零", deleteoddMoney);
+        }
+
+        Bill.printPreOrderRest(MyApplication.getContextObject(), originTotalMoneny, actualTotalMoneny, reduceMap, useExchangeList, ProductUtil.calExchangeMeatList(orders),orders);
+    }
+    private void deleteOdd() {
+        double v = (actualTotalMoneny / 10 - new Double(actualTotalMoneny).intValue() / 10) * 10;
+        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(context);
+        builder.setTitle("请输入抹零金额(当前实付款" + actualTotalMoneny + ")")
+                .setPlaceholder("在此输入抹零金额")
+                .setInputType(InputType.TYPE_CLASS_TEXT)
+                .setCanceledOnTouchOutside(false)
+                .setDefaultText("" + MyUtils.formatDouble(v))
+                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        dialog.dismiss();
+                    }
+                })
+                .addAction("确定", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        String text = builder.getEditText().getText().toString();
+                        if (text != null && text.length() > 0) {
+                            try {
+                                if (Double.parseDouble(text) > 10) {
+                                    if (!CameraProvider.hasCamera()) {
+                                        deleteoddMoney = Double.parseDouble(text);
+                                        dialog.dismiss();
+                                        refreshList();
+                                    } else {
+                                        Toast.makeText(context, "超过可抹零的权限", Toast.LENGTH_SHORT).show();
+
+                                    }
+                                }else{
+                                    deleteoddMoney = Double.parseDouble(text);
+                                    dialog.dismiss();
+                                    refreshList();
+                                }
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                Toast.makeText(context, "请输入正确金额", Toast.LENGTH_SHORT).show();
+                            }
+
+                        } else {
+                            Toast.makeText(context, "请输入正确金额", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .create(mCurrentDialogStyle).show();
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -439,11 +579,10 @@ public class SettleActivity extends BaseActivity {
         }
         setData();
     }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(RateBean event) {
+        orderRate = event.getRate();
+        refreshList();
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // TODO: add setContentView(...) invocation
-        ButterKnife.bind(this);
     }
 }

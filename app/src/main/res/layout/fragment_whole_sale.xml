@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+<TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:padding="10dp"
+    android:textStyle="bold"
+    android:text="整单打折金额"/>
+    <cn.kuwo.player.custom.NumTipSeekBar
+        android:id="@+id/rate_seekbar"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:padding="10dp"
+        android:layout_margin="20dp"
+        android:layout_marginTop="10dp"
+        app:NumTipSeekBar_borderColor="@color/orange_f6"
+        app:NumTipSeekBar_borderSize="4dp"
+        app:NumTipSeekBar_circleApertureColor="@color/white_1a"
+        app:NumTipSeekBar_circleApertureWidth="5dp"
+        app:NumTipSeekBar_circleButtonColor="@color/colorAccent"
+        app:NumTipSeekBar_circleButtonRadius="30dp"
+        app:NumTipSeekBar_circleButtonTextColor="@color/white"
+        app:NumTipSeekBar_circleButtonTextSize="12sp"
+        app:NumTipSeekBar_isRound="false"
+        app:NumTipSeekBar_isShowButton="true"
+        app:NumTipSeekBar_isShowButtonText="true"
+        app:NumTipSeekBar_maxProgress="100"
+        app:NumTipSeekBar_progressColor="@color/red"
+        app:NumTipSeekBar_progressHeight="20dp"
+        app:NumTipSeekBar_selectProgress="100"
+        app:NumTipSeekBar_tickBarColor="@color/app_color_blue_2"
+        app:NumTipSeekBar_tickBarHeight="20dp" />
+    <TextView
+        android:id="@+id/rate_number"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:padding="10dp"
+        android:textStyle="bold"
+        android:textColor="@color/red"
+        android:text="整单100%折"/>
+    <Button
+        android:id="@+id/btn_ensure"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/material_green"
+        android:text="确定"
+        android:textColor="@color/white"
+        android:textSize="20sp" />
+</LinearLayout>

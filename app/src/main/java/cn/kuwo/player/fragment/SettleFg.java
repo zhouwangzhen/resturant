@@ -47,8 +47,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -63,13 +63,17 @@ import cn.kuwo.player.api.CouponApi;
 import cn.kuwo.player.api.HangUpApi;
 import cn.kuwo.player.api.TableApi;
 import cn.kuwo.player.base.BaseFragment;
+import cn.kuwo.player.bean.FuncBean;
+import cn.kuwo.player.bean.RateBean;
 import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.custom.ShowCouponFragment;
 import cn.kuwo.player.custom.ShowFuncFragment;
 import cn.kuwo.player.custom.ShowReduceListFragment;
+import cn.kuwo.player.custom.ShowWholeSaleFragment;
 import cn.kuwo.player.event.CouponEvent;
 import cn.kuwo.player.event.OrderDetail;
+import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.MyUtils;
@@ -145,9 +149,22 @@ public class SettleFg extends BaseFragment {
     TextView tableNumber;
     @BindView(R.id.full_reduce_money)
     TextView fullreduceMoney;
+    @BindView(R.id.delete_odd_money)
+    TextView deleteOddMoney;
+    @BindView(R.id.ll_delete_odd)
+    LinearLayout llDeleteOdd;
+    @BindView(R.id.more_fuc)
+    Button moreFuc;
+    @BindView(R.id.rate_reduce_content)
+    TextView rateReduceContent;
+    @BindView(R.id.rate_reduce_money)
+    TextView rateReduceMoney;
+    @BindView(R.id.ll_rate_reduce)
+    LinearLayout llRateReduce;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private int REQUEST_CODE_SCAN = 111;
     private int REQUEST_FUNC = 100;
+    private int REQUEST_RATE = 102;
     private Activity mActivity;
     private AVObject tableAVObject;
     private String userId = "";
@@ -163,6 +180,9 @@ public class SettleFg extends BaseFragment {
     private Double activityReduceMoney = 0.0;
     private Double fullReduceMoney = 0.0;
     private Double hasMeatWeight = 0.0;
+    private Double deleteoddMoney = 0.0;
+    private int orderRate = 100;
+    private Double ratereduceMoney = 0.0;
     private CouponEvent onlineCouponEvent = null;
     private CouponEvent offlineCouponEvent = null;
     private Boolean isSvip = false;
@@ -186,10 +206,10 @@ public class SettleFg extends BaseFragment {
     public void initData() {
         showDialog();
         final AVQuery<AVObject> table;
-        if (isHangUp){
-             table = new AVQuery<>("HangUpOrder");
-        }else{
-             table = new AVQuery<>("Table");
+        if (isHangUp) {
+            table = new AVQuery<>("HangUpOrder");
+        } else {
+            table = new AVQuery<>("Table");
         }
 
         table.include("user");
@@ -244,8 +264,8 @@ public class SettleFg extends BaseFragment {
                         signUser.setText("用户登录");
                     }
 
-                }else{
-                    ToastUtil.showShort(getContext(), "获取订单信息错误"+e.getMessage());
+                } else {
+                    ToastUtil.showShort(getContext(), "获取订单信息错误" + e.getMessage());
                 }
 
             }
@@ -311,7 +331,7 @@ public class SettleFg extends BaseFragment {
         }
     }
 
-    public static SettleFg newInstance(String str,Boolean isHangUp) {
+    public static SettleFg newInstance(String str, Boolean isHangUp) {
         SettleFg settleFg = new SettleFg();
         Bundle bundle = new Bundle();
         bundle.putString(tableId, str);
@@ -324,7 +344,7 @@ public class SettleFg extends BaseFragment {
         super.onAttach(context);
         mActivity = (Activity) context;
         tableId = getArguments().getString(tableId);  //获取参数
-        isHangUp=getArguments().getBoolean("isHangUp");
+        isHangUp = getArguments().getBoolean("isHangUp");
     }
 
     private void fetchCommodity(AVObject tableAVObject) {
@@ -361,8 +381,6 @@ public class SettleFg extends BaseFragment {
             e.printStackTrace();
         }
         orders = ProductUtil.calOtherOder(orders, otherTableOrders);
-        Logger.d("final订单:" + orders.size());
-        Logger.d("origin订单:" + tableAVObject.getList("order").size());
         if (orders.size() != tableAVObject.getList("order").size()) {
             String tableContent = "当前桌号:" + tableAVObject.getString("tableNumber");
             for (int i = 0; i < selectTableNumber.size(); i++) {
@@ -426,7 +444,6 @@ public class SettleFg extends BaseFragment {
         }
         if (offlineCouponEvent != null) {
             offlineCouponMoney = offlineCouponEvent.getMoney();
-            Logger.d(offlineCouponMoney);
             tvOfflineMoeny.setText("-" + offlineCouponMoney);
             tvOfflineContent.setText(offlineCouponEvent.getContent());
         }
@@ -445,11 +462,28 @@ public class SettleFg extends BaseFragment {
             totalMoney.setText("￥" + actualTotalMoneny + "元");
             storeReduceMoney.setText("-" + activityReduceMoney);
         }
-
+        if (deleteoddMoney > 0) {
+            llDeleteOdd.setVisibility(View.VISIBLE);
+            deleteOddMoney.setText("-" + deleteoddMoney);
+        } else {
+            llDeleteOdd.setVisibility(View.GONE);
+            deleteOddMoney.setText("0");
+        }
         fullReduceMoney = MyUtils.formatDouble(ProductUtil.calFullReduceMoney(actualTotalMoneny) > actualTotalMoneny ? actualTotalMoneny : ProductUtil.calFullReduceMoney(actualTotalMoneny));
         fullreduceMoney.setText("-" + fullReduceMoney);
         actualTotalMoneny -= fullReduceMoney;
-        actualTotalMoneny = MyUtils.formatDouble(actualTotalMoneny);
+        if (orderRate!=100){
+            llRateReduce.setVisibility(View.VISIBLE);
+            ratereduceMoney=MyUtils.formatDouble(((double)actualTotalMoneny)*(100-orderRate)/100);
+            actualTotalMoneny-=ratereduceMoney;
+            rateReduceContent.setText("整单"+MyUtils.formatDouble((double) orderRate/10)+"折优惠");
+            rateReduceMoney.setText("-"+ratereduceMoney);
+        }else{
+            ratereduceMoney=0.0;
+            llRateReduce.setVisibility(View.VISIBLE);
+        }
+
+        actualTotalMoneny = MyUtils.formatDouble(actualTotalMoneny) >= 0 ? MyUtils.formatDouble(actualTotalMoneny) : 0.0;
         totalMoney.setText("￥" + actualTotalMoneny + "元");
         minPayMoney.setText("-" + meatReduceMoney);
     }
@@ -513,7 +547,8 @@ public class SettleFg extends BaseFragment {
                 Bundle bundle = new Bundle();
                 OrderDetail orderDetail = new OrderDetail(tableAVObject, hasMeatWeight, originTotalMoneny,
                         actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
-                        onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), orders, selectTableIds, selectTableNumber, fullReduceMoney,isHangUp);
+                        onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), orders, selectTableIds, selectTableNumber, fullReduceMoney, isHangUp, deleteoddMoney,
+                        orderRate,ratereduceMoney);
                 Logger.d(useExchangeList);
                 bundle.putSerializable("table", (Serializable) orderDetail);
                 payFg.setArguments(bundle);
@@ -528,7 +563,7 @@ public class SettleFg extends BaseFragment {
                 showReduceListFragment.show(getFragmentManager(), "showreducelist");
                 break;
             case R.id.more_fuc:
-                ShowFuncFragment showFuncFragment = new ShowFuncFragment();
+                ShowFuncFragment showFuncFragment = new ShowFuncFragment(0);
                 showFuncFragment.setTargetFragment(this, REQUEST_FUNC);
                 showFuncFragment.show(getFragmentManager(), "showfunc");
                 break;
@@ -620,8 +655,6 @@ public class SettleFg extends BaseFragment {
                 });
 
             }
-        } else if (requestCode == REQUEST_FUNC) {
-            setFunc(resultCode);
         }
     }
 
@@ -652,7 +685,17 @@ public class SettleFg extends BaseFragment {
         }
 
     }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(FuncBean event) {
+        setFunc(event.getCode());
 
+    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(RateBean event) {
+        orderRate = event.getRate();
+        refreshList();
+
+    }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void UserMessgae(UserBean userBean) {
         if (userBean.getCallbackCode() == CONST.UserCode.SCANCUSTOMER) {
@@ -684,7 +727,7 @@ public class SettleFg extends BaseFragment {
                 userType.setText("普通会员");
             }
             signUser.setText("退出登录");
-            Logger.d(userBean);
+
         }
     }
 
@@ -694,17 +737,52 @@ public class SettleFg extends BaseFragment {
             case 0:
                 chooseMerge();//合并订单结账
                 break;
-            case 1:
-                if (isHangUp){
-                    ToastUtil.showShort(MyApplication.getContextObject(),"挂账订单不可继续挂账");
-                }else{
+            case 1://挂账
+                if (isHangUp) {
+                    ToastUtil.showShort(MyApplication.getContextObject(), "挂账订单不可继续挂账");
+                } else {
                     hangUp();//挂账
                 }
-
+                break;
+            case 2://抹零
+                deleteOdd();
+                break;
+            case 3://生成预订单
+                printPreOrder();
+                break;
+            case 4://整单打折
+                ShowWholeSaleFragment showWholeSaleFragment = new ShowWholeSaleFragment(orderRate);
+                showWholeSaleFragment.setTargetFragment(this, REQUEST_RATE);
+                showWholeSaleFragment.show(getFragmentManager(), "showwholesale");
                 break;
         }
 
     }
+
+    private void printPreOrder() {
+        LinkedHashMap<String, Double> reduceMap = new LinkedHashMap<>();
+        if (meatReduceMoney > 0&&cbUseSvip.isChecked()) {
+            reduceMap.put("牛肉抵扣金额", meatReduceMoney);
+        }
+        if (offlineCouponMoney > 0) {
+            reduceMap.put(offlineCouponEvent.getContent(), offlineCouponMoney);
+        }
+        if (onlineCouponMoney > 0) {
+            reduceMap.put(onlineCouponEvent.getContent(), onlineCouponMoney);
+        }
+        if (activityReduceMoney > 0) {
+            reduceMap.put("开业打折优惠", activityReduceMoney);
+        }
+        if (fullReduceMoney > 0) {
+            reduceMap.put("满减优惠", fullReduceMoney);
+        }
+        if (deleteoddMoney > 0) {
+            reduceMap.put("抹零", deleteoddMoney);
+        }
+
+        Bill.printPreOrder(MyApplication.getContextObject(), tableAVObject, originTotalMoneny, actualTotalMoneny, reduceMap, useExchangeList, ProductUtil.calExchangeMeatList(orders));
+    }
+
 
     private void chooseMerge() {
         showDialog();
@@ -780,6 +858,53 @@ public class SettleFg extends BaseFragment {
 
     }
 
+    private void deleteOdd() {
+        double v = (actualTotalMoneny / 10 - new Double(actualTotalMoneny).intValue() / 10) * 10;
+        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
+        builder.setTitle("请输入抹零金额(当前实付款" + actualTotalMoneny + ")")
+                .setPlaceholder("在此输入抹零金额")
+                .setInputType(InputType.TYPE_CLASS_TEXT)
+                .setCanceledOnTouchOutside(false)
+                .setDefaultText("" + MyUtils.formatDouble(v))
+                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        dialog.dismiss();
+                    }
+                })
+                .addAction("确定", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        String text = builder.getEditText().getText().toString();
+                        if (text != null && text.length() > 0) {
+                            try {
+                                if (Double.parseDouble(text) > 10) {
+                                    if (!CameraProvider.hasCamera()) {
+                                        deleteoddMoney = Double.parseDouble(text);
+                                        dialog.dismiss();
+                                        refreshList();
+                                    } else {
+                                        Toast.makeText(getActivity(), "超过可抹零的权限", Toast.LENGTH_SHORT).show();
+                                    }
+                                }else{
+                                    deleteoddMoney = Double.parseDouble(text);
+                                    dialog.dismiss();
+                                    refreshList();
+                                }
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                Toast.makeText(getActivity(), "请输入正确金额", Toast.LENGTH_SHORT).show();
+                            }
+
+                        } else {
+                            Toast.makeText(getActivity(), "请输入正确金额", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .create(mCurrentDialogStyle).show();
+    }
+
     private void hangUp() {
         final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
         builder.setTitle("提示")
@@ -795,7 +920,7 @@ public class SettleFg extends BaseFragment {
                 .addAction("确定", new QMUIDialogAction.ActionListener() {
                     @Override
                     public void onClick(QMUIDialog dialog, int index) {
-                        String  text = builder.getEditText().getText().toString();
+                        String text = builder.getEditText().getText().toString();
                         if (text != null && text.length() > 0) {
                             HangUpOrder(text);
                             dialog.dismiss();
@@ -807,11 +932,9 @@ public class SettleFg extends BaseFragment {
                 .create(mCurrentDialogStyle).show();
 
 
-
-
-
     }
-    private void HangUpOrder(String content){
+
+    private void HangUpOrder(String content) {
         showDialog();
         if (tableAVObject != null) {
             final AVObject hangUpOrder = HangUpApi.saveHangUpOrder(tableAVObject, content);

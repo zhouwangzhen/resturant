@@ -224,7 +224,7 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
             editRemark.setText(ObjectUtil.getString(format, "comment"));
             tvNumber.setText(commodityNumber + "");
             List<String> comboList = ObjectUtil.getList(format, "comboList");
-            if (format.containsKey("comboList") && comboList != null && comboList.size() > 0) {
+            if (comboMenu.size()>0&&format.containsKey("comboList") && comboList != null && comboList.size() > 0) {
                 isComobo = true;
                 llHasCombo.setVisibility(View.VISIBLE);
                 llChooseCombo.setVisibility(View.VISIBLE);
