@@ -29,19 +29,27 @@ import butterknife.Unbinder;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.adapter.OffineAdapter;
+import cn.kuwo.player.api.CommodityApi;
+import cn.kuwo.player.api.CommodityTypeApi;
+import cn.kuwo.player.api.RuleApi;
 import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RuleBean;
 import cn.kuwo.player.bean.TypeBean;
+import cn.kuwo.player.custom.ShowActivityFragment;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.ToastUtil;
+import io.realm.RealmList;
 
 public class CommodityFg extends BaseFragment {
     private static String ARG_PARAM = "param_key";
     @BindView(R.id.rule_content)
     TextView ruleContent;
     Unbinder unbinder;
+    @BindView(R.id.ll_current_activity)
+    LinearLayout llCurrentActivity;
+    Unbinder unbinder1;
     private Activity mActivity;
     private String mParam;
     @BindView(R.id.offinelist)
@@ -92,12 +100,7 @@ public class CommodityFg extends BaseFragment {
 
     public void loadCommodity() {
         emptyView.show(true);
-        final AVQuery<AVObject> offlineCommodity = new AVQuery<>("OfflineCommodity");
-        offlineCommodity.addAscendingOrder("type");
-        offlineCommodity.whereEqualTo("store", 1);
-        offlineCommodity.addAscendingOrder("serial");
-        offlineCommodity.limit(500);
-        offlineCommodity.findInBackground(new FindCallback<AVObject>() {
+        CommodityApi.getOfflineCommodity().findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(final List<AVObject> list, AVException e) {
                 if (e == null) {
@@ -123,7 +126,13 @@ public class CommodityFg extends BaseFragment {
                         productBean.setScale(avObject.getDouble("scale"));
                         productBean.setRemainMoney(avObject.getDouble("remainMoney"));
                         productBean.setActive(avObject.getInt("active"));
-                        productBean.setComboMenu(avObject.getString("comboMenu") == null ? "" : MyUtils.replaceBlank(avObject.getString("comboMenu").trim().replace(" ","")));
+                        productBean.setComboMenu(avObject.getString("comboMenu") == null ? "" : MyUtils.replaceBlank(avObject.getString("comboMenu").trim().replace(" ", "")));
+                        RealmList<String> commentsList = new RealmList<>();
+                        for (int k = 0; k < avObject.getList("comments").size(); k++) {
+                            commentsList.add(avObject.getList("comments").get(k).toString());
+                        }
+                        productBean.setGiveRule(avObject.getInt("giveRule"));
+                        productBean.setComments(commentsList);
                         mRealmHleper.addProduct(productBean);
 
                     }
@@ -141,10 +150,7 @@ public class CommodityFg extends BaseFragment {
     }
 
     private void fetchRule() {
-        AVQuery<AVObject> offlinePromotionRule = new AVQuery<>("OffineControl");
-        offlinePromotionRule.whereEqualTo("store", 1);
-        offlinePromotionRule.whereEqualTo("active", 1);
-        offlinePromotionRule.findInBackground(new FindCallback<AVObject>() {
+        RuleApi.getRule().findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(List<AVObject> list, AVException e) {
                 if (e == null) {
@@ -164,7 +170,16 @@ public class CommodityFg extends BaseFragment {
                         ruleBean.setMemberDiscountJoin(avObject.getBoolean("MemberDiscountJoin"));
                         ruleBean.setWineJoin(avObject.getBoolean("wineJoin"));
                         ruleBean.setFoldOnFoldJoin(avObject.getBoolean("foldOnFoldJoin"));
+                        RealmList<String> reduceList = new RealmList<>();
+                        for (int k = 0; k < avObject.getList("fullReduce").size(); k++) {
+                            reduceList.add(avObject.getList("fullReduce").get(k).toString());
+                        }
+                        ruleBean.setFullReduce(reduceList);
+
                         mRealmHleper.addRule(ruleBean);
+                        for (String reduce : ruleBean.getFullReduce()) {
+                            Logger.d(reduce);
+                        }
                     }
                     List<RuleBean> ruleBeans = mRealmHleper.queryAllRule();
                     if (ruleBeans.size() > 0) {
@@ -173,7 +188,6 @@ public class CommodityFg extends BaseFragment {
                         if (ruleBean.getAllDiscount() != 1) {
                             ruleInfo += "全场" + MyUtils.formatDouble(ruleBean.getAllDiscount() * 10) + "折优惠";
                         }
-                        Logger.d(MyUtils.formatDouble(ruleBean.getAllDiscount() * 10));
                         ruleContent.setText(ruleInfo);
                     }
 
@@ -185,11 +199,7 @@ public class CommodityFg extends BaseFragment {
 
     public void loadType() {
         emptyView.show(true);
-        AVQuery<AVObject> query = new AVQuery<>("CommodityType");
-        query.whereEqualTo("active", 1);
-        query.whereEqualTo("store", 1);
-        query.addAscendingOrder("number");
-        query.findInBackground(new FindCallback<AVObject>() {
+        CommodityTypeApi.getCommodityType().findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(List<AVObject> list, AVException e) {
                 if (e == null) {
@@ -221,14 +231,18 @@ public class CommodityFg extends BaseFragment {
     }
 
 
-
-    @OnClick({R.id.btn_refrsh})
+    @OnClick({R.id.btn_refrsh, R.id.ll_current_activity})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_refrsh:
                 loadType();
                 break;
+            case R.id.ll_current_activity:
+                ShowActivityFragment showActivityFragment = new ShowActivityFragment();
+                showActivityFragment.show(getFragmentManager(), "showactivitylist");
+                break;
         }
     }
+
 }
 

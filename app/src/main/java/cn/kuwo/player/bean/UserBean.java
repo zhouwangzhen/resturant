@@ -1,5 +1,7 @@
 package cn.kuwo.player.bean;
 
+import com.avos.avoscloud.AVObject;
+
 import java.io.Serializable;
 
 public class UserBean implements Serializable{
@@ -16,26 +18,27 @@ public class UserBean implements Serializable{
     private int clerk;
     private String meatId;
     private Boolean isSvip;
+    private Boolean alreadySvip;
     private String avatar;
-    public UserBean(int callbackCode,String id, String username,Double balance) {
+
+    /**
+     *
+     * 销售扫描登录
+     */
+    public UserBean(int callbackCode,String id, String username,Double balance,Boolean test,int clerk,String realName) {
         this.callbackCode = callbackCode;
         this.id = id;
         this.username = username;
         this.balance=balance;
-    }
-    public UserBean(int callbackCode,String id, String username,String realName, int vip, Double credit, Double stored, Double balance,Boolean test,int clerk) {
-        this.callbackCode = callbackCode;
-        this.id = id;
-        this.username = username;
-        this.vip = vip;
-        this.credit = credit;
-        this.stored = stored;
-        this.balance = balance;
         this.test=test;
-        this.realName=realName;
         this.clerk=clerk;
+        this.realName=realName;
     }
-    public UserBean(int callbackCode,String id, String username,String realName, int vip, Double credit, Double stored, Double balance,Boolean test,int clerk, Double meatWeight,String meatId,boolean isSvip,String avatar) {
+
+    /**
+     * 用户扫描登录
+     */
+    public UserBean(int callbackCode,String id, String username,String realName, int vip, Double credit, Double stored, Double balance,Boolean test,int clerk, Double meatWeight,String meatId,boolean isSvip,String avatar,boolean alreadySvip) {
         this.callbackCode = callbackCode;
         this.id = id;
         this.username = username;
@@ -50,17 +53,7 @@ public class UserBean implements Serializable{
         this.meatId=meatId;
         this.isSvip=isSvip;
         this.avatar=avatar;
-    }
-    public UserBean(int callbackCode,String id, String username, int vip, Double credit, Double stored, Double balance, Double meatWeight) {
-        this.callbackCode = callbackCode;
-        this.id = id;
-        this.username = username;
-        this.vip = vip;
-        this.credit = credit;
-        this.stored = stored;
-        this.balance = balance;
-        this.meatWeight = meatWeight;
-
+        this.alreadySvip=alreadySvip;
     }
 
     public String getId() {
@@ -175,6 +168,14 @@ public class UserBean implements Serializable{
         this.avatar = avatar;
     }
 
+    public Boolean getAlreadySvip() {
+        return alreadySvip;
+    }
+
+    public void setAlreadySvip(Boolean alreadySvip) {
+        this.alreadySvip = alreadySvip;
+    }
+
     @Override
     public String toString() {
         return "UserBean{" +
@@ -191,6 +192,7 @@ public class UserBean implements Serializable{
                 ", clerk=" + clerk +
                 ", meatId='" + meatId + '\'' +
                 ", isSvip=" + isSvip +
+                ", alreadySvip=" + alreadySvip +
                 ", avatar='" + avatar + '\'' +
                 '}';
     }

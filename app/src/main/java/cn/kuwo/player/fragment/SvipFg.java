@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,15 +21,20 @@ import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FunctionCallback;
 import com.avos.avoscloud.GetCallback;
 import com.avos.avoscloud.SaveCallback;
-import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.yzq.zxinglibrary.android.CaptureActivity;
 import com.yzq.zxinglibrary.common.Constant;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -38,8 +44,11 @@ import butterknife.Unbinder;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.base.BaseFragment;
-import cn.kuwo.player.bean.ProductBean;
+import cn.kuwo.player.bean.CardBean;
+import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.custom.FlowRadioGroup;
+import cn.kuwo.player.custom.ScanCardFragment;
+import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
@@ -58,6 +67,14 @@ public class SvipFg extends BaseFragment {
     Button btnRefrsh;
     @BindView(R.id.recharge_content)
     LinearLayout rechargeContent;
+    @BindView(R.id.tv_card_code)
+    TextView tvCardCode;
+    @BindView(R.id.btn_scan_card)
+    Button btnScanCard;
+    @BindView(R.id.btn_cancel_card)
+    Button btnCancelCard;
+    @BindView(R.id.card_bind_card)
+    CardView cardBindCard;
     private int REQUEST_CODE_SCAN = 111;
     private int REQUEST_CODE_SCAN_USER = 112;
     @BindView(R.id.btn_scan_user)
@@ -102,9 +119,10 @@ public class SvipFg extends BaseFragment {
     private String mParam;
     private String userId = "";
     private String commodityId = CONST.SVIPSTYLE.DATE_12_MONTH;
-    private Double commodityMoney = 6000.0;
-    private String commodityContent="超牛会员1年";
+    private Double commodityMoney = 5000.0;
+    private String commodityContent = "超牛会员1年";
     private int escrow = 3;
+    private String card = "";
     private Double whiteBarBalance = 0.0;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
 
@@ -115,6 +133,12 @@ public class SvipFg extends BaseFragment {
 
     @Override
     public void initData() {
+        if (CameraProvider.hasCamera()) {
+            cardBindCard.setVisibility(View.GONE);
+        } else {
+            cardBindCard.setVisibility(View.VISIBLE);
+        }
+        btnScanCard.setVisibility(View.VISIBLE);
         rgPaystyle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -137,6 +161,7 @@ public class SvipFg extends BaseFragment {
                 }
             }
         });
+        rgPaystyle.check(R.id.pay_ali);
         rgVipstyle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -149,7 +174,7 @@ public class SvipFg extends BaseFragment {
                         } else {
                             payBalance.setVisibility(View.GONE);
                         }
-                        commodityContent="超牛会员1个月体验";
+                        commodityContent = "超牛会员1个月体验";
                         tvFinalMoney.setText(commodityMoney + "元");
                         break;
                     case R.id.vipdate_12:
@@ -160,7 +185,7 @@ public class SvipFg extends BaseFragment {
                         } else {
                             payBalance.setVisibility(View.GONE);
                         }
-                        commodityContent="超牛会员1年";
+                        commodityContent = "超牛会员1年";
                         tvFinalMoney.setText(commodityMoney + "元");
                         break;
                 }
@@ -182,7 +207,7 @@ public class SvipFg extends BaseFragment {
         return svipFg;
     }
 
-    @OnClick({R.id.btn_scan_user, R.id.btn_recharge, R.id.reset_data, R.id.btn_refrsh})
+    @OnClick({R.id.btn_scan_user, R.id.btn_recharge, R.id.reset_data, R.id.btn_refrsh, R.id.btn_cancel_card, R.id.btn_scan_card})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_scan_user:
@@ -192,6 +217,9 @@ public class SvipFg extends BaseFragment {
                         intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
                         startActivityForResult(intent, REQUEST_CODE_SCAN);
                     }
+                } else {
+                    ScanUserFragment scanUserFragment = new ScanUserFragment(1);
+                    scanUserFragment.show(getFragmentManager(), "scanuser");
                 }
                 break;
             case R.id.btn_recharge:
@@ -199,10 +227,23 @@ public class SvipFg extends BaseFragment {
                 break;
             case R.id.reset_data:
                 reset();
+                rgPaystyle.check(R.id.pay_ali);
+                userId = "";
+                card = "";
                 llNoUser.setVisibility(View.VISIBLE);
                 break;
             case R.id.btn_refrsh:
+                reset();
                 getUserInfo();
+                break;
+            case R.id.btn_scan_card:
+                ScanCardFragment scanCardFragment = new ScanCardFragment();
+                scanCardFragment.show(getFragmentManager(), "scancard");
+                break;
+            case R.id.btn_cancel_card:
+                card = "";
+                tvCardCode.setText("无");
+                btnScanCard.setVisibility(View.VISIBLE);
                 break;
         }
     }
@@ -241,13 +282,12 @@ public class SvipFg extends BaseFragment {
                                 } else {
                                     tvIsSvip.setText("会员类型:普通会员");
                                 }
-                                if (commodityMoney<=whiteBarBalance){
+                                if (commodityMoney <= whiteBarBalance) {
                                     payBalance.setVisibility(View.VISIBLE);
-                                }else{
+                                } else {
                                     payBalance.setVisibility(View.GONE);
                                 }
                                 vipdate12.setChecked(true);
-                                rechargeContent.setVisibility(View.VISIBLE);
                                 hideDialog();
                             } else {
                                 hideDialog();
@@ -269,9 +309,8 @@ public class SvipFg extends BaseFragment {
     private void reset() {
         escrow = 3;
         whiteBarBalance = 0.0;
-        userId = "";
         commodityId = CONST.SVIPSTYLE.DATE_12_MONTH;
-        commodityMoney = 6000.0;
+        commodityMoney = 5000.0;
         rechargeContent.setVisibility(View.GONE);
     }
 
@@ -286,7 +325,7 @@ public class SvipFg extends BaseFragment {
         } else {
             parameters.put("paymentType", "59794daf128fe10056f43170");
         }
-        String[] commodity = new String[1];
+        final String[] commodity = new String[1];
         commodity[0] = commodityId;
         parameters.put("commodityids", commodity);
         parameters.put("paysum", commodityMoney);
@@ -297,7 +336,7 @@ public class SvipFg extends BaseFragment {
             public void done(Map<String, Map<String, Object>> map, AVException e) {
                 if (e == null) {
                     final String orderId = map.get("order").get("objectId").toString();
-                    AVObject mallOrder = AVObject.createWithoutData("MallOrder", orderId);
+                    final AVObject mallOrder = AVObject.createWithoutData("MallOrder", orderId);
                     mallOrder.put("cashier", AVObject.createWithoutData("_User", new SharedHelper(getContext()).read("cashierId")));
                     mallOrder.put("market", AVObject.createWithoutData("_User", new SharedHelper(getContext()).read("cashierId")));
                     mallOrder.put("orderStatus", AVObject.createWithoutData("MallOrderStatus", CONST.OrderState.ORDER_STATUS_FINSIH));
@@ -305,11 +344,32 @@ public class SvipFg extends BaseFragment {
                     mallOrder.put("store", CONST.STORECODE);
                     mallOrder.put("reduce", 0);
                     mallOrder.put("offline", true);
+                    mallOrder.put("type", 2);
+                    HashMap<String, Double> escrowDetail = new HashMap<>();
+                    if (escrow == 3) {
+                        escrowDetail.put("支付宝支付", commodityMoney);
+                    } else if (escrow == 4) {
+                        escrowDetail.put("微信支付", commodityMoney);
+                    } else if (escrow == 5) {
+                        escrowDetail.put("银行卡支付", commodityMoney);
+                    } else if (escrow == 6) {
+                        escrowDetail.put("现金支付", commodityMoney);
+                    }else if (escrow ==11) {
+                        escrowDetail.put("白条支付", commodityMoney);
+                    }
+                    mallOrder.put("escrowDetail", escrowDetail);
+                    HashMap<String, Object> commodityDetail = new HashMap<>();
+                    commodityDetail.put("name", commodityContent);
+                    commodityDetail.put("number", 1);
+                    commodityDetail.put("id",commodity[0]);
+                    List<HashMap<String, Object>> detail = new ArrayList<>();
+                    detail.add(commodityDetail);
+                    mallOrder.put("commodityDetail", detail);
                     mallOrder.saveInBackground(new SaveCallback() {
                         @Override
                         public void done(AVException e) {
                             if (e == null) {
-                                bindPower(orderId);
+                                bindPower(orderId,mallOrder);
                             } else {
                                 hideDialog();
                                 ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
@@ -324,7 +384,7 @@ public class SvipFg extends BaseFragment {
     /**
      * 绑定超牛会员
      */
-    private void bindPower(String orderId) {
+    private void bindPower(String orderId , final AVObject mallOrder) {
         AVObject power = new AVObject("Power");
         Calendar c;
         if (commodityId == CONST.SVIPSTYLE.DATE_1_MONTH) {
@@ -351,6 +411,9 @@ public class SvipFg extends BaseFragment {
         power.put("active", 1);
         power.put("user", AVObject.createWithoutData("_User", userId));
         power.put("order", AVObject.createWithoutData("MallOrder", orderId));
+        if (card.length() > 0) {
+            power.put("card", card);
+        }
         power.saveInBackground(new SaveCallback() {
             @Override
             public void done(AVException e) {
@@ -358,7 +421,7 @@ public class SvipFg extends BaseFragment {
                     hideDialog();
                     btnRefrsh.setVisibility(View.VISIBLE);
                     ToastUtil.showShort(MyApplication.getContextObject(), "充值绑定成功");
-                    Bill.printSvipBill(commodityContent,commodityMoney,0.0,commodityMoney,escrow);
+                    Bill.printSvipBill(commodityContent, commodityMoney, 0.0, commodityMoney, escrow,mallOrder);
                     reset();
                 } else {
                     hideDialog();
@@ -386,9 +449,9 @@ public class SvipFg extends BaseFragment {
                             AVCloud.callFunctionInBackground("svip", parameter, new FunctionCallback<Map<String, Object>>() {
                                 @Override
                                 public void done(Map<String, Object> objectMap, AVException e) {
-                                    Logger.d(objectMap);
                                     hideDialog();
                                     llNoUser.setVisibility(View.GONE);
+                                    rechargeContent.setVisibility(View.VISIBLE);
                                     tvTel.setText("用户手机号:" + object.get("username").toString());
                                     whiteBarBalance = MyUtils.formatDouble(Double.parseDouble(object.get("gold").toString()) - Double.parseDouble(object.get("arrears").toString()));
                                     Double storedBalance = MyUtils.formatDouble(Double.parseDouble(object.get("stored").toString()));
@@ -408,11 +471,9 @@ public class SvipFg extends BaseFragment {
                                     } else {
                                         tvIsSvip.setText("会员类型:普通会员");
                                     }
-                                    Logger.d(commodityMoney);
-                                    Logger.d(whiteBarBalance);
-                                    if (commodityMoney<=whiteBarBalance){
+                                    if (commodityMoney <= whiteBarBalance) {
                                         payBalance.setVisibility(View.VISIBLE);
-                                    }else{
+                                    } else {
                                         payBalance.setVisibility(View.GONE);
                                     }
                                 }
@@ -466,16 +527,23 @@ public class SvipFg extends BaseFragment {
                         @Override
                         public void onClick(QMUIDialog dialog, int index) {
                             dialog.dismiss();
-                            Intent intent = new Intent(getActivity(), CaptureActivity.class);
-                            intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
-                            startActivityForResult(intent, REQUEST_CODE_SCAN_USER);
+                            if (CameraProvider.hasCamera()) {
+                                if (MyUtils.getCameraPermission(MyApplication.getContextObject())) {
+                                    Intent intent = new Intent(getActivity(), CaptureActivity.class);
+                                    intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
+                                    startActivityForResult(intent, REQUEST_CODE_SCAN_USER);
+                                }
+                            } else {
+                                ScanUserFragment scanUserFragment = new ScanUserFragment(2);
+                                scanUserFragment.show(getFragmentManager(), "scanuser");
+                            }
                         }
                     })
                     .create(mCurrentDialogStyle).show();
         } else {
             new QMUIDialog.MessageDialogBuilder(getActivity())
                     .setTitle("支付信息确认")
-                    .setMessage("确定使用白条" + commodityMoney + "元？")
+                    .setMessage("确定使用白条" + commodityMoney + "元支付？")
                     .addAction("取消", new QMUIDialogAction.ActionListener() {
                         @Override
                         public void onClick(QMUIDialog dialog, int index) {
@@ -486,9 +554,16 @@ public class SvipFg extends BaseFragment {
                         @Override
                         public void onClick(QMUIDialog dialog, int index) {
                             dialog.dismiss();
-                            Intent intent = new Intent(getActivity(), CaptureActivity.class);
-                            intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
-                            startActivityForResult(intent, REQUEST_CODE_SCAN_USER);
+                            if (CameraProvider.hasCamera()) {
+                                if (MyUtils.getCameraPermission(MyApplication.getContextObject())) {
+                                    Intent intent = new Intent(getActivity(), CaptureActivity.class);
+                                    intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
+                                    startActivityForResult(intent, REQUEST_CODE_SCAN_USER);
+                                }
+                            } else {
+                                ScanUserFragment scanUserFragment = new ScanUserFragment(2);
+                                scanUserFragment.show(getFragmentManager(), "scanuser");
+                            }
                         }
                     })
                     .create(mCurrentDialogStyle).show();
@@ -507,5 +582,62 @@ public class SvipFg extends BaseFragment {
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void UserMessgae(UserBean userBean) {
+        if (userBean.getCallbackCode() == CONST.UserCode.SCANCUSTOMER) {
+            rechargeContent.setVisibility(View.VISIBLE);
+            llNoUser.setVisibility(View.GONE);
+            tvTel.setText("用户手机号:" + userBean.getUsername());
+            tvStored.setText("消费金:" + userBean.getStored());
+            tvBalance.setText("白条:" + userBean.getBalance());
+            tvMeatweight.setText("牛肉额度:" + userBean.getMeatWeight() + "kg");
+            userId = userBean.getId();
+            if ((Boolean) userBean.getAlreadySvip()) {
+                tvIsBuy.setText("是否购买过超牛会员:已购买过");
+                vipdate1.setVisibility(View.GONE);
+            } else {
+                tvIsBuy.setText("是否购买过超牛会员:未购买过");
+                vipdate1.setVisibility(View.VISIBLE);
+            }
+            if (userBean.getSvip()) {
+                tvIsSvip.setText("会员类型:超牛会员");
+            } else {
+                tvIsSvip.setText("会员类型:普通会员");
+            }
+            whiteBarBalance = userBean.getBalance();
+            if (commodityMoney <= whiteBarBalance) {
+                payBalance.setVisibility(View.VISIBLE);
+            } else {
+                payBalance.setVisibility(View.GONE);
+            }
+        } else if (userBean.getCallbackCode() == CONST.UserCode.SCANUSER) {
+            if (userBean.getClerk() > 6 || userBean.getTest()) {
+                PayAndBind();
+            } else {
+                ToastUtil.showShort(MyApplication.getContextObject(), "非销售账号,请扫描销售账号");
+            }
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void CardMessage(CardBean cardBean) {
+        card = cardBean.getCard();
+        tvCardCode.setText(card);
+        btnCancelCard.setVisibility(View.VISIBLE);
+        btnScanCard.setVisibility(View.GONE);
     }
 }

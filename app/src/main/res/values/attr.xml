@@ -2,4 +2,24 @@
 <resources>
     <attr name="app_primary_color" format="color"/> <!-- topbar -->
     <attr name="app_content_bg_color" format="color"/> <!-- content-->
+    <declare-styleable name="NumTipSeekBar">
+        <attr name="NumTipSeekBar_tickBarHeight" format="dimension"/>
+        <attr name="NumTipSeekBar_tickBarColor" format="color"/>
+        <attr name="NumTipSeekBar_circleButtonColor" format="color"/>
+        <attr name="NumTipSeekBar_circleButtonTextColor" format="color"/>
+        <attr name="NumTipSeekBar_circleButtonTextSize" format="dimension"/>
+        <attr name="NumTipSeekBar_circleButtonRadius" format="dimension"/>
+        <attr name="NumTipSeekBar_circleApertureWidth" format="dimension"/>
+        <attr name="NumTipSeekBar_circleApertureColor" format="color"/>
+        <attr name="NumTipSeekBar_progressHeight" format="dimension"/>
+        <attr name="NumTipSeekBar_progressColor" format="color"/>
+        <attr name="NumTipSeekBar_selectProgress" format="integer"/>
+        <attr name="NumTipSeekBar_startProgress" format="integer"/>
+        <attr name="NumTipSeekBar_maxProgress" format="integer"/>
+        <attr name="NumTipSeekBar_isShowButtonText" format="boolean"/>
+        <attr name="NumTipSeekBar_isShowButton" format="boolean"/>
+        <attr name="NumTipSeekBar_isRound" format="boolean"/>
+        <attr name="NumTipSeekBar_borderSize" format="dimension"/>
+        <attr name="NumTipSeekBar_borderColor" format="color"/>
+    </declare-styleable>
 </resources>

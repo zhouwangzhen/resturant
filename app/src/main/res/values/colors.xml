@@ -12,12 +12,15 @@
     <color name="slightgrey">#999</color>
     <color name="purple">#5F66B4</color>
     <color name="red">#fc3866</color>
+    <color name="darkred">#FF0033</color>
     <color name="material_dark_green">#009688</color>
     <color name="material_green">#009688</color>
     <color name="transparent">#00000000</color>
     <color name="black">#000</color>
 
-
+    <color name="white_1a">#1Affffff</color>
+    <color name="orange_f6">#f6d282</color>
+    <color name="purple_82">#827a99</color>
 
     <color name="app_color_blue_2">#0ecc99</color>
     <color name="app_color_blue_2_disabled">#7F31BDF3</color>

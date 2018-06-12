@@ -188,7 +188,12 @@ public class Pos {
         writer.write(position);
         writer.flush();
     }
-
+    public void printCenter() throws IOException{
+        writer.write(0x1B);
+        writer.write(0x61);
+        writer.write(1);
+        writer.flush();
+    }
     /**
      * 绝对打印位置
      *

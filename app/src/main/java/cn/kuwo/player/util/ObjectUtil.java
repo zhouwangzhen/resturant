@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RetailBean;
 
 public class ObjectUtil {
@@ -59,11 +60,9 @@ public class ObjectUtil {
 
         ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
         ObjectInputStream in = new ObjectInputStream(byteIn);
-        @SuppressWarnings("unchecked")
         List<T> dest = (List<T>) in.readObject();
         return dest;
     }
-    @SuppressWarnings("unchecked")
     public static <T> T cloneTo(T src) throws RuntimeException {
         ByteArrayOutputStream memoryBuffer = new ByteArrayOutputStream();
         ObjectOutputStream out = null;
@@ -96,12 +95,15 @@ public class ObjectUtil {
         return dist;
     }
 
-    public static List<Object> toObject(RetailBean retailBean) {
+    public static List<Object> toObject(List<String> ids, ArrayList<Double> prices, ArrayList<Double> weights) {
         List<Object> orders=new ArrayList<>();
-        for (int i=0;i<retailBean.getCodes().size();i++) {
+        for (int i=0;i<ids.size();i++) {
             HashMap<String, Object> params = new HashMap<>();
-            params.put("name", retailBean.getCommodityList().get(i).getName());
-            params.put("id", retailBean.getCommodityList().get(i).getObjectId());
+            ProductBean productBean = MyUtils.getProductById(ids.get(i));
+            params.put("name", productBean.getName());
+            params.put("id", productBean.getObjectId());
+            params.put("price", MyUtils.formatDouble(prices.get(i)));
+            params.put("weight", MyUtils.formatDouble(weights.get(i)));
             params.put("number", 1);
             orders.add(params);
         }

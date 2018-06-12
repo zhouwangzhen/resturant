@@ -136,7 +136,7 @@ public class ShowCouponFragment extends DialogFragment {
                 holder = (ViewHolder) view.getTag();
             }
             AVObject avObject = couponAVObject.get(i);
-            holder.show_list_name.setText(avObject.getAVObject("type").getString("name"));
+            holder.show_list_name.setText(avObject.getString("from"));
             holder.show_list_number.setText(avObject.getDouble("gold") + "");
             holder.show_list_content.setText("满"+avObject.getAVObject("type").getDouble("section")+"元可用");
 
@@ -144,10 +144,7 @@ public class ShowCouponFragment extends DialogFragment {
         }
 
         private class ViewHolder {
-            TextView show_list_name;
-            TextView show_list_content;
-            TextView show_list_number;
-            TextView show_list_give;
+            TextView show_list_name,show_list_content,show_list_number,show_list_give;
         }
     }
 

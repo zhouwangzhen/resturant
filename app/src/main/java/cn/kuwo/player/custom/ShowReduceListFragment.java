@@ -107,17 +107,26 @@ public class ShowReduceListFragment extends DialogFragment {
                 holder.meat_reduce_money=view.findViewById(R.id.meat_reduce_money);
                 holder.meat_reduce_weight=view.findViewById(R.id.meat_reduce_weight);
                 holder.meat_extra_money=view.findViewById(R.id.meat_extra_money);
+                holder.meat_weight=view.findViewById(R.id.meat_weight);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
             }
-            Object o = list.get(position);
-            Logger.d(ObjectUtil.getString((HashMap<String, Object>) o,"name"));
-            holder.meat_name.setText(ObjectUtil.getString((HashMap<String, Object>) o,"name"));
-            holder.meat_number.setText(ObjectUtil.getDouble((HashMap<String, Object>) o,"number")+"份");
-            holder.meat_reduce_money.setText(MyUtils.formatDouble((MyUtils.getProductById(ObjectUtil.getString((HashMap<String, Object>) o,"id")).getPrice()-MyUtils.getProductById(ObjectUtil.getString((HashMap<String, Object>) o,"id")).getRemainMoney())*ObjectUtil.getDouble((HashMap<String, Object>) o,"number"))+"元");
-            holder.meat_reduce_weight.setText(ObjectUtil.getDouble((HashMap<String, Object>) o,"meatWeight")+"kg");
-            holder.meat_extra_money.setText(MyUtils.formatDouble(MyUtils.getProductById(ObjectUtil.getString((HashMap<String, Object>) o,"id")).getRemainMoney()*ObjectUtil.getDouble((HashMap<String, Object>) o,"number"))+"元");
+            HashMap<String, Object> hashMap = (HashMap<String, Object>) list.get(position);
+            holder.meat_name.setText(ObjectUtil.getString(hashMap,"name"));
+            holder.meat_number.setText(ObjectUtil.getDouble(hashMap,"number")+"份");
+            if(MyUtils.getProductById(ObjectUtil.getString(hashMap,"id")).getCode().length()==5){
+                holder.meat_reduce_money.setText(MyUtils.formatDouble(ObjectUtil.getDouble(hashMap,"price"))+"元");
+            }else {
+                holder.meat_reduce_money.setText(MyUtils.formatDouble((MyUtils.getProductById(ObjectUtil.getString(hashMap, "id")).getPrice() - MyUtils.getProductById(ObjectUtil.getString(hashMap, "id")).getRemainMoney()) * ObjectUtil.getDouble(hashMap, "number")) + "元");
+            }
+            try {
+                holder.meat_weight.setText(ObjectUtil.getString(hashMap, "weight")+"kg");
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            holder.meat_reduce_weight.setText(ObjectUtil.getDouble(hashMap,"meatWeight")+"kg");
+            holder.meat_extra_money.setText(MyUtils.formatDouble(ObjectUtil.getDouble(hashMap,"price")-ObjectUtil.getDouble(hashMap,"reduceMoeny"))+"元");
             return view;
         }
 
@@ -127,6 +136,7 @@ public class ShowReduceListFragment extends DialogFragment {
             TextView meat_reduce_money;
             TextView meat_reduce_weight;
             TextView meat_extra_money;
+            TextView meat_weight;
 
         }
     }

@@ -3,7 +3,6 @@ package cn.kuwo.player.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +18,6 @@ import android.widget.TextView;
 import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
-import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FunctionCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
@@ -34,7 +32,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,8 +44,6 @@ import cn.kuwo.player.base.BaseActivity;
 import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.event.OrderDetail;
 import cn.kuwo.player.event.PrintEvent;
-import cn.kuwo.player.fragment.PayFg;
-import cn.kuwo.player.fragment.TableFg;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.MyUtils;
@@ -105,11 +100,23 @@ public class PayActivity extends BaseActivity {
     GridView gvPayStyle;
     @BindView(R.id.btn_finish_pay)
     Button btnFinishPay;
+    @BindView(R.id.full_reduce_money)
+    TextView fullreduceMoney;
+    @BindView(R.id.delete_odd_money)
+    TextView deleteOddMoney;
+    @BindView(R.id.ll_delete_odd)
+    LinearLayout llDeleteOdd;
+    @BindView(R.id.rate_reduce_content)
+    TextView rateReduceContent;
+    @BindView(R.id.rate_reduce_money)
+    TextView rateReduceMoney;
+    @BindView(R.id.ll_rate_reduce)
+    LinearLayout llRateReduce;
     private OrderDetail orderDetail;
     private List<Integer> paymentTypes = new ArrayList<>();
     private JSONObject jsonReduce;
     private int selectType = 0;
-    private int escrow=-1;
+    private int escrow = -1;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private Context mContext;
 
@@ -119,6 +126,7 @@ public class PayActivity extends BaseActivity {
 
     private Double whiteBarBalance;
     private Double storedBalance;
+
     @Override
     protected int getContentViewId() {
         return R.layout.activity_pay;
@@ -126,8 +134,8 @@ public class PayActivity extends BaseActivity {
 
     @Override
     public void initData() {
-        orderDetail = (OrderDetail) getIntent().getSerializableExtra( "table");
-        mContext=this;
+        orderDetail = (OrderDetail) getIntent().getSerializableExtra("table");
+        mContext = this;
         setData();
         setPayment();
     }
@@ -166,6 +174,7 @@ public class PayActivity extends BaseActivity {
             }
         });
     }
+
     private void toFinishOrder() {
         showDialog();
         escrow = paymentTypes.get(selectType);
@@ -200,6 +209,7 @@ public class PayActivity extends BaseActivity {
                     mallOrder.put("escrow", escrow);
                     mallOrder.put("offline", true);
                     mallOrder.put("store", 1);
+                    mallOrder.put("outside", true);
                     mallOrder.put("commodityDetail", orderDetail.getOrders());
                     if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null) {
                         mallOrder.put("meatWeights", ProductUtil.listToList(orderDetail.getUseExchangeList()));
@@ -207,13 +217,20 @@ public class PayActivity extends BaseActivity {
                         mallOrder.put("useMeat", AVObject.createWithoutData("Meat", orderDetail.getUseMeatId()));
 
                     }
+                    mallOrder.put("maxMeatDeduct", orderDetail.getSvipMaxExchangeList());
+                    mallOrder.put("realMeatDeduct", orderDetail.getUseExchangeList());
+                    Map<String, Double> escrowDetail = ProductUtil.managerEscrow(orderDetail.getActualMoney(), escrow, orderDetail.getUserBean());
+                    mallOrder.put("escrowDetail", escrowDetail);
+                    mallOrder.put("type", 1);
                     jsonReduce = new JSONObject();
                     try {
                         if (orderDetail.getOnlineCouponEvent() != null) {
                             jsonReduce.put(orderDetail.getOnlineCouponEvent().getContent(), orderDetail.getOnlineCouponEvent().getMoney());
+                            mallOrder.put("useUserCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOnlineCouponEvent().getId()));
                         }
                         if (orderDetail.getOfflineCouponEvent() != null) {
                             jsonReduce.put(orderDetail.getOfflineCouponEvent().getContent(), orderDetail.getOfflineCouponEvent().getMoney());
+                            mallOrder.put("useSystemCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOfflineCouponEvent().getId()));
                         }
                         if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null) {
                             jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
@@ -221,7 +238,16 @@ public class PayActivity extends BaseActivity {
                         if (orderDetail.getActivityMoney() > 0) {
                             jsonReduce.put("线下店打折优惠", orderDetail.getActivityMoney());
                         }
-
+                        if (orderDetail.getFullReduceMoney() > 0) {
+                            jsonReduce.put("满减优惠", orderDetail.getFullReduceMoney());
+                        }
+                        if (orderDetail.getRate() != 100) {
+                            String content = "整单" + orderDetail.getRate() + "折优惠";
+                            jsonReduce.put(content, orderDetail.getRateReduceMoney());
+                        }
+                        if (orderDetail.getDeleteoddMoney() > 0) {
+                            jsonReduce.put("抹零", orderDetail.getDeleteoddMoney());
+                        }
                         mallOrder.put("reduceDetail", jsonReduce);
                     } catch (JSONException e1) {
                         e1.printStackTrace();
@@ -232,10 +258,10 @@ public class PayActivity extends BaseActivity {
                         public void done(AVException e) {
                             hideDialog();
                             if (e == null) {
-                                Bill.printRetailBill(MyApplication.getContextObject(),orderDetail, jsonReduce,escrow,orderDetail.getUserBean());
+                                Bill.printRetailBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow, orderDetail.getUserBean());
                                 ToastUtil.showShort(MyApplication.getContextObject(), "订单结算完成");
                                 Intent intent = getIntent();
-                                setResult(1,intent);
+                                setResult(1, intent);
                                 finish();
                             } else {
                                 ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
@@ -250,9 +276,11 @@ public class PayActivity extends BaseActivity {
             }
         });
     }
+
     private void resetTable() {
         finish();
     }
+
     private void setData() {
         signUser.setVisibility(View.GONE);
         orginPrice.setText("￥" + orderDetail.getTotalMoney() + "");
@@ -262,6 +290,7 @@ public class PayActivity extends BaseActivity {
         mySvipReduceMoney.setText(orderDetail.getMyReduceMoney() + "");
         storeReduceMoney.setText("-" + orderDetail.getActivityMoney());
         totalMoney.setText("￥" + orderDetail.getActualMoney());
+        fullreduceMoney.setText("-" + orderDetail.getFullReduceMoney());
         if (orderDetail.getOfflineCouponEvent() != null) {
             tvOfflineContent.setText(orderDetail.getOfflineCouponEvent().getContent());
             tvOfflineMoeny.setText("-" + orderDetail.getOfflineCouponEvent().getMoney());
@@ -270,7 +299,21 @@ public class PayActivity extends BaseActivity {
             tvOnlineContent.setText(orderDetail.getOnlineCouponEvent().getContent());
             tvOnlineMoeny.setText("-" + orderDetail.getOnlineCouponEvent().getMoney());
         }
-        if (orderDetail.getUserBean()!=null) {
+        if (orderDetail.getDeleteoddMoney() > 0) {
+            llDeleteOdd.setVisibility(View.VISIBLE);
+            deleteOddMoney.setText("-" + orderDetail.getDeleteoddMoney());
+        } else {
+            llDeleteOdd.setVisibility(View.GONE);
+        }
+        if (orderDetail.getRate()!=100){
+            llRateReduce.setVisibility(View.VISIBLE);
+            rateReduceContent.setText("整单"+ MyUtils.formatDouble((double) orderDetail.getRate()/10)+"折优惠");
+            rateReduceMoney.setText("-"+orderDetail.getRateReduceMoney());
+
+        }else{
+            llRateReduce.setVisibility(View.GONE);
+        }
+        if (orderDetail.getUserBean() != null) {
             setUserInfo(orderDetail.getUserBean());
         } else {
             paymentTypes.add(3);
@@ -282,6 +325,7 @@ public class PayActivity extends BaseActivity {
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
 
     }
+
     private void setUserInfo(UserBean user) {
         llShowMember.setVisibility(View.VISIBLE);
         userTel.setText("用户手机号:" + user.getUsername());
@@ -299,6 +343,7 @@ public class PayActivity extends BaseActivity {
         }
         addPayment(orderDetail.getActualMoney(), whiteBarBalance, storedBalance);
     }
+
     private void addPayment(Double actualMoney, Double whiteBarBalance, Double storedBalance) {
         if (whiteBarBalance < 0.0) whiteBarBalance = 0.0;
         if (storedBalance < 0) storedBalance = 0.0;
@@ -333,6 +378,14 @@ public class PayActivity extends BaseActivity {
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
 
     }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // TODO: add setContentView(...) invocation
+        ButterKnife.bind(this);
+    }
+
     public class PaymentAdapter extends BaseAdapter {
         @Override
         public int getCount() {
@@ -380,6 +433,7 @@ public class PayActivity extends BaseActivity {
             TextView image_avatar;
         }
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(PrintEvent event) {
         if (event.getCode() == 0) {
@@ -399,7 +453,7 @@ public class PayActivity extends BaseActivity {
                         @Override
                         public void onClick(QMUIDialog dialog, int index) {
                             dialog.dismiss();
-                            Bill.printRetailBill(MyApplication.getContextObject(),orderDetail, jsonReduce,escrow,orderDetail.getUserBean());
+                            Bill.printRetailBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow, orderDetail.getUserBean());
                         }
                     })
                     .setCanceledOnTouchOutside(false)
@@ -408,6 +462,7 @@ public class PayActivity extends BaseActivity {
 
 
     }
+
     @Override
     public void onResume() {
         super.onResume();

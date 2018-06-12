@@ -47,12 +47,13 @@
                         android:background="@drawable/shape_blue"
                         android:gravity="center"
                         android:textColor="@color/white" />
+
                     <TextView
                         android:id="@+id/table_number"
-                        android:layout_marginLeft="30dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/black"/>
+                        android:layout_marginLeft="30dp"
+                        android:textColor="@color/black" />
                 </LinearLayout>
 
 
@@ -98,17 +99,19 @@
                             android:text="付款信息"
                             android:textSize="16sp" />
                         <Button
-                            android:id="@+id/merge_settle"
-                            android:text="多订单结账"
+                            android:id="@+id/more_fuc"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_alignParentRight="true"/>
+                            android:layout_alignParentRight="true"
+                            android:textColor="@color/white"
+                            android:background="@drawable/btn_material_light1"
+                            android:text="更多功能" />
                     </RelativeLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="30dp"
+                        android:layout_marginTop="10dp"
                         android:gravity="center_vertical">
 
                         <TextView
@@ -140,21 +143,25 @@
                         android:layout_marginTop="20dp"
                         android:background="@drawable/shape_grey"
                         android:orientation="vertical">
+
                         <LinearLayout
-                            android:padding="10dp"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                            android:layout_height="wrap_content"
+                            android:padding="10dp">
+
                             <ImageView
                                 android:layout_width="30dp"
                                 android:layout_height="30dp"
-                                android:background="@drawable/icon_svip"/>
+                                android:background="@drawable/icon_svip" />
+
                             <TextView
-                                android:paddingLeft="10dp"
-                                android:text="超牛会员"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:gravity="center_vertical"/>
+                                android:gravity="center_vertical"
+                                android:paddingLeft="10dp"
+                                android:text="超牛会员" />
                         </LinearLayout>
+
                         <LinearLayout
                             android:id="@+id/ll_max_reduce"
                             android:layout_width="match_parent"
@@ -220,6 +227,7 @@
                                 android:textColor="@color/slightgrey"
                                 android:textSize="16sp" />
                         </LinearLayout>
+
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="2dp"
@@ -292,101 +300,211 @@
                                 android:textSize="16sp" />
                         </LinearLayout>
                     </LinearLayout>
-                    <LinearLayout
-                        android:id="@+id/ll_offline_moeny"
+
+                    <ScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:gravity="center_vertical">
+                        android:scrollbars="none">
 
-                        <TextView
-                            android:id="@+id/tv_offline_content"
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="线下优惠券"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
+                            android:orientation="vertical">
 
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="10dp"
-                            android:layout_marginLeft="10dp"
-                            android:layout_marginRight="10dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/shape_dot"
-                            android:layerType="software" />
+                            <LinearLayout
+                                android:id="@+id/ll_offline_moeny"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:gravity="center_vertical">
 
-                        <TextView
-                            android:id="@+id/tv_offline_moeny"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="-0.0"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-                    <LinearLayout
-                        android:id="@+id/ll_online_moeny"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:gravity="center_vertical">
+                                <TextView
+                                    android:id="@+id/tv_offline_content"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="线下优惠券"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
 
-                        <TextView
-                            android:id="@+id/tv_online_content"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="线上优惠券"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="10dp"
+                                    android:layout_marginLeft="10dp"
+                                    android:layout_marginRight="10dp"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_dot"
+                                    android:layerType="software" />
 
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="10dp"
-                            android:layout_marginLeft="10dp"
-                            android:layout_marginRight="10dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/shape_dot"
-                            android:layerType="software" />
+                                <TextView
+                                    android:id="@+id/tv_offline_moeny"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="-0.0"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
 
-                        <TextView
-                            android:id="@+id/tv_online_moeny"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="-0.0"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:gravity="center_vertical">
+                            <LinearLayout
+                                android:id="@+id/ll_online_moeny"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:gravity="center_vertical">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="开业优惠"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
+                                <TextView
+                                    android:id="@+id/tv_online_content"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="线上优惠券"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
 
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="10dp"
-                            android:layout_marginLeft="10dp"
-                            android:layout_marginRight="10dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/shape_dot"
-                            android:layerType="software" />
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="10dp"
+                                    android:layout_marginLeft="10dp"
+                                    android:layout_marginRight="10dp"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_dot"
+                                    android:layerType="software" />
 
-                        <TextView
-                            android:id="@+id/store_reduce_money"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="-0.0"
-                            android:textColor="@color/slightgrey"
-                            android:textSize="16sp" />
-                    </LinearLayout>
+                                <TextView
+                                    android:id="@+id/tv_online_moeny"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="-0.0"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
 
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="开业折扣优惠"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="10dp"
+                                    android:layout_marginLeft="10dp"
+                                    android:layout_marginRight="10dp"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_dot"
+                                    android:layerType="software" />
+
+                                <TextView
+                                    android:id="@+id/store_reduce_money"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="-0.0"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="满减优惠"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="10dp"
+                                    android:layout_marginLeft="10dp"
+                                    android:layout_marginRight="10dp"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_dot"
+                                    android:layerType="software" />
+
+                                <TextView
+                                    android:id="@+id/full_reduce_money"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="-0.0"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+                            <LinearLayout
+                                android:id="@+id/ll_rate_reduce"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:visibility="gone"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:id="@+id/rate_reduce_content"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="整单打折优惠"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="10dp"
+                                    android:layout_marginLeft="10dp"
+                                    android:layout_marginRight="10dp"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_dot"
+                                    android:layerType="software" />
+
+                                <TextView
+                                    android:id="@+id/rate_reduce_money"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="-0.0"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+                            <LinearLayout
+                                android:id="@+id/ll_delete_odd"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:visibility="gone"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="抹零"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="10dp"
+                                    android:layout_marginLeft="10dp"
+                                    android:layout_marginRight="10dp"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_dot"
+                                    android:layerType="software" />
+
+                                <TextView
+                                    android:id="@+id/delete_odd_money"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="-0.0"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                        </LinearLayout>
+                    </ScrollView>
                 </LinearLayout>
 
                 <LinearLayout
@@ -432,23 +550,23 @@
                             android:id="@+id/cb_use_svip"
                             android:layout_width="match_parent"
                             android:layout_height="0dp"
-                            android:visibility="gone"
-                            android:checked="true"
                             android:layout_alignParentBottom="true"
                             android:layout_alignParentLeft="true"
                             android:layout_weight="1"
-                            android:text="不使用牛肉额度需付款"
-                            android:textSize="12sp" />
+                            android:checked="true"
+                            android:text="使用牛肉额度需付款"
+                            android:textSize="12sp"
+                            android:visibility="gone" />
                     </LinearLayout>
 
                     <Button
                         android:id="@+id/btn_pay"
                         android:layout_width="wrap_content"
-                        android:layout_height="30dp"
+                        android:layout_height="40dp"
                         android:layout_alignParentRight="true"
                         android:layout_centerVertical="true"
                         android:layout_marginRight="10dp"
-                        android:background="@drawable/pay"
+                        android:background="@drawable/btn_material_yellow"
                         android:text="去支付"
                         android:textColor="@color/white" />
 

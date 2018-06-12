@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
@@ -48,6 +49,7 @@ import cn.kuwo.player.event.PrintEvent;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.MyUtils;
+import cn.kuwo.player.util.PayInfoUtil;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
@@ -104,6 +106,21 @@ public class PayFg extends BaseFragment {
     TextView tvOnlineContent;
     @BindView(R.id.tv_online_moeny)
     TextView tvOnlineMoeny;
+    @BindView(R.id.full_reduce_money)
+    TextView fullreduceMoney;
+    Unbinder unbinder1;
+    @BindView(R.id.table_info)
+    TextView tableInfo;
+    @BindView(R.id.delete_odd_money)
+    TextView deleteOddMoney;
+    @BindView(R.id.ll_delete_odd)
+    LinearLayout llDeleteOdd;
+    @BindView(R.id.rate_reduce_content)
+    TextView rateReduceContent;
+    @BindView(R.id.rate_reduce_money)
+    TextView rateReduceMoney;
+    @BindView(R.id.ll_rate_reduce)
+    LinearLayout llRateReduce;
 
     private Activity mActivity;
     private OrderDetail orderDetail;
@@ -173,7 +190,7 @@ public class PayFg extends BaseFragment {
         if (orderDetail.getAvObject().getAVObject("user") != null) {
             if (escrow == 1 || escrow == 11 || escrow == 12) {//纯消费金和白条支付
                 parameters.put("paymentType", "577b364a79bc440032772ba5");
-            } else if (escrow == 3 || escrow == 4 || escrow == 5 || escrow == 6) {//纯线下第三方支付
+            } else if (escrow == 3 || escrow == 4 || escrow == 5 || escrow == 6 || escrow == 21 || escrow == 22) {//纯线下第三方支付
                 parameters.put("paymentType", "59794daf128fe10056f43170");
             } else {//混合支付
                 parameters.put("paymentType", "59794db8ac502e0069a377d0");
@@ -184,7 +201,7 @@ public class PayFg extends BaseFragment {
             parameters.put("customerId", CONST.ACCOUNT.SYSTEMACCOUNT);
         }
         final List order = orderDetail.getAvObject().getList("order");
-        List<String> ids = ProductUtil.calTotalIds(order);
+        final List<String> ids = ProductUtil.calTotalIds(order);
         parameters.put("commodityids", ids);
         parameters.put("paysum", orderDetail.getActualMoney());
         parameters.put("sum", orderDetail.getTotalMoney());
@@ -199,31 +216,41 @@ public class PayFg extends BaseFragment {
                     mallOrder.put("orderStatus", AVObject.createWithoutData("MallOrderStatus", CONST.OrderState.ORDER_STATUS_FINSIH));
                     mallOrder.put("escrow", escrow);
                     mallOrder.put("startedAt", orderDetail.getAvObject().getDate("startedAt"));
-                    mallOrder.put("customer", orderDetail.getAvObject().getInt("customer")+orderDetail.getSelectTableNumbers().size());
+                    mallOrder.put("customer", orderDetail.getAvObject().getInt("customer") + orderDetail.getSelectTableNumbers().size());
                     mallOrder.put("endAt", new Date());
                     mallOrder.put("offline", true);
                     mallOrder.put("store", 1);
                     mallOrder.put("refundDetail", orderDetail.getAvObject().getList("refundOrder"));
-
-                    String tableContent = "当前桌号:" + orderDetail.getAvObject().getString("tableNumber");
-                    for (int i = 0; i < orderDetail.getSelectTableNumbers().size(); i++) {
-                        tableContent += "+" + orderDetail.getSelectTableNumbers().get(i);
-                    }
-                    mallOrder.put("tableNumber", tableContent);
-                    mallOrder.put("commodityDetail", orderDetail.getAvObject().getList("order"));
+                    final String finalTableNumber = orderDetail.getAvObject().getString("tableNumber") + ProductUtil.calOtherTable(orderDetail.getSelectTableNumbers());
+                    mallOrder.put("tableNumber", finalTableNumber);
+                    mallOrder.put("commodityDetail", orderDetail.getFinalOrders());
+                    mallOrder.put("maxMeatDeduct", orderDetail.getSvipMaxExchangeList());
+                    mallOrder.put("realMeatDeduct", orderDetail.getUseExchangeList());
                     if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null) {
                         mallOrder.put("meatWeights", ProductUtil.listToList(orderDetail.getUseExchangeList()));
                         mallOrder.put("meatDetail", ProductUtil.listToObject(orderDetail.getUseExchangeList()));
                         mallOrder.put("useMeat", AVObject.createWithoutData("Meat", orderDetail.getUseMeatId()));
 
                     }
+                    if (orderDetail.isHangUp()) {
+                        mallOrder.put("hangUp", true);
+                        mallOrder.put("message", orderDetail.getAvObject().getString("remark"));
+                        mallOrder.put("type", 3);
+                    } else {
+                        mallOrder.put("type", 0);
+                    }
+
                     jsonReduce = new JSONObject();
+                    Map<String, Double> escrowDetail = PayInfoUtil.managerEscrowByRest(orderDetail.getActualMoney(), escrow, orderDetail.getAvObject());
+                    mallOrder.put("escrowDetail", escrowDetail);
                     try {
                         if (orderDetail.getOnlineCouponEvent() != null) {
                             jsonReduce.put(orderDetail.getOnlineCouponEvent().getContent(), orderDetail.getOnlineCouponEvent().getMoney());
+                            mallOrder.put("useUserCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOnlineCouponEvent().getId()));
                         }
                         if (orderDetail.getOfflineCouponEvent() != null) {
                             jsonReduce.put(orderDetail.getOfflineCouponEvent().getContent(), orderDetail.getOfflineCouponEvent().getMoney());
+                            mallOrder.put("useSystemCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOfflineCouponEvent().getId()));
                         }
                         if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null) {
                             jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
@@ -231,8 +258,19 @@ public class PayFg extends BaseFragment {
                         if (orderDetail.getActivityMoney() > 0) {
                             jsonReduce.put("线下店打折优惠", orderDetail.getActivityMoney());
                         }
+                        if (orderDetail.getFullReduceMoney() > 0) {
+                            jsonReduce.put("满减优惠", orderDetail.getFullReduceMoney());
+                        }
 
+                        if (orderDetail.getRate() != 100) {
+                            String content = "整单" + orderDetail.getRate() + "折优惠";
+                            jsonReduce.put(content, orderDetail.getRateReduceMoney());
+                        }
+                        if (orderDetail.getDeleteoddMoney() > 0) {
+                            jsonReduce.put("抹零", orderDetail.getDeleteoddMoney());
+                        }
                         mallOrder.put("reduceDetail", jsonReduce);
+
                     } catch (JSONException e1) {
                         e1.printStackTrace();
                     }
@@ -243,9 +281,11 @@ public class PayFg extends BaseFragment {
                             hideDialog();
                             if (e == null) {
                                 showDialog();
-                                Bill.printSettleBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow);
+                                ProductUtil.saveOperateLog(4, orderDetail.getFinalOrders(), orderDetail.getAvObject());
+                                Bill.printSettleBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow, finalTableNumber);
                                 ToastUtil.showShort(MyApplication.getContextObject(), "订单结算完成");
                             } else {
+                                Logger.d(e.getMessage());
                                 ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
                             }
                         }
@@ -253,7 +293,7 @@ public class PayFg extends BaseFragment {
 
                 } else {
                     hideDialog();
-                    ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙请重试"+e.getMessage());
+                    ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙请重试" + e.getMessage());
                 }
             }
         });
@@ -261,47 +301,86 @@ public class PayFg extends BaseFragment {
 
     private void resetTable() {
         showDialog();
-        AVObject avObject = orderDetail.getAvObject();
-        avObject.put("order", new List[0]);
-        avObject.put("preOrder", new List[0]);
-        avObject.put("refundOrder", new List[0]);
-        avObject.put("customer", 0);
-        avObject.put("startedAt", null);
-        avObject.put("user", null);
-        avObject.saveInBackground(new SaveCallback() {
-            @Override
-            public void done(AVException e) {
-                if (e == null) {
-                    hideDialog();
-                    for (int i = 0; i < orderDetail.getSelectTableIds().size(); i++) {
-                        AVObject table = AVObject.createWithoutData("Table", orderDetail.getSelectTableIds().get(i));
-                        table.put("order", new List[0]);
-                        table.put("preOrder", new List[0]);
-                        table.put("refundOrder", new List[0]);
-                        table.put("customer", 0);
-                        table.put("startedAt", null);
-                        table.put("user", null);
-                        table.saveInBackground(new SaveCallback() {
-                            @Override
-                            public void done(AVException e) {
-                                if (e == null) {
-                                    hideDialog();
-                                } else {
-                                    hideDialog();
-                                    resetTable();
+        if (orderDetail.isHangUp()) {
+            AVObject avObject = orderDetail.getAvObject();
+            avObject.put("active", 0);
+            avObject.put("settledAt", new Date());
+            avObject.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(AVException e) {
+                    if (e == null) {
+                        hideDialog();
+                        for (int i = 0; i < orderDetail.getSelectTableIds().size(); i++) {
+                            AVObject table = AVObject.createWithoutData("Table", orderDetail.getSelectTableIds().get(i));
+                            table.put("order", new List[0]);
+                            table.put("preOrder", new List[0]);
+                            table.put("refundOrder", new List[0]);
+                            table.put("customer", 0);
+                            table.put("startedAt", null);
+                            table.put("user", null);
+                            table.saveInBackground(new SaveCallback() {
+                                @Override
+                                public void done(AVException e) {
+                                    if (e == null) {
+                                        hideDialog();
+                                    } else {
+                                        hideDialog();
+                                        resetTable();
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
+                        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                        ft.replace(R.id.fragment_content, TableFg.newInstance(""), "table").commit();
+                    } else {
+                        hideDialog();
+                        ToastUtil.showShort(MyApplication.getContextObject(), "网络错误" + e.getMessage());
+                        resetTable();
                     }
-                    FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                    ft.replace(R.id.fragment_content, TableFg.newInstance(""), "table").commit();
-                } else {
-                    ToastUtil.showShort(MyApplication.getContextObject(),"网络错误"+e.getMessage());
-                    resetTable();
                 }
-            }
-        });
-
+            });
+        } else {
+            AVObject avObject = orderDetail.getAvObject();
+            avObject.put("order", new List[0]);
+            avObject.put("preOrder", new List[0]);
+            avObject.put("refundOrder", new List[0]);
+            avObject.put("customer", 0);
+            avObject.put("startedAt", null);
+            avObject.put("user", null);
+            avObject.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(AVException e) {
+                    if (e == null) {
+                        hideDialog();
+                        for (int i = 0; i < orderDetail.getSelectTableIds().size(); i++) {
+                            AVObject table = AVObject.createWithoutData("Table", orderDetail.getSelectTableIds().get(i));
+                            table.put("order", new List[0]);
+                            table.put("preOrder", new List[0]);
+                            table.put("refundOrder", new List[0]);
+                            table.put("customer", 0);
+                            table.put("startedAt", null);
+                            table.put("user", null);
+                            table.saveInBackground(new SaveCallback() {
+                                @Override
+                                public void done(AVException e) {
+                                    if (e == null) {
+                                        hideDialog();
+                                    } else {
+                                        hideDialog();
+                                        resetTable();
+                                    }
+                                }
+                            });
+                        }
+                        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                        ft.replace(R.id.fragment_content, TableFg.newInstance(""), "table").commit();
+                    } else {
+                        ToastUtil.showShort(MyApplication.getContextObject(), "网络错误" + e.getMessage());
+                        resetTable();
+                    }
+                }
+            });
+        }
     }
 
     private void setData() {
@@ -313,6 +392,7 @@ public class PayFg extends BaseFragment {
         mySvipReduceMoney.setText(orderDetail.getMyReduceMoney() + "");
         storeReduceMoney.setText("-" + orderDetail.getActivityMoney());
         totalMoney.setText("￥" + orderDetail.getActualMoney());
+        fullreduceMoney.setText("-" + orderDetail.getFullReduceMoney());
         if (orderDetail.getOfflineCouponEvent() != null) {
             tvOfflineContent.setText(orderDetail.getOfflineCouponEvent().getContent());
             tvOfflineMoeny.setText("-" + orderDetail.getOfflineCouponEvent().getMoney());
@@ -321,6 +401,22 @@ public class PayFg extends BaseFragment {
             tvOnlineContent.setText(orderDetail.getOnlineCouponEvent().getContent());
             tvOnlineMoeny.setText("-" + orderDetail.getOnlineCouponEvent().getMoney());
         }
+        if (orderDetail.getDeleteoddMoney() > 0) {
+            llDeleteOdd.setVisibility(View.VISIBLE);
+            deleteOddMoney.setText("-" + orderDetail.getDeleteoddMoney());
+        } else {
+            llDeleteOdd.setVisibility(View.GONE);
+        }
+        if (orderDetail.getRate()!=100){
+            llRateReduce.setVisibility(View.VISIBLE);
+            rateReduceContent.setText("整单"+MyUtils.formatDouble((double) orderDetail.getRate()/10)+"折优惠");
+            rateReduceMoney.setText("-"+orderDetail.getRateReduceMoney());
+
+        }else{
+            llRateReduce.setVisibility(View.GONE);
+        }
+        String tableContent = "结账桌号:" + orderDetail.getAvObject().getString("tableNumber") + ProductUtil.calOtherTable(orderDetail.getSelectTableNumbers());
+        tableInfo.setText(tableContent);
         AVObject avObject = orderDetail.getAvObject();
         if (avObject.getAVObject("user") != null) {
             setUserInfo(avObject.getAVObject("user"));
@@ -330,6 +426,8 @@ public class PayFg extends BaseFragment {
             paymentTypes.add(5);
             paymentTypes.add(6);
             paymentTypes.add(21);
+            paymentTypes.add(22);
+
         }
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
 
@@ -357,7 +455,8 @@ public class PayFg extends BaseFragment {
     private void addPayment(Double actualMoney, Double whiteBarBalance, Double storedBalance) {
         if (whiteBarBalance < 0.0) whiteBarBalance = 0.0;
         if (storedBalance < 0) storedBalance = 0.0;
-
+        Logger.d("白条余额:" + whiteBarBalance);
+        Logger.d("消费金余额:" + storedBalance);
         if (storedBalance >= actualMoney) {
             paymentTypes.add(1);
         } else if (storedBalance == 0 && whiteBarBalance >= actualMoney) {
@@ -385,8 +484,8 @@ public class PayFg extends BaseFragment {
         paymentTypes.add(5);
         paymentTypes.add(6);
         paymentTypes.add(21);
+        paymentTypes.add(22);
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
-
     }
 
     public static PayFg newInstance(String str) {
@@ -403,6 +502,20 @@ public class PayFg extends BaseFragment {
         mActivity = (Activity) context;
         tableId = getArguments().getString(tableId);  //获取参数
         orderDetail = (OrderDetail) getArguments().getSerializable("table");
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // TODO: inflate a fragment view
+        View rootView = super.onCreateView(inflater, container, savedInstanceState);
+        unbinder1 = ButterKnife.bind(this, rootView);
+        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder1.unbind();
     }
 
     public class PaymentAdapter extends BaseAdapter {

@@ -29,14 +29,17 @@ import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
+import cn.kuwo.player.api.TableApi;
 import cn.kuwo.player.event.SuccessEvent;
 import cn.kuwo.player.util.ObjectUtil;
+import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
 
@@ -60,7 +63,6 @@ public class RefundFragment extends DialogFragment {
         this.tableAVObject = tableAVObject;
         this.commodity = ObjectUtil.format(orders.get(i));
         this.position = i;
-        com.orhanobut.logger.Logger.d(this.commodity);
     }
 
     @Nullable
@@ -91,41 +93,25 @@ public class RefundFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 showDialog();
-                HashMap<String, Object> hashMap = new HashMap<>();
-                hashMap.put("id", ObjectUtil.getString(commodity, "id"));
-                hashMap.put("number", refundNumber.getText().toString().substring(0, refundNumber.getText().toString().length() - 1));
-                hashMap.put("comment", ((TextView) view.findViewById(rgContent.getCheckedRadioButtonId())).getText().toString());
-                hashMap.put("name", ObjectUtil.getString(commodity, "name"));
-                hashMap.put("comboList", ObjectUtil.getList(commodity, "comboList"));
-                hashMap.put("presenter", ObjectUtil.getString(commodity, "presenter"));
-                hashMap.put("operator", new SharedHelper(getContext()).read("cashierName"));
-                List refundOrders = tableAVObject.getList("refundOrder");
-                refundOrders.add(hashMap);
-                Double copies = Double.valueOf(refundNumber.getText().toString().substring(0, refundNumber.getText().toString().length() - 1));
-                List orders = tableAVObject.getList("order");
-                if (copies - ObjectUtil.getDouble(commodity, "number")==0.0) {
-                    orders.remove(position);
-                } else {
-                    commodity.put("number", ObjectUtil.getDouble(commodity, "number") - copies >= 0 ? ObjectUtil.getDouble(commodity, "number") - copies : 0);
-                    tableAVObject.getList("order").set(position, commodity);
-                }
-                com.orhanobut.logger.Logger.d(orders);
-                tableAVObject.put("order", orders);
-                tableAVObject.put("refundOrder", refundOrders);
-                tableAVObject.saveInBackground(new SaveCallback() {
-                    @Override
-                    public void done(AVException e) {
-                        hideDialog();
-                        if (e == null) {
-                            ToastUtil.showShort(MyApplication.getContextObject(), "退菜成功");
-                            getDialog().dismiss();
-                            EventBus.getDefault().post(new SuccessEvent(0));
-                        } else {
-                            ToastUtil.showShort(MyApplication.getContextObject(), "网络错误" + e.getMessage());
-                        }
-                    }
-                });
-
+                TableApi.refundOrder(
+                        tableAVObject,
+                        commodity,
+                        refundNumber.getText().toString().substring(0, refundNumber.getText().toString().length() - 1),
+                        ((TextView) view.findViewById(rgContent.getCheckedRadioButtonId())).getText().toString(),
+                        position)
+                        .saveInBackground(new SaveCallback() {
+                            @Override
+                            public void done(AVException e) {
+                                hideDialog();
+                                if (e == null) {
+                                    ToastUtil.showShort(MyApplication.getContextObject(), "退菜成功");
+                                    getDialog().dismiss();
+                                    EventBus.getDefault().post(new SuccessEvent(0));
+                                } else {
+                                    ToastUtil.showShort(MyApplication.getContextObject(), "网络错误" + e.getMessage());
+                                }
+                            }
+                        });
             }
         });
     }

@@ -2,8 +2,9 @@ package cn.kuwo.player;
 
 import android.app.Dialog;
 import android.content.Intent;
-import android.content.res.Configuration;
+import android.content.IntentFilter;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
@@ -12,7 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -42,10 +42,16 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import cn.kuwo.player.activity.RetailActivity;
+import cn.kuwo.player.api.CommodityApi;
+import cn.kuwo.player.api.RuleApi;
 import cn.kuwo.player.base.BaseActivity;
+import cn.kuwo.player.bean.NetBean;
 import cn.kuwo.player.bean.ProductBean;
+import cn.kuwo.player.bean.RuleBean;
 import cn.kuwo.player.custom.CommomDialog;
 import cn.kuwo.player.custom.ScanUserFragment;
+import cn.kuwo.player.custom.ShowNoNetFragment;
+import cn.kuwo.player.event.ClearEvent;
 import cn.kuwo.player.event.PrintEvent;
 import cn.kuwo.player.event.SuccessEvent;
 import cn.kuwo.player.fragment.CommodityFg;
@@ -53,19 +59,23 @@ import cn.kuwo.player.fragment.NetConnectFg;
 import cn.kuwo.player.fragment.OrderFg;
 import cn.kuwo.player.fragment.OrderListFg;
 import cn.kuwo.player.fragment.SettingFg;
+import cn.kuwo.player.fragment.StoredFg;
 import cn.kuwo.player.fragment.SvipFg;
 import cn.kuwo.player.fragment.TableFg;
 import cn.kuwo.player.print.Bill;
-import cn.kuwo.player.util.AppUtils;
+import cn.kuwo.player.receiver.NetWorkStateReceiver;
 import cn.kuwo.player.util.CameraProvider;
-import cn.kuwo.player.util.DimenTool;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.RealmHelper;
+import cn.kuwo.player.util.RealmUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
+import io.realm.RealmList;
 
 public class MainActivity extends BaseActivity {
+    @BindView(R.id.menu_stored)
+    TextView menuStored;
     private int REQUEST_CODE_SCAN = 111;
     @BindView(R.id.menu_retail)
     TextView menuRetail;
@@ -93,6 +103,8 @@ public class MainActivity extends BaseActivity {
     TextView waiterName;
     private AVQuery<AVObject> table;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
+    NetWorkStateReceiver netWorkStateReceiver;
+    ShowNoNetFragment showNoNetFragment = null;
 
     @Override
     protected int getContentViewId() {
@@ -103,38 +115,8 @@ public class MainActivity extends BaseActivity {
     @Override
     public void initData() {
         LoginSystemUser();
-        if (CameraProvider.hasCamera()){
-            menuRetail.setVisibility(View.GONE);
-        }else{
-            menuRetail.setVisibility(View.VISIBLE);
-        }
-        final RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
-        if (mRealmHleper.queryAllProduct().size() == 0) {
-            loadCommodity();
-        } else {
-            AVQuery<AVObject> offlineCommodity = new AVQuery<>("OfflineCommodity");
-            offlineCommodity.whereEqualTo("active", 1);
-            offlineCommodity.whereEqualTo("store", 1);
-            offlineCommodity.countInBackground(new CountCallback() {
-                @Override
-                public void done(int i, AVException e) {
-                    if (e == null) {
-                        if (i != mRealmHleper.queryAllProduct().size()) {
-                            loadCommodity();
-                        } else {
-                            fetchTable();
-                            subscribeQuery();
-                            initializeFragment();
-                        }
-                    } else {
-                        fetchTable();
-                        subscribeQuery();
-                        initializeFragment();
-                    }
-                }
-            });
-
-        }
+        checkIsCashierDesk();
+        checkLocalStorageSame();
         setListener();
 
     }
@@ -157,10 +139,48 @@ public class MainActivity extends BaseActivity {
         if (sharedHelper.readBoolean("cashierLogin")) {
             waiterName.setText(sharedHelper.read("cashierName"));
         } else {
+            sharedHelper.saveBoolean("cashierLogin", false);
             ScanUserFragment scanUserFragment = new ScanUserFragment(0);
             scanUserFragment.show(getSupportFragmentManager(), "scanuser");
         }
     }
+
+    private void checkIsCashierDesk() {
+        if (CameraProvider.hasCamera()) {
+            menuRetail.setVisibility(View.GONE);
+        } else {
+            menuRetail.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void checkLocalStorageSame() {
+        final RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
+        if (mRealmHleper.queryAllProduct().size() == 0) {
+            loadCommodity();
+        } else {
+            AVQuery<AVObject> offlineCommodity = new AVQuery<>("OfflineCommodity");
+            offlineCommodity.whereEqualTo("active", 1);
+            offlineCommodity.whereEqualTo("store", 1);
+            offlineCommodity.countInBackground(new CountCallback() {
+                @Override
+                public void done(int i, AVException e) {
+                    if (e == null) {
+                        if (i != mRealmHleper.queryAllProduct().size()) {
+                            loadCommodity();
+                        } else {
+                            fetchTable();
+                            initializeFragment();
+                        }
+                    } else {
+                        fetchTable();
+                        initializeFragment();
+                    }
+                }
+            });
+
+        }
+    }
+
 
     /**
      * 设置监听
@@ -169,6 +189,8 @@ public class MainActivity extends BaseActivity {
         waiterName.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
+                SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
+                sharedHelper.saveBoolean("cashierLogin", false);
                 ScanUserFragment scanUserFragment = new ScanUserFragment(0);
                 scanUserFragment.show(getSupportFragmentManager(), "scanuser");
                 return false;
@@ -177,7 +199,7 @@ public class MainActivity extends BaseActivity {
         menuRetail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this,RetailActivity.class));
+                startActivity(new Intent(MainActivity.this, RetailActivity.class));
             }
         });
     }
@@ -191,7 +213,7 @@ public class MainActivity extends BaseActivity {
         ft.replace(R.id.fragment_content, tableFg, "table").commitAllowingStateLoss();
     }
 
-    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order})
+    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.ll_table:
@@ -212,6 +234,9 @@ public class MainActivity extends BaseActivity {
                 break;
             case R.id.menu_order:
                 switchFragment("order");
+                break;
+            case R.id.menu_stored:
+                switchFragment("stored");
                 break;
         }
     }
@@ -236,7 +261,7 @@ public class MainActivity extends BaseActivity {
             NetConnectFg netConnectFg = NetConnectFg.newInstance("");
             ft.replace(R.id.fragment_content, netConnectFg, "netconnect").commit();
         } else if (tag == "svip") {
-            setSelectState(menuSvip, R.drawable.icon_recharge_nor);
+            setSelectState(menuSvip, R.drawable.icon_svip_sel);
             SvipFg svipFg = SvipFg.newInstance("");
             ft.replace(R.id.fragment_content, svipFg, "svip").commit();
         } else if (tag == "order") {
@@ -247,6 +272,10 @@ public class MainActivity extends BaseActivity {
             setSelectState(menuUpdate, R.drawable.icon_update);
             SettingFg settingFg = SettingFg.newInstance("");
             ft.replace(R.id.fragment_content, settingFg, "setting").commit();
+        } else if (tag == "stored") {
+            setSelectState(menuStored, R.drawable.icon_recharge_nor);
+            StoredFg storedFg = StoredFg.newInstance("");
+            ft.replace(R.id.fragment_content, storedFg, "stored").commit();
         }
 
     }
@@ -268,12 +297,15 @@ public class MainActivity extends BaseActivity {
         left = getResources().getDrawable(R.drawable.icon_update_nor);
         left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
         menuUpdate.setCompoundDrawables(left, null, null, null);
-        left = getResources().getDrawable(R.drawable.icon_recharge);
+        left = getResources().getDrawable(R.drawable.icon_svip_nor);
         left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
         menuSvip.setCompoundDrawables(left, null, null, null);
         left = getResources().getDrawable(R.drawable.icon_order_nor);
         left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
         menuOrder.setCompoundDrawables(left, null, null, null);
+        left = getResources().getDrawable(R.drawable.icon_recharge);
+        left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
+        menuStored.setCompoundDrawables(left, null, null, null);
         menuCommodity.setTextColor(getResources().getColor(R.color.purple));
         menuTable.setTextColor(getResources().getColor(R.color.purple));
         menuPrint.setTextColor(getResources().getColor(R.color.purple));
@@ -281,6 +313,7 @@ public class MainActivity extends BaseActivity {
         remainTable.setTextColor(getResources().getColor(R.color.purple));
         menuSvip.setTextColor(getResources().getColor(R.color.purple));
         menuOrder.setTextColor(getResources().getColor(R.color.purple));
+        menuStored.setTextColor(getResources().getColor(R.color.purple));
     }
 
     private void setSelectState(TextView view, int resourceId) {
@@ -291,7 +324,7 @@ public class MainActivity extends BaseActivity {
         view.setTextColor(getResources().getColor(R.color.white));
     }
 
-    private void fetchTable() {
+    public void fetchTable() {
         table = new AVQuery<>("Table");
         table.orderByAscending("tableNumber");
         table.whereEqualTo("active", 1);
@@ -311,15 +344,15 @@ public class MainActivity extends BaseActivity {
                                 ft.replace(R.id.fragment_content, orderFg, "order").commit();
                             }
                         });
-                    }catch (Exception e1){
+                    } catch (Exception e1) {
                         ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
                     }
-
                 } else {
                     ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
                 }
             }
         });
+        subscribeQuery();
 
     }
 
@@ -350,7 +383,6 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // TODO: add setContentView(...) invocation
         ButterKnife.bind(this);
     }
 
@@ -390,7 +422,6 @@ public class MainActivity extends BaseActivity {
             AVObject avObject = tables.get(i);
             holder.tableNumber.setText(avObject.getString("tableNumber") + "号桌");
             if (avObject.getInt("customer") != 0) {
-
                 holder.tablePrice.setText("￥" + ProductUtil.calculateTotalMoney(avObject));
                 holder.tableSvipPrice.setText("超牛价钱￥" + ProductUtil.calculateMinMoney(avObject));
                 holder.tableCommodity.setText(avObject.getList("order").size() + avObject.getList("preOrder").size() + "道菜品");
@@ -406,11 +437,7 @@ public class MainActivity extends BaseActivity {
         }
 
         private class ViewHolder {
-            TextView tableNumber;
-            TextView tableCommodity;
-            TextView tablePrice;
-            TextView tableSvipPrice;
-            TextView tablePeople;
+            TextView tableNumber,tableCommodity,tablePrice,tableSvipPrice,tablePeople;
             RelativeLayout rlTableDetail;
             LinearLayout llTable;
         }
@@ -418,44 +445,28 @@ public class MainActivity extends BaseActivity {
 
 
     public void loadCommodity() {
-        final RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
-        final AVQuery<AVObject> offlineCommodity = new AVQuery<>("OfflineCommodity");
-        offlineCommodity.addAscendingOrder("type");
-        offlineCommodity.whereEqualTo("store", 1);
-        offlineCommodity.addAscendingOrder("serial");
-        offlineCommodity.limit(500);
-        offlineCommodity.findInBackground(new FindCallback<AVObject>() {
+        fetchRule();
+        CommodityApi.getOfflineCommodity().findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(final List<AVObject> list, AVException e) {
                 if (e == null) {
-                    mRealmHleper.deleteAll(ProductBean.class);
-                    for (int i = 0; i < list.size(); i++) {
-                        AVObject avObject = list.get(i);
-                        ProductBean productBean = new ProductBean();
-                        productBean.setName(avObject.get("name").toString());
-                        productBean.setCode(avObject.get("code").toString());
-                        productBean.setObjectId(avObject.getAVObject("commodity").getObjectId());
-                        productBean.setPrice(avObject.getDouble("price"));
-                        productBean.setWeight(avObject.getDouble("weight"));
-                        productBean.setType(avObject.getInt("type"));
-                        productBean.setSale(avObject.getInt("sale"));
-                        productBean.setCombo(avObject.getInt("combo"));
-                        productBean.setRate(avObject.getDouble("rate"));
-                        productBean.setPerformance(avObject.getInt("performance"));
-                        productBean.setGivecode(TextUtils.isEmpty(avObject.getString("givecode")) ? "" : avObject.getString("givecode"));
-                        productBean.setStore(avObject.getInt("store"));
-                        productBean.setMeatWeight(avObject.getDouble("meatWeight"));
-                        productBean.setSerial(avObject.getString("serial"));
-                        productBean.setUrl(avObject.getAVFile("avatar").getUrl());
-                        productBean.setScale(avObject.getDouble("scale"));
-                        productBean.setRemainMoney(avObject.getDouble("remainMoney"));
-                        productBean.setActive(avObject.getInt("active"));
-                        productBean.setComboMenu(avObject.getString("comboMenu") == null ? "" : MyUtils.replaceBlank(avObject.getString("comboMenu").trim().replace(" ","")));
-                        mRealmHleper.addProduct(productBean);
-                    }
+                    RealmUtil.setProductBeanRealm(list);
                     fetchTable();
                     initializeFragment();
                 }
+            }
+        });
+    }
+
+    private void fetchRule() {
+        RuleApi.getRule().findInBackground(new FindCallback<AVObject>() {
+            @Override
+            public void done(List<AVObject> list, AVException e) {
+                if (e == null) {
+                    RealmUtil.setRuleBeanRealm(list);
+
+                }
+
             }
         });
     }
@@ -464,12 +475,19 @@ public class MainActivity extends BaseActivity {
     public void onResume() {
         super.onResume();
         EventBus.getDefault().register(this);
+        if (netWorkStateReceiver == null) {
+            netWorkStateReceiver = new NetWorkStateReceiver();
+        }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(netWorkStateReceiver, filter);
     }
 
     @Override
     public void onPause() {
         super.onPause();
         EventBus.getDefault().unregister(this);
+        unregisterReceiver(netWorkStateReceiver);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -489,6 +507,7 @@ public class MainActivity extends BaseActivity {
         }
 
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(final PrintEvent event) {
         if (event.getCode() <= -1) {
@@ -496,7 +515,7 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onClick(Dialog dialog, boolean confirm) {
                     if (confirm) {
-                        Bill.printSettleBill(MyApplication.getContextObject(),event.getOrderDetail(), event.getJsonObject(), event.getEscrow());
+                        Bill.printSettleBill(MyApplication.getContextObject(), event.getOrderDetail(), event.getJsonObject(), event.getEscrow(), event.getTableNumber());
                         dialog.dismiss();
                     }
 
@@ -505,5 +524,26 @@ public class MainActivity extends BaseActivity {
                     .setTitle("提示").setNegativeButton("放弃打印小票").setPositiveButton("重新尝试打印").show();
         }
 
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(NetBean netBean) {
+        if (netBean.getCode() == -1) {
+            showNoNetFragment = new ShowNoNetFragment();
+            showNoNetFragment.show(getSupportFragmentManager(), "shownoNet");
+        } else if (netBean.getCode() == 0) {
+            if (showNoNetFragment != null) {
+                showNoNetFragment.getDialog().dismiss();
+            }
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(ClearEvent clearEvent) {
+        if (clearEvent.getCode() == 0) {
+            showDialog();
+        } else {
+            hideDialog();
+        }
     }
 }

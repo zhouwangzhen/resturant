@@ -101,11 +101,6 @@ public class SettingFg extends BaseFragment {
             public void done(List<AVObject> list, AVException e) {
                 hideDialog();
                 if (e == null) {
-                    Logger.d(MyUtils.getVersionCode(MyApplication.getContextObject()) );
-
-                    Logger.d(list.get(0).getAVFile("upgrade") != null);
-                    Logger.d(MyUtils.getVersionCode(MyApplication.getContextObject()) );
-                    Logger.d(list.get(0).getInt("version"));
                     if (list.size() > 0 && MyUtils.getVersionCode(MyApplication.getContextObject()) < list.get(0).getInt("version") && list.get(0).getAVFile("upgrade") != null) {
                         String upgradeUrl = list.get(0).getAVFile("upgrade").getUrl();
                         ShowDialog(upgradeUrl);

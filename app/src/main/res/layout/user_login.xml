@@ -76,7 +76,9 @@
     <Button
         android:id="@+id/sign_user"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_gravity="center_vertical"
+        android:background="@color/darkred"
+        android:textColor="@color/white"
         android:text="用户登录" />
 </LinearLayout>

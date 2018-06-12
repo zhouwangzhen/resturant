@@ -69,6 +69,20 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
     EditText ip3Drink;
     @BindView(R.id.ip_4_drink)
     EditText ip4Drink;
+    @BindView(R.id.group_cool)
+    TextView groupCool;
+    @BindView(R.id.test_printer_drink)
+    RelativeLayout testPrinterDrink;
+    @BindView(R.id.test_printer_cool)
+    RelativeLayout testPrinterCool;
+    @BindView(R.id.ip_1_cool)
+    EditText ip1Cool;
+    @BindView(R.id.ip_2_cool)
+    EditText ip2Cool;
+    @BindView(R.id.ip_3_cool)
+    EditText ip3Cool;
+    @BindView(R.id.ip_4_cool)
+    EditText ip4Cool;
 
     private SharedHelper sharedHelper;
     @SuppressLint("HandlerLeak")
@@ -108,6 +122,10 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
         ip2Drink.addTextChangedListener(this);
         ip3Drink.addTextChangedListener(this);
         ip4Drink.addTextChangedListener(this);
+        ip1Cool.addTextChangedListener(this);
+        ip2Cool.addTextChangedListener(this);
+        ip3Cool.addTextChangedListener(this);
+        ip4Cool.addTextChangedListener(this);
         sharedHelper = new SharedHelper(MyApplication.getContextObject());
         String ip1String = sharedHelper.read("ip1");
         String ip2String = sharedHelper.read("ip2");
@@ -124,6 +142,12 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
         String ip3StringDrink = sharedHelper.read("ip3_drink");
         String ip4StringDrink = sharedHelper.read("ip4_drink");
 
+        String ip1StringCool = sharedHelper.read("ip1_cool");
+        String ip2StringCool = sharedHelper.read("ip2_cool");
+        String ip3StringCool = sharedHelper.read("ip3_cool");
+        String ip4StringCool = sharedHelper.read("ip4_cool");
+
+
 
         ip1.setText(ip1String);
         ip2.setText(ip2String);
@@ -137,10 +161,14 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
         ip2Drink.setText(ip2StringDrink);
         ip3Drink.setText(ip3StringDrink);
         ip4Drink.setText(ip4StringDrink);
+        ip1Cool.setText(ip1StringCool);
+        ip2Cool.setText(ip2StringCool);
+        ip3Cool.setText(ip3StringCool);
+        ip4Cool.setText(ip4StringCool);
 
     }
 
-    @OnClick({R.id.test_printer, R.id.test_printer_kitchen, R.id.opem_cash_box, R.id.search_print_ip, R.id.test_printer_drink})
+    @OnClick({R.id.test_printer, R.id.test_printer_kitchen, R.id.opem_cash_box, R.id.search_print_ip, R.id.test_printer_drink, R.id.test_printer_cool})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.test_printer:
@@ -158,7 +186,33 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
             case R.id.test_printer_drink:
                 testDrinkPrinter();
                 break;
+            case R.id.test_printer_cool:
+                tesCoolPrinter();
+                break;
         }
+    }
+
+    private void tesCoolPrinter() {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
+                    String url = SharedHelper.read("ip1_cool") + "." + SharedHelper.read("ip2_cool") + "." + SharedHelper.read("ip3_cool") + "." + SharedHelper.read("ip4_cool");
+                    Pos pos = null;
+                    pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+                    pos.initPos();
+                    pos.printText("我是冷菜间打印机测试" + url);
+                    pos.printLine(2);
+                    pos.feedAndCut();
+                    pos.closeIOAndSocket();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    mHandler.sendEmptyMessage(1);
+                }
+            }
+        }.start();
     }
 
     private void testDrinkPrinter() {
@@ -245,9 +299,8 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
             new Thread() {
                 @Override
                 public void run() {
-
                     try {
-                        String url = "192.168.1."+ finalI;
+                        String url = "192.168.1." + finalI;
                         Pos pos = null;
                         pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
                         pos.initPos();
@@ -263,9 +316,9 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
                 }
 
             }.start();
-                                if (i == 249) {
-                        hideDialog();
-                    }
+            if (i == 249) {
+                hideDialog();
+            }
         }
 
     }
@@ -281,6 +334,7 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
         int size1, size2, size3, size4;
         int size1_kitchen, size2_kitchen, size3_kitchen, size4_kitchen;
         int size1_drink, size2_drink, size3_drink, size4_drink;
+        int size1_cool, size2_cool, size3_cool, size4_cool;
         size1 = ip1.getText().toString().trim().length();
         size2 = ip2.getText().toString().trim().length();
         size3 = ip3.getText().toString().trim().length();
@@ -293,6 +347,11 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
         size2_drink = ip2Drink.getText().toString().trim().length();
         size3_drink = ip3Drink.getText().toString().trim().length();
         size4_drink = ip4Drink.getText().toString().trim().length();
+
+        size1_cool = ip1Cool.getText().toString().trim().length();
+        size2_cool = ip2Cool.getText().toString().trim().length();
+        size3_cool = ip3Cool.getText().toString().trim().length();
+        size4_cool = ip4Cool.getText().toString().trim().length();
         if (size1 == 3 && size2 == 3 && size3 == 1 && (size4 == 2 || size4 == 3 || size4 == 1)) {
             sharedHelper.save("ip1", ip1.getText().toString().trim());
             sharedHelper.save("ip2", ip2.getText().toString().trim());
@@ -311,6 +370,12 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
             sharedHelper.save("ip2_drink", ip2Drink.getText().toString().trim());
             sharedHelper.save("ip3_drink", ip3Drink.getText().toString().trim());
             sharedHelper.save("ip4_drink", ip4Drink.getText().toString().trim());
+        }
+        if (size1_cool == 3 && size2_cool == 3 && size3_cool == 1 && (size4_cool == 2 || size4_cool == 3 || size4_cool == 1)) {
+            sharedHelper.save("ip1_cool", ip1Cool.getText().toString().trim());
+            sharedHelper.save("ip2_cool", ip2Cool.getText().toString().trim());
+            sharedHelper.save("ip3_cool", ip3Cool.getText().toString().trim());
+            sharedHelper.save("ip4_cool", ip4Cool.getText().toString().trim());
         }
     }
 

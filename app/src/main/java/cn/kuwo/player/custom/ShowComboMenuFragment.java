@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVObject;
@@ -49,24 +50,23 @@ import cn.kuwo.player.util.ProductUtil;
 public class ShowComboMenuFragment extends DialogFragment implements View.OnClickListener {
     private List<List<String>> comboMenu;
     private QMUITipDialog tipDialog;
-    private LinearLayout llRoot;
+    private LinearLayout llRoot, llComment;
     private View view;
-    private Context context;
-    private TextView comboDetail;
-    private Boolean isEdit = false;
-    private Boolean isComobo = true;
-    private TextView title, price, close, addbt, subbt, tvNumber, giveName;
-    private LinearLayout llRootPage, llHasCombo, llChooseCombo, llChooseSerial;
+    private TextView title, price, close, addbt, subbt, tvNumber, giveName, comboDetail;
+    private LinearLayout llHasCombo, llChooseCombo, llChooseSerial;
+    private ScrollView llRootPage;
     private EditText editRemark;
     private FlowRadioGroup radioSerial;
-    private Button remark3, remark5, remark7, remarkNoCaraway,remarkNormal,remarkAddIce,remarkDeice;
     private List<Integer> chooseTypes = new ArrayList<>();
     private Button btnEnsure;
     private ProductBean productBean;
     private Object order;
+    private Context context;
     private Double commodityNumber = 1.0;
     private int cookSerial = -1;
     private int orderIndex = -1;
+    private Boolean isEdit = false;
+    private Boolean isComobo = true;
 
     @SuppressLint("ValidFragment")
     public ShowComboMenuFragment(Context context, ProductBean productBean, Boolean isEdit) {
@@ -110,13 +110,6 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
 
     private void setListener() {
 
-        remarkNoCaraway.setOnClickListener(this);
-        remark3.setOnClickListener(this);
-        remark5.setOnClickListener(this);
-        remark7.setOnClickListener(this);
-        remarkNormal.setOnClickListener(this);
-        remarkDeice.setOnClickListener(this);
-        remarkAddIce.setOnClickListener(this);
         btnEnsure.setOnClickListener(this);
         close.setOnClickListener(this);
         addbt.setOnClickListener(this);
@@ -141,7 +134,6 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                     radioButton.setLayoutParams(layoutParams);
                     radioButton.setText(comboMenu.get(i).get(j));
                     radioButton.setTextSize(12);
-//                    radioButton.setButtonDrawable(android.R.color.transparent);//隐藏单选圆形按钮
                     radioButton.setGravity(Gravity.CENTER);
                     radioButton.setPadding(20, 20, 20, 20);
                     radioGroup.addView(radioButton);
@@ -167,7 +159,7 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         } else {
             comboDetail.setVisibility(View.GONE);
         }
-        llRootPage.scrollBy(0, 0);
+        llRootPage.smoothScrollTo(0, 0);
     }
 
     private void initData() {
@@ -175,7 +167,24 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
                 .setTipWord("加载中")
                 .create();
-        title.setText(productBean.getName());
+        title.setText(productBean.getSerial() + "  " + productBean.getName());
+        for (int i = 0; i < productBean.getComments().size(); i++) {
+            Button button = new Button(context);
+            button.setText(productBean.getComments().get(i).toString());
+            final int finalI = i;
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (editRemark.getText().toString().trim().length() == 0) {
+                        editRemark.setText(productBean.getComments().get(finalI).toString());
+                    } else {
+                        editRemark.setText(editRemark.getText().toString() + "+" + productBean.getComments().get(finalI).toString());
+                    }
+
+                }
+            });
+            llComment.addView(button);
+        }
 
     }
 
@@ -186,19 +195,13 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         giveName = view.findViewById(R.id.give_name);
         radioSerial = view.findViewById(R.id.radio_serial);
         llRoot = view.findViewById(R.id.ll_root);
+        llComment = view.findViewById(R.id.ll_comment);
         tvNumber = view.findViewById(R.id.tv_number);
         comboDetail = view.findViewById(R.id.combo_detail);
         llRootPage = view.findViewById(R.id.ll_root_page);
         llHasCombo = view.findViewById(R.id.ll_has_combo);
         llChooseSerial = view.findViewById(R.id.ll_choose_serial);
         llChooseCombo = view.findViewById(R.id.ll_choose_combo);
-        remark3 = view.findViewById(R.id.remark_3);
-        remark5 = view.findViewById(R.id.remark_5);
-        remark7 = view.findViewById(R.id.remark_7);
-        remarkAddIce = view.findViewById(R.id.remark_add_ice);
-        remarkDeice = view.findViewById(R.id.remark_deice);
-        remarkNormal = view.findViewById(R.id.remark_normal);
-        remarkNoCaraway = view.findViewById(R.id.remark_no_caraway);
         editRemark = view.findViewById(R.id.edit_remark);
         subbt = view.findViewById(R.id.subbt);
         addbt = view.findViewById(R.id.addbt);
@@ -221,7 +224,7 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
             editRemark.setText(ObjectUtil.getString(format, "comment"));
             tvNumber.setText(commodityNumber + "");
             List<String> comboList = ObjectUtil.getList(format, "comboList");
-            if (format.containsKey("comboList") && comboList != null && comboList.size() > 0) {
+            if (comboMenu.size()>0&&format.containsKey("comboList") && comboList != null && comboList.size() > 0) {
                 isComobo = true;
                 llHasCombo.setVisibility(View.VISIBLE);
                 llChooseCombo.setVisibility(View.VISIBLE);
@@ -245,9 +248,15 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         } else {
             price.setText("￥" + productBean.getPrice());
         }
-        if (productBean.getGivecode() != null && productBean.getGivecode().length() > 0) {
+        if (productBean.getGivecode().length() > 0 && MyUtils.getProductById(productBean.getGivecode()) != null) {
             try {
-                giveName.setText(MyUtils.getProductById(productBean.getGivecode()).getName());
+                String giveContent = "";
+                if (productBean.getGiveRule() == 1) {
+                    giveContent = "(会员专享)";
+                } else if (productBean.getGiveRule() == 2) {
+                    giveContent = "(超牛会员专享)";
+                }
+                giveName.setText(MyUtils.getProductById(productBean.getGivecode()).getName() + giveContent);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -319,55 +328,6 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.remark_3:
-                if (editRemark.getText().length() > 0) {
-                    editRemark.setText(editRemark.getText().toString() + "+" + remark3.getText().toString());
-                } else {
-                    editRemark.setText(remark3.getText().toString());
-                }
-                break;
-            case R.id.remark_5:
-                if (editRemark.getText().length() > 0) {
-                    editRemark.setText(editRemark.getText().toString() + "+" + remark5.getText().toString());
-                } else {
-                    editRemark.setText(remark5.getText().toString());
-                }
-                break;
-            case R.id.remark_7:
-                if (editRemark.getText().length() > 0) {
-                    editRemark.setText(editRemark.getText().toString() + "+" + remark7.getText().toString());
-                } else {
-                    editRemark.setText(remark7.getText().toString());
-                }
-                break;
-            case R.id.remark_no_caraway:
-                if (editRemark.getText().length() > 0) {
-                    editRemark.setText(editRemark.getText().toString() + "+" + remarkNoCaraway.getText().toString());
-                } else {
-                    editRemark.setText(remarkNoCaraway.getText().toString());
-                }
-                break;
-            case R.id.remark_add_ice:
-                if (editRemark.getText().length() > 0) {
-                    editRemark.setText(editRemark.getText().toString() + "+" + remarkAddIce.getText().toString());
-                } else {
-                    editRemark.setText(remarkAddIce.getText().toString());
-                }
-                break;
-            case R.id.remark_deice:
-                if (editRemark.getText().length() > 0) {
-                    editRemark.setText(editRemark.getText().toString() + "+" + remarkDeice.getText().toString());
-                } else {
-                    editRemark.setText(remarkDeice.getText().toString());
-                }
-                break;
-            case R.id.remark_normal:
-                if (editRemark.getText().length() > 0) {
-                    editRemark.setText(editRemark.getText().toString() + "+" + remarkNormal.getText().toString());
-                } else {
-                    editRemark.setText(remarkNormal.getText().toString());
-                }
-                break;
             case R.id.btn_ensure:
                 List<String> chooseIds = new ArrayList<>();
                 if (comboMenu.size() > 0 && comboMenu != null) {
@@ -389,13 +349,13 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                 getDialog().dismiss();
                 break;
             case R.id.subbt:
-                if (isEdit){
+                if (isEdit) {
                     if (Double.parseDouble(tvNumber.getText().toString().trim()) >= 1) {
                         tvNumber.setText(Double.parseDouble(tvNumber.getText().toString().trim()) - 1.0 + "");
                         commodityNumber = Double.parseDouble(tvNumber.getText().toString().trim());
                         price.setText("￥" + MyUtils.formatDouble(commodityNumber * productBean.getPrice()));
                     }
-                }else{
+                } else {
                     if (Double.parseDouble(tvNumber.getText().toString().trim()) >= 2) {
                         tvNumber.setText(Double.parseDouble(tvNumber.getText().toString().trim()) - 1.0 + "");
                         commodityNumber = Double.parseDouble(tvNumber.getText().toString().trim());

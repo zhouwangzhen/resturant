@@ -19,8 +19,13 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/order_state_img"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/order_res"/>
             <TextView
                 android:id="@+id/order_date"
                 android:layout_width="0dp"
@@ -92,6 +97,11 @@
                     android:background="@drawable/textview_border"
                     android:paddingLeft="30dp" />
             </LinearLayout>
+            <Button
+                android:id="@+id/btn_reprint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="补打小票"/>
         </LinearLayout>
     </LinearLayout>
 </android.support.v7.widget.CardView>

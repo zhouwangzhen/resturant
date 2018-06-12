@@ -29,6 +29,11 @@ public class OrderDetail implements Serializable {
     private List<Object> finalOrders;
     private List<String> selectTableIds;
     private List<String> selectTableNumbers;
+    private Double fullReduceMoney;
+    private boolean isHangUp;
+    private Double deleteoddMoney;
+    private int rate;
+    private Double rateReduceMoney;
 
     public OrderDetail(AVObject avObject,
                        Double myMeatWeight,
@@ -48,7 +53,12 @@ public class OrderDetail implements Serializable {
                        List<Object> svipMaxExchangeList,
                        List<Object> finalOrders,
                        List<String> selectTableIds,
-                       List<String> selectTableNumbers) {//餐饮版
+                       List<String> selectTableNumbers,
+                       Double fullReduceMoney,
+                       boolean isHangUp,
+                       Double deleteoddMoney,
+                       int rate,
+                       Double rateReduceMoney) {//餐饮版
         this.avObject = avObject;
         this.myMeatWeight = myMeatWeight;
         this.totalMoney = totalMoney;
@@ -68,6 +78,11 @@ public class OrderDetail implements Serializable {
         this.finalOrders = finalOrders;
         this.selectTableIds = selectTableIds;
         this.selectTableNumbers = selectTableNumbers;
+        this.fullReduceMoney = fullReduceMoney;
+        this.isHangUp=isHangUp;
+        this.deleteoddMoney=deleteoddMoney;
+        this.rate=rate;
+        this.rateReduceMoney=rateReduceMoney;
 
     }
 
@@ -88,7 +103,11 @@ public class OrderDetail implements Serializable {
                        String useMeatId,
                        List<Object> svipMaxExchangeList,
                        UserBean userBean,
-                       List<Object>orders) {//零售版
+                       List<Object>orders,
+                       Double fullReduceMoney,
+                       Double deleteoddMoney,
+                       int rate,
+                       Double rateReduceMoney) {//零售版
         this.avObject = avObject;
         this.myMeatWeight = myMeatWeight;
         this.totalMoney = totalMoney;
@@ -107,6 +126,10 @@ public class OrderDetail implements Serializable {
         this.svipMaxExchangeList = svipMaxExchangeList;
         this.userBean = userBean;
         this.orders=orders;
+        this.fullReduceMoney = fullReduceMoney;
+        this.deleteoddMoney=deleteoddMoney;
+        this.rate=rate;
+        this.rateReduceMoney=rateReduceMoney;
     }
 
     public AVObject getAvObject() {
@@ -275,6 +298,46 @@ public class OrderDetail implements Serializable {
 
     public void setSelectTableNumbers(List<String> selectTableNumbers) {
         this.selectTableNumbers = selectTableNumbers;
+    }
+
+    public Double getFullReduceMoney() {
+        return fullReduceMoney;
+    }
+
+    public void setFullReduceMoney(Double fullReduceMoney) {
+        this.fullReduceMoney = fullReduceMoney;
+    }
+
+    public boolean isHangUp() {
+        return isHangUp;
+    }
+
+    public void setHangUp(boolean hangUp) {
+        isHangUp = hangUp;
+    }
+
+    public Double getDeleteoddMoney() {
+        return deleteoddMoney;
+    }
+
+    public void setDeleteoddMoney(Double deleteoddMoney) {
+        this.deleteoddMoney = deleteoddMoney;
+    }
+
+    public int getRate() {
+        return rate;
+    }
+
+    public void setRate(int rate) {
+        this.rate = rate;
+    }
+
+    public Double getRateReduceMoney() {
+        return rateReduceMoney;
+    }
+
+    public void setRateReduceMoney(Double rateReduceMoney) {
+        this.rateReduceMoney = rateReduceMoney;
     }
 
     @Override

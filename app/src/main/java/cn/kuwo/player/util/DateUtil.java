@@ -48,6 +48,16 @@ public class DateUtil {
         }
 
     }
+    public static String formatLongDate(Date date) {
+        try {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            return format.format(date);
+        }catch (Exception e){
+            e.printStackTrace();
+            return "";
+        }
+
+    }
     public static Date getZero(Date date) {
         long l = 24 * 60 * 60 * 1000; //每天的毫秒数
         //date.getTime()是现在的毫秒数，它 减去 当天零点到现在的毫秒数（ 现在的毫秒数%一天总的毫秒数，取余。），理论上等于零点的毫秒数，不过这个毫秒数是UTC+0时区的。

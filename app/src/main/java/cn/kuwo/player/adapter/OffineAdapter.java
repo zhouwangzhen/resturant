@@ -69,7 +69,7 @@ public class OffineAdapter extends RecyclerView.Adapter<OffineAdapter.MyViewHold
         holder.gvTable.setAdapter(commodityAdapter);
         ViewGroup.LayoutParams layoutParams = holder.gvTable.getLayoutParams();
         int screenDensity = (int) AppUtils.getScreenDensity(MyApplication.getContextObject());
-        layoutParams.height = 280 * ((productBeans.size() + 1) / 2) * screenDensity / 2;
+        layoutParams.height = 330 * ((productBeans.size() + 1) / 2) * screenDensity / 2;
         holder.gvTable.setLayoutParams(layoutParams);
     }
 
