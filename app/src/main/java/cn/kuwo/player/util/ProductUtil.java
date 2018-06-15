@@ -68,12 +68,12 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            totalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+            totalMoney += ObjectUtil.getDouble(format, "price");
         }
         for (int j = 0; j < preOrders.size(); j++) {
             HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            totalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+            totalMoney += ObjectUtil.getDouble(format, "price");
         }
         return MyUtils.formatDouble(totalMoney);
     }
@@ -83,12 +83,13 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            totalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+            totalMoney += ObjectUtil.getDouble(format, "price");
         }
         for (int j = 0; j < preOrders.size(); j++) {
             HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            totalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+//            totalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+            totalMoney += ObjectUtil.getDouble(format, "price");
         }
         return MyUtils.formatDouble(totalMoney);
     }
@@ -99,20 +100,24 @@ public class ProductUtil {
         List<Object> preOrders = avObject.getList("preOrder");
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() == 0) {
-                svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-            } else {
-                svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+            if (ObjectUtil.getDouble(format, "price") > 0) {
+                ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+                if (productBean.getScale() == 0) {
+                    svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+                } else {
+                    svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+                }
             }
         }
         for (int j = 0; j < preOrders.size(); j++) {
             HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
-            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() == 0) {
-                svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-            } else {
-                svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+            if (ObjectUtil.getDouble(format, "price") > 0) {
+                ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+                if (productBean.getScale() == 0) {
+                    svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+                } else {
+                    svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+                }
             }
         }
         return MyUtils.formatDouble(svipTotalMoney);
@@ -122,20 +127,24 @@ public class ProductUtil {
         double svipTotalMoney = 0.0;
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() == 0) {
-                svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-            } else {
-                svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+            if (ObjectUtil.getDouble(format, "price") > 0) {
+                ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+                if (productBean.getScale() == 0) {
+                    svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+                } else {
+                    svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+                }
             }
         }
         for (int j = 0; j < preOrders.size(); j++) {
             HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
-            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() == 0) {
-                svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-            } else {
-                svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+            if (ObjectUtil.getDouble(format, "price") > 0) {
+                ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+                if (productBean.getScale() == 0) {
+                    svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+                } else {
+                    svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+                }
             }
         }
         return MyUtils.formatDouble(svipTotalMoney);
@@ -155,7 +164,7 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() > 0) {
+            if (productBean.getScale() > 0 && ObjectUtil.getDouble(format, "price") > 0) {
                 if (prices.size() > 0 && prices.size() == orders.size()) {
                     TotalMeatReduceMoney += prices.get(i);
                 } else {
@@ -176,7 +185,7 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() > 0) {
+            if (productBean.getScale() > 0 && ObjectUtil.getDouble(format, "price") > 0) {
                 if (weights.size() > 0 && weights.size() == orders.size()) {
                     TotalMeatReduceWeight += weights.get(i) * productBean.getScale();
                 } else {
@@ -193,19 +202,19 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() > 0) {
+            if (productBean.getScale() > 0 && ObjectUtil.getDouble(format, "price") > 0) {
                 try {
-                    if (productBean.getCode().length()==5){
-                        format.put("meatWeight", MyUtils.formatDouble(ObjectUtil.getDouble(format,"weight") * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
-                        format.put("reduceMoeny",calReduceMoney(productBean,format));
-                    }else{
+                    if (productBean.getCode().length() == 5) {
+                        format.put("meatWeight", MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight") * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
+                        format.put("reduceMoeny", calReduceMoney(productBean, format));
+                    } else {
                         format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
-                        format.put("reduceMoeny",calReduceMoney(productBean,format));
+                        format.put("reduceMoeny", calReduceMoney(productBean, format));
                     }
 
                 } catch (Exception e) {
                     format.put("meatWeight", 0.0);
-                    format.put("reduceMoeny",0.0);
+                    format.put("reduceMoeny", 0.0);
 
                 }
                 meatList.add(format);
@@ -215,13 +224,13 @@ public class ProductUtil {
     }
 
     /**
-     *计算商品的优惠价格
+     * 计算商品的优惠价格
      */
     private static Double calReduceMoney(ProductBean productBean, HashMap<String, Object> format) {
         Double number = ObjectUtil.getDouble(format, "number");
         Double totalMoney = ObjectUtil.getDouble(format, "price");
         double totalRemainMoney = productBean.getRemainMoney() * number;
-        return MyUtils.formatDouble(totalMoney-totalRemainMoney);
+        return MyUtils.formatDouble(totalMoney - totalRemainMoney);
     }
 
     /**
@@ -233,7 +242,7 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() > 0) {
+            if (productBean.getScale() > 0 && ObjectUtil.getDouble(format, "price") > 0) {
                 try {
                     if (weights.size() == orders.size() && weights.size() > 0) {
                         format.put("meatWeight", MyUtils.formatDouble(weights.get(i) * productBean.getScale()));
@@ -266,7 +275,7 @@ public class ProductUtil {
             ProductBean productBean1 = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             if (totalWeight + ObjectUtil.getDouble(format, "meatWeight") <= hasMeatWeight) {
                 totalWeight += ObjectUtil.getDouble(format, "meatWeight");
-                format.put("reduceMoeny",MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")-productBean1.getRemainMoney()*ObjectUtil.getDouble(format,"number")));
+                format.put("reduceMoeny", MyUtils.formatDouble(ObjectUtil.getDouble(format, "price") - productBean1.getRemainMoney() * ObjectUtil.getDouble(format, "number")));
                 exchangeMeatList.add(format);
             } else if (totalWeight + MyUtils.formatDouble(ObjectUtil.getDouble(format, "meatWeight") / ObjectUtil.getDouble(format, "number")) <= hasMeatWeight) {
                 int number = ObjectUtil.getDouble(format, "number").intValue();
@@ -281,9 +290,9 @@ public class ProductUtil {
                 }
                 if (num > 0) {
                     format.put("number", num);
-                    format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight()*productBean.getScale() * num));
-                    format.put("reduceMoeny",MyUtils.formatDouble((productBean1.getPrice()-productBean1.getRemainMoney())*num));
-                    format.put("price",MyUtils.formatDouble((productBean1.getPrice())*num));
+                    format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * productBean.getScale() * num));
+                    format.put("reduceMoeny", MyUtils.formatDouble((productBean1.getPrice() - productBean1.getRemainMoney()) * num));
+                    format.put("price", MyUtils.formatDouble((productBean1.getPrice()) * num));
                     exchangeMeatList.add(format);
                 }
             } else {
@@ -298,7 +307,7 @@ public class ProductUtil {
             ProductBean productBean1 = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             if (totalWeight + ObjectUtil.getDouble(format, "meatWeight") <= hasMeatWeight) {
                 totalWeight += ObjectUtil.getDouble(format, "meatWeight");
-                format.put("reduceMoeny",MyUtils.formatDouble((ObjectUtil.getDouble(format,"price")-productBean1.getRemainMoney()*ObjectUtil.getDouble(format,"number"))));
+                format.put("reduceMoeny", MyUtils.formatDouble((ObjectUtil.getDouble(format, "price") - productBean1.getRemainMoney() * ObjectUtil.getDouble(format, "number"))));
                 exchangeMeatList.add(format);
             } else if (totalWeight + MyUtils.formatDouble(ObjectUtil.getDouble(format, "meatWeight") / ObjectUtil.getDouble(format, "number")) <= hasMeatWeight) {
                 int number = ObjectUtil.getDouble(format, "number").intValue();
@@ -312,9 +321,9 @@ public class ProductUtil {
                 }
                 if (num > 0) {
                     format.put("number", num);
-                    format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight()*productBean.getScale() * num));
-                    format.put("reduceMoeny",MyUtils.formatDouble((productBean1.getPrice()-productBean1.getRemainMoney())*num));
-                    format.put("price",MyUtils.formatDouble((productBean1.getPrice())*num));
+                    format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * productBean.getScale() * num));
+                    format.put("reduceMoeny", MyUtils.formatDouble((productBean1.getPrice() - productBean1.getRemainMoney()) * num));
+                    format.put("price", MyUtils.formatDouble((productBean1.getPrice()) * num));
                     exchangeMeatList.add(format);
                 }
             }
@@ -329,9 +338,9 @@ public class ProductUtil {
             HashMap<String, Object> format = ObjectUtil.format(useExchangeList.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             if (productBean.getScale() > 0) {
-                if(MyUtils.getProductById(ObjectUtil.getString((HashMap<String, Object>) format,"id")).getCode().length()==5){
+                if (MyUtils.getProductById(ObjectUtil.getString((HashMap<String, Object>) format, "id")).getCode().length() == 5) {
                     TotalMeatReduceMoney += (MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number");
-                }else{
+                } else {
                     TotalMeatReduceMoney += (productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number");
                 }
 
@@ -511,7 +520,7 @@ public class ProductUtil {
 
 
         }
-        return "确认使用"+content;
+        return "确认使用" + content;
     }
 
     public static List<String> calTotalIds(List<Object> orders) {
@@ -549,8 +558,7 @@ public class ProductUtil {
     public static List<List<String>> getComboList(String comboMenu) {
         List<List<String>> comboList = new ArrayList<>();
         String[] split = comboMenu.split("\\|");
-        Logger.d(split);
-        if (comboMenu.length()>0) {
+        if (comboMenu.length() > 0) {
             for (int i = 0; i < split.length; i++) {
                 List<String> item = Arrays.asList(split[i].split("\\,"));
                 comboList.add(item);
@@ -657,7 +665,7 @@ public class ProductUtil {
     }
 
     public static Double calCommodityWeight(String barcode) {
-        if (barcode.length() == 13) {
+        if (barcode.length()!= 18) {
             List<ProductBean> productBean = getProductBean(barcode);
             if (productBean.size() > 0) {
                 return productBean.get(0).getWeight();
@@ -669,7 +677,17 @@ public class ProductUtil {
             return new Double(Integer.parseInt(barcode.substring(12, 17))) / 1000;
         }
     }
-
+    /**
+     * 获取价格
+     */
+    public static Double getPrice(String barcode) {
+        List<ProductBean> productBean = getProductBean(barcode);
+        if (productBean.size() > 0) {
+            return productBean.get(0).getPrice();
+        } else {
+            return 0.0;
+        }
+    }
     public static List<ProductBean> getProductBean(String barcode) {
         RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
         List<ProductBean> productBeen = new ArrayList<ProductBean>();
@@ -679,6 +697,8 @@ public class ProductUtil {
             productBeen = mRealmHleper.queryProductByBarcode(barcode.substring(2, 7));
         } else if (barcode.length() == 5) {
             productBeen = mRealmHleper.queryProductByBarcode(barcode);
+        }else {
+            productBeen = mRealmHleper.queryProductByBarcode(barcode);
         }
         return productBeen;
     }
@@ -686,8 +706,20 @@ public class ProductUtil {
     public static Double calCommodityMoney(String barcode) {
         RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
         if (barcode.length() == 18) {
-            return MyUtils.formatDouble(Double.parseDouble(barcode.substring(7, 12).substring(0, 5).replaceAll("^[0]+", "")) / 100);
-        } else if (barcode.length() == 13) {
+            double finalPrice = 0.0;
+            double showprice = Double.parseDouble(barcode.substring(7, 12).substring(0, 5).replaceAll("^[0]+", "")) / 100;
+            double price = getPrice(barcode) * (new Double(Integer.parseInt(barcode.substring(12, 17))) / 1000);
+            if (price - showprice > 1) {
+                if (price / 1000 >= 1) {
+                    finalPrice = 1000 * Integer.parseInt((price + "").substring(0, 1)) + (new Double(Integer.parseInt(barcode.substring(7, 12))) / 100);
+                } else {
+                    finalPrice = showprice;
+                }
+            } else {
+                finalPrice = showprice;
+            }
+            return MyUtils.formatDouble(finalPrice);
+        } else if (barcode.length() == 13||barcode.length()==8) {
             return mRealmHleper.queryProductByBarcode(barcode).get(0).getPrice();
         } else {
             return 0.0;
@@ -764,17 +796,17 @@ public class ProductUtil {
         RealmList<String> fullReduce = ruleBean.getFullReduce();
         if (fullReduce.size() > 0) {
             int index = -1;
-            for (int i = 0; i < fullReduce.size()-1; i++) {
-                if ((Double.parseDouble(fullReduce.get(fullReduce.size()-1).split("-")[0]) < actualTotalMoneny)){
-                    index=fullReduce.size()-1;
+            for (int i = 0; i < fullReduce.size() - 1; i++) {
+                if ((Double.parseDouble(fullReduce.get(fullReduce.size() - 1).split("-")[0]) < actualTotalMoneny)) {
+                    index = fullReduce.size() - 1;
                 }
-                if (Double.parseDouble(fullReduce.get(i).split("-")[0]) < actualTotalMoneny && (Double.parseDouble(fullReduce.get(i+1).split("-")[0]) > actualTotalMoneny)) {
+                if (Double.parseDouble(fullReduce.get(i).split("-")[0]) < actualTotalMoneny && (Double.parseDouble(fullReduce.get(i + 1).split("-")[0]) > actualTotalMoneny)) {
                     index = i;
                 }
             }
             if (index != -1) {
                 return Double.parseDouble(fullReduce.get(index).split("-")[1]);
-            }else{
+            } else {
                 return 0.0;
             }
 
@@ -842,9 +874,9 @@ public class ProductUtil {
      */
     public static Boolean isRechargeSvipOrder(AVObject avObject) {
         List<String> commoditys = avObject.getList("commodity");
-        if (commoditys.size()==1){
+        if (commoditys.size() == 1) {
             String id = commoditys.get(0);
-            if (id.equals(CONST.SVIPSTYLE.DATE_12_MONTH)||id.equals(CONST.SVIPSTYLE.DATE_1_MONTH)){
+            if (id.equals(CONST.SVIPSTYLE.DATE_12_MONTH) || id.equals(CONST.SVIPSTYLE.DATE_1_MONTH)) {
                 return true;
             }
         }
@@ -852,4 +884,34 @@ public class ProductUtil {
     }
 
 
+    public static List<ProductBean> getOtherGoods(int index) {
+        RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
+        List<ProductBean> productBeen = mRealmHleper.queryOtherType(index);
+        return productBeen;
+    }
+
+    public static Double calBlackFiveReduce(boolean useMeat, List<Object> useExchangeList, List<Object> maxExchangeList, List<Object> orderList) {
+        Double forzenMoney = 0.0;
+        Double exchangeMoney = 0.0;
+        if (DateUtil.isBlackFive()) {
+            for (int i = 0; i < orderList.size(); i++) {
+                HashMap<String, Object> map = (HashMap<String, Object>) orderList.get(i);
+                if (MyUtils.getProductById(ObjectUtil.getString(map, "id")).getType() == CONST.ForzeenMeatType) {
+                    forzenMoney += ObjectUtil.getDouble(map, "price");
+                }
+            }
+            if (useMeat) {
+                for (int i = 0; i < useExchangeList.size(); i++) {
+                    HashMap<String, Object> map = (HashMap<String, Object>) useExchangeList.get(i);
+                    if (MyUtils.getProductById(ObjectUtil.getString(map, "id")).getType() == CONST.ForzeenMeatType) {
+                        exchangeMoney += ObjectUtil.getDouble(map, "price");
+                    }
+                }
+                forzenMoney = (forzenMoney - exchangeMoney) * 0.5;
+            } else {
+                forzenMoney *= 0.5;
+            }
+        }
+        return MyUtils.formatDouble(forzenMoney);
+    }
 }

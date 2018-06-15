@@ -22,6 +22,7 @@ import com.orhanobut.logger.Logger;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.Inflater;
@@ -34,7 +35,7 @@ import cn.kuwo.player.print.Bill;
 public class ShowStatisticsDialog extends DialogFragment {
     private HashMap<String, Object> ordersDetail;
     private View view;
-    private LinearLayout llDetail, llCommodity, llOfflineCoupon, llOnlineCoupon;
+    private LinearLayout llDetail, llCommodity, llOfflineCoupon, llOnlineCoupon,llCapital;
     private Button btnSureOrder;
     private Date orderDate;
     private Map<String, Double> weightsList;
@@ -67,20 +68,21 @@ public class ShowStatisticsDialog extends DialogFragment {
 
     @SuppressLint("InflateParams")
     private void initData() {
-        Logger.d(weightsList.isEmpty());
-        Logger.d(weightsList);
-        Logger.d(weightsList.containsKey("自选肉品"));
         setItem("总营业金额", ordersDetail.get("totalMoney").toString());
         setItem("线上收款金额", ordersDetail.get("onlineMoney").toString());
         setItem("线下收款金额", ordersDetail.get("offlineMoney").toString());
         setItem("会员数", ordersDetail.get("member").toString());
         setItem("非会员数", ordersDetail.get("noMember").toString());
-        setItem("餐饮单数", ordersDetail.get("retailNumber").toString());
-        setItem("零售单数", ordersDetail.get("restaurarntNumber").toString());
+        setItem("餐饮单数", ordersDetail.get("restaurarntNumber").toString());
+        setItem("零售单数", ordersDetail.get("retailNumber").toString());
+        setItem("超牛单数", ordersDetail.get("svipNumber").toString());
+        setItem("挂单单数", ordersDetail.get("hangupNumber").toString());
+        setItem("消费金充值单数", ordersDetail.get("storedRechargeNumber").toString());
         setItem("抵扣牛肉重量", ordersDetail.get("reduceWeight").toString());
         List<Map.Entry<String, Double>> numbersList = (List<Map.Entry<String, Double>>) ordersDetail.get("numbers");
         HashMap<String, Integer> offlineCoupon = (HashMap<String, Integer>) ordersDetail.get("offlineCoupon");
         HashMap<String, Integer> onlineCoupon = (HashMap<String, Integer>) ordersDetail.get("onlineCoupon");
+        LinkedHashMap<String, Integer> capitalDetail = (LinkedHashMap<String, Integer>) ordersDetail.get("capitalDetail");
         for (Map.Entry<String, Double> mapping : numbersList) {
             setCommodityItem(llCommodity, mapping.getKey(), mapping.getValue() + "份");
         }
@@ -90,7 +92,9 @@ public class ShowStatisticsDialog extends DialogFragment {
         for (String key : onlineCoupon.keySet()) {
             setCommodityItem(llOnlineCoupon, key, onlineCoupon.get(key) + "张");
         }
-
+        for (String key : capitalDetail.keySet()) {
+            setCommodityItem(llCapital, key, capitalDetail.get(key) + "元");
+        }
 
     }
 
@@ -115,7 +119,12 @@ public class ShowStatisticsDialog extends DialogFragment {
         itemDetail.setText(detail);
         if (!weightsList.isEmpty() && weightsList.containsKey(content)) {
             itemWeight.setVisibility(View.VISIBLE);
-            itemWeight.setText("("+weightsList.get(content)+"kg)");
+            if (weightsList.get(content)>50){
+                itemWeight.setText("("+weightsList.get(content)+"ml)");
+            }else{
+                itemWeight.setText("("+weightsList.get(content)+"kg)");
+            }
+
         } else {
             itemWeight.setVisibility(View.GONE);
         }
@@ -127,6 +136,7 @@ public class ShowStatisticsDialog extends DialogFragment {
         llCommodity = view.findViewById(R.id.ll_commodity);
         llOfflineCoupon = view.findViewById(R.id.ll_offline_coupon);
         llOnlineCoupon = view.findViewById(R.id.ll_online_coupon);
+        llCapital = view.findViewById(R.id.ll_capital);
         btnSureOrder = view.findViewById(R.id.btn_sure_order);
         WindowManager.LayoutParams lp = getDialog().getWindow().getAttributes();
         lp.dimAmount = 0.8f;

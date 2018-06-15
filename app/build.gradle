@@ -69,4 +69,5 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.3.1'
     compile 'com.contrarywind:Android-PickerView:3.2.7'
     compile 'com.tencent.bugly:crashreport:latest.release'
+    compile 'me.yokeyword:fragmentation:0.10.3'
 }

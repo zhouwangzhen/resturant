@@ -18,9 +18,11 @@ import android.widget.TextView;
 
 import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVFile;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.FunctionCallback;
 import com.avos.avoscloud.SaveCallback;
+import com.bumptech.glide.Glide;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
@@ -133,6 +135,7 @@ public class PayFg extends BaseFragment {
     private String tableId = "";
     private String ensureContent = "";
     private String orderId = "";
+    private Context context;
 
     private Double whiteBarBalance;
     private Double storedBalance;
@@ -144,6 +147,7 @@ public class PayFg extends BaseFragment {
 
     @Override
     public void initData() {
+        context=MyApplication.getContextObject();
         setData();
         setPayment();
     }
@@ -162,23 +166,27 @@ public class PayFg extends BaseFragment {
         btnFinishPay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new QMUIDialog.MessageDialogBuilder(getActivity())
-                        .setTitle("收款提示")
-                        .setMessage(ensureContent)
-                        .addAction("取消", new QMUIDialogAction.ActionListener() {
-                            @Override
-                            public void onClick(QMUIDialog dialog, int index) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .addAction("确定", new QMUIDialogAction.ActionListener() {
-                            @Override
-                            public void onClick(QMUIDialog dialog, int index) {
-                                dialog.dismiss();
-                                toFinishOrder();
-                            }
-                        })
-                        .create(mCurrentDialogStyle).show();
+                if (SharedHelper.readBoolean("test") && orderDetail.getAvObject().getAVObject("user") != null && !orderDetail.getAvObject().getAVObject("user").getBoolean("test")) {
+                    ToastUtil.showShort(MyApplication.getContextObject(), "测试账号不能结账");
+                } else {
+                    new QMUIDialog.MessageDialogBuilder(getActivity())
+                            .setTitle("收款提示")
+                            .setMessage(ensureContent)
+                            .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                @Override
+                                public void onClick(QMUIDialog dialog, int index) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .addAction("确定", new QMUIDialogAction.ActionListener() {
+                                @Override
+                                public void onClick(QMUIDialog dialog, int index) {
+                                    dialog.dismiss();
+                                    toFinishOrder();
+                                }
+                            })
+                            .create(mCurrentDialogStyle).show();
+                }
             }
         });
     }
@@ -226,7 +234,7 @@ public class PayFg extends BaseFragment {
                     mallOrder.put("commodityDetail", orderDetail.getFinalOrders());
                     mallOrder.put("maxMeatDeduct", orderDetail.getSvipMaxExchangeList());
                     mallOrder.put("realMeatDeduct", orderDetail.getUseExchangeList());
-                    if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null) {
+                    if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null&&orderDetail.getMyReduceMoney()>0) {
                         mallOrder.put("meatWeights", ProductUtil.listToList(orderDetail.getUseExchangeList()));
                         mallOrder.put("meatDetail", ProductUtil.listToObject(orderDetail.getUseExchangeList()));
                         mallOrder.put("useMeat", AVObject.createWithoutData("Meat", orderDetail.getUseMeatId()));
@@ -272,6 +280,7 @@ public class PayFg extends BaseFragment {
                         mallOrder.put("reduceDetail", jsonReduce);
 
                     } catch (JSONException e1) {
+                        hideDialog();
                         e1.printStackTrace();
                     }
 
@@ -281,10 +290,11 @@ public class PayFg extends BaseFragment {
                             hideDialog();
                             if (e == null) {
                                 showDialog();
-                                ProductUtil.saveOperateLog(4, orderDetail.getFinalOrders(), orderDetail.getAvObject());
+//                                ProductUtil.saveOperateLog(4, orderDetail.getFinalOrders(), orderDetail.getAvObject());
                                 Bill.printSettleBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow, finalTableNumber);
                                 ToastUtil.showShort(MyApplication.getContextObject(), "订单结算完成");
                             } else {
+                                hideDialog();
                                 Logger.d(e.getMessage());
                                 ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
                             }
@@ -365,6 +375,7 @@ public class PayFg extends BaseFragment {
                                 public void done(AVException e) {
                                     if (e == null) {
                                         hideDialog();
+
                                     } else {
                                         hideDialog();
                                         resetTable();
@@ -407,12 +418,12 @@ public class PayFg extends BaseFragment {
         } else {
             llDeleteOdd.setVisibility(View.GONE);
         }
-        if (orderDetail.getRate()!=100){
+        if (orderDetail.getRate() != 100) {
             llRateReduce.setVisibility(View.VISIBLE);
-            rateReduceContent.setText("整单"+MyUtils.formatDouble((double) orderDetail.getRate()/10)+"折优惠");
-            rateReduceMoney.setText("-"+orderDetail.getRateReduceMoney());
+            rateReduceContent.setText("整单" + MyUtils.formatDouble((double) orderDetail.getRate() / 10) + "折优惠");
+            rateReduceMoney.setText("-" + orderDetail.getRateReduceMoney());
 
-        }else{
+        } else {
             llRateReduce.setVisibility(View.GONE);
         }
         String tableContent = "结账桌号:" + orderDetail.getAvObject().getString("tableNumber") + ProductUtil.calOtherTable(orderDetail.getSelectTableNumbers());
@@ -449,14 +460,21 @@ public class PayFg extends BaseFragment {
             svipAvatar.setVisibility(View.GONE);
             userType.setText("普通会员");
         }
+        try {
+            AVFile avatar = (AVFile) user.get("avatar");
+            if (avatar!=null){
+                Glide.with(MyApplication.getContextObject()).load(avatar.getUrl()).into(userAvatar);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         addPayment(orderDetail.getActualMoney(), whiteBarBalance, storedBalance);
     }
 
     private void addPayment(Double actualMoney, Double whiteBarBalance, Double storedBalance) {
         if (whiteBarBalance < 0.0) whiteBarBalance = 0.0;
         if (storedBalance < 0) storedBalance = 0.0;
-        Logger.d("白条余额:" + whiteBarBalance);
-        Logger.d("消费金余额:" + storedBalance);
         if (storedBalance >= actualMoney) {
             paymentTypes.add(1);
         } else if (storedBalance == 0 && whiteBarBalance >= actualMoney) {

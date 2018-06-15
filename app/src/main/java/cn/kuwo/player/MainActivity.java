@@ -7,7 +7,6 @@ import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +27,7 @@ import com.avos.avoscloud.AVUser;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.LogInCallback;
+import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 
@@ -46,8 +46,6 @@ import cn.kuwo.player.api.CommodityApi;
 import cn.kuwo.player.api.RuleApi;
 import cn.kuwo.player.base.BaseActivity;
 import cn.kuwo.player.bean.NetBean;
-import cn.kuwo.player.bean.ProductBean;
-import cn.kuwo.player.bean.RuleBean;
 import cn.kuwo.player.custom.CommomDialog;
 import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.custom.ShowNoNetFragment;
@@ -62,20 +60,21 @@ import cn.kuwo.player.fragment.SettingFg;
 import cn.kuwo.player.fragment.StoredFg;
 import cn.kuwo.player.fragment.SvipFg;
 import cn.kuwo.player.fragment.TableFg;
+import cn.kuwo.player.inventory.InventoryActivity;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.receiver.NetWorkStateReceiver;
-import cn.kuwo.player.util.CameraProvider;
-import cn.kuwo.player.util.MyUtils;
+import cn.kuwo.player.util.AppUtils;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.RealmUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
-import io.realm.RealmList;
 
 public class MainActivity extends BaseActivity {
     @BindView(R.id.menu_stored)
     TextView menuStored;
+    @BindView(R.id.menu_inventory)
+    TextView menuInventory;
     private int REQUEST_CODE_SCAN = 111;
     @BindView(R.id.menu_retail)
     TextView menuRetail;
@@ -115,10 +114,34 @@ public class MainActivity extends BaseActivity {
     @Override
     public void initData() {
         LoginSystemUser();
-        checkIsCashierDesk();
         checkLocalStorageSame();
         setListener();
+        test();
+    }
 
+    private void test() {
+//        AVQuery<AVObject> query = new AVQuery<>("OfflineCommodity");
+//        query.whereEqualTo("store",1);
+//        query.whereEqualTo("type",20);
+//        query.findInBackground(new FindCallback<AVObject>() {
+//            @Override
+//            public void done(List<AVObject> list, AVException e) {
+//                if (e==null){
+//                    for (int i=0;i<list.size();i++){
+//                        AVObject avObject = list.get(i);
+//                        avObject.put("type",3);
+//                        avObject.saveInBackground(new SaveCallback() {
+//                            @Override
+//                            public void done(AVException e) {
+//                                if (e==null){
+//                                    Logger.d("修改成功");
+//                                }
+//                            }
+//                        });
+//                    }
+//                }
+//            }
+//        });
     }
 
     /**
@@ -145,13 +168,6 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void checkIsCashierDesk() {
-        if (CameraProvider.hasCamera()) {
-            menuRetail.setVisibility(View.GONE);
-        } else {
-            menuRetail.setVisibility(View.VISIBLE);
-        }
-    }
 
     private void checkLocalStorageSame() {
         final RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
@@ -213,15 +229,19 @@ public class MainActivity extends BaseActivity {
         ft.replace(R.id.fragment_content, tableFg, "table").commitAllowingStateLoss();
     }
 
-    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored})
+    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored,R.id.menu_inventory})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.ll_table:
-                switchFragment("table");
-                fetchTable();
+                if (!AppUtils.isFastDoubleClick()) {
+                    switchFragment("table");
+//                    fetchTable();
+                }
                 break;
             case R.id.menu_commodity:
-                switchFragment("commodity");
+                if (!AppUtils.isFastDoubleClick()) {
+                    switchFragment("commodity");
+                }
                 break;
             case R.id.menu_print:
                 switchFragment("netconnect");
@@ -237,6 +257,9 @@ public class MainActivity extends BaseActivity {
                 break;
             case R.id.menu_stored:
                 switchFragment("stored");
+                break;
+            case R.id.menu_inventory:
+                startActivity(new Intent(MainActivity.this, InventoryActivity.class));
                 break;
         }
     }
@@ -339,9 +362,11 @@ public class MainActivity extends BaseActivity {
                         gvTable.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                             @Override
                             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                                ft = getSupportFragmentManager().beginTransaction();
-                                OrderFg orderFg = OrderFg.newInstance(tables.get(position).getObjectId(), true);
-                                ft.replace(R.id.fragment_content, orderFg, "order").commit();
+                                if (!AppUtils.isFastDoubleClick()) {
+                                    ft = getSupportFragmentManager().beginTransaction();
+                                    OrderFg orderFg = OrderFg.newInstance(tables.get(position).getObjectId(), true);
+                                    ft.replace(R.id.fragment_content, orderFg, "order").commit();
+                                }
                             }
                         });
                     } catch (Exception e1) {
@@ -437,7 +462,7 @@ public class MainActivity extends BaseActivity {
         }
 
         private class ViewHolder {
-            TextView tableNumber,tableCommodity,tablePrice,tableSvipPrice,tablePeople;
+            TextView tableNumber, tableCommodity, tablePrice, tableSvipPrice, tablePeople;
             RelativeLayout rlTableDetail;
             LinearLayout llTable;
         }

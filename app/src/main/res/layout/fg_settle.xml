@@ -378,9 +378,11 @@
                             </LinearLayout>
 
                             <LinearLayout
+                                android:id="@+id/ll_store_reduce"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="20dp"
+                                android:visibility="gone"
                                 android:gravity="center_vertical">
 
                                 <TextView
@@ -408,9 +410,11 @@
                                     android:textSize="16sp" />
                             </LinearLayout>
                             <LinearLayout
+                                android:id="@+id/ll_full_reduce"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="20dp"
+                                android:visibility="gone"
                                 android:gravity="center_vertical">
 
                                 <TextView

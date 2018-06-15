@@ -27,6 +27,7 @@ import cn.kuwo.player.R;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 
+@SuppressLint("ValidFragment")
 public class ShowReduceListFragment extends DialogFragment {
     private View view;
     private GridView gvTable;

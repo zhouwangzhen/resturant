@@ -15,12 +15,14 @@ public class DataUtil {
      * @param event         商品信息
      * @param tableAVObject 餐桌信息
      * @param isSvip        是否是超牛会员
+     * @param mode          0:点菜模式 1：赠菜模式
      * @return 添加商品全部的信息
      */
     public static HashMap<String, Object> addHashMap(ComboEvent event,
                                                      AVObject tableAVObject,
                                                      Boolean isSvip,
-                                                     String userId) {
+                                                     String userId,
+                                                     int mode) {
         String commodityId = event.getProductBean().getObjectId();
         ProductBean productBean = MyUtils.getProductById(commodityId);
         HashMap<String, Object> hashMap = new HashMap<>();
@@ -29,13 +31,18 @@ public class DataUtil {
         hashMap.put("comment", event.getContent());
         hashMap.put("name", event.getProductBean().getName());
         hashMap.put("weight", MyUtils.formatDouble(productBean.getWeight() * event.getCommodityNumber()));
-        hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
+        if (mode == 0) {
+            hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
+        } else {
+            hashMap.put("price", 0);
+        }
+        hashMap.put("mode", mode);
         hashMap.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
         hashMap.put("cookSerial", event.getCookSerial());
-        if (event.getComboList()!=null&&event.getComboList().size()>0){
-            hashMap.put("comboList",event.getComboList());
-        }else{
-            hashMap.put("comboList", new List[0]);
+        if (event.getComboList() != null && event.getComboList().size() > 0) {
+            hashMap.put("comboList", event.getComboList());
+        } else {
+            hashMap.put("comboList", new ArrayList<Object>());
         }
 
         return hashMap;
@@ -52,7 +59,8 @@ public class DataUtil {
                                        List<Object> preOrders,
                                        AVObject tableAVObject,
                                        Boolean isSvip,
-                                       String userId) {
+                                       String userId,
+                                       int mode) {
         if (event.getOrderIndex() != -1) {
             if (event.getCommodityNumber() > 0) {
                 String commodityId = event.getProductBean().getObjectId();
@@ -64,13 +72,17 @@ public class DataUtil {
                 format.put("comment", event.getContent());
                 format.put("name", event.getProductBean().getName());
                 format.put("weight", MyUtils.formatDouble(productBean.getWeight() * event.getCommodityNumber()));
-                format.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
+                if (mode == 0) {
+                    format.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
+                } else {
+                    format.put("price", 0);
+                }
                 format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
-                Logger.d(event.getProductBean().getComboMenu() );
+                Logger.d(event.getProductBean().getComboMenu());
                 if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
                     format.put("comboList", event.getComboList());
                 } else {
-                    format.put("comboList", new List[0]);
+                    format.put("comboList",new ArrayList<Object>());
                 }
                 format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
                 format.put("cookSerial", event.getCookSerial());

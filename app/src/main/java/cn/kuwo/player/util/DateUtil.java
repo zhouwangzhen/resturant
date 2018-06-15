@@ -2,6 +2,7 @@ package cn.kuwo.player.util;
 
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 public class DateUtil {
@@ -73,5 +74,33 @@ public class DateUtil {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         String dateString = formatter.format(date);
         return dateString;
+    }
+    public static String getWeek() {
+        Calendar cal = Calendar.getInstance();
+        int i = cal.get(Calendar.DAY_OF_WEEK);
+        switch (i) {
+            case 1:
+                return "星期日";
+            case 2:
+                return "星期一";
+            case 3:
+                return "星期二";
+            case 4:
+                return "星期三";
+            case 5:
+                return "星期四";
+            case 6:
+                return "星期五";
+            case 7:
+                return "星期六";
+            default:
+                return "";
+        }
+    }
+    public static Boolean isBlackFive(){
+        if (getWeek().equals("星期五")){
+            return true;
+        }
+        return false;
     }
 }

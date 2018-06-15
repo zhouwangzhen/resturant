@@ -88,6 +88,9 @@ public class CommomDialog extends Dialog implements View.OnClickListener{
         if(!TextUtils.isEmpty(title)){
             titleTxt.setText(title);
         }
+        if (TextUtils.isEmpty(negativeName)){
+            cancelTxt.setVisibility(View.GONE);
+        }
 
     }
 

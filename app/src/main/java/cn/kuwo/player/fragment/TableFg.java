@@ -1,5 +1,7 @@
 package cn.kuwo.player.fragment;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.CardView;
@@ -14,11 +16,15 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVLiveQuery;
+import com.avos.avoscloud.AVLiveQueryEventHandler;
+import com.avos.avoscloud.AVLiveQuerySubscribeCallback;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.SaveCallback;
+import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
@@ -39,8 +45,8 @@ import cn.kuwo.player.util.ToastUtil;
 
 public class TableFg extends BaseFragment {
     private static String ARG_PARAM = "param_key";
-    @BindView(R.id.gv_table)
-    GridView gvTable;
+    @BindView(R.id.gv_tables)
+    GridView gvTables;
     TableAdapter tableAdapter;
     List<AVObject> tables = new ArrayList<>();
     @BindView(R.id.radio_big_table)
@@ -53,11 +59,12 @@ public class TableFg extends BaseFragment {
     TextView tvHangupNumber;
     @BindView(R.id.rl_hangup)
     RelativeLayout rlHangup;
-    Unbinder unbinder;
     @BindView(R.id.btn_hangup)
     TextView btnHangup;
+    private Activity mActivity;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private boolean chooseBigTable = true;
+    private AVLiveQuery avLiveQuery;
 
     @Override
     protected int getLayoutId() {
@@ -70,8 +77,6 @@ public class TableFg extends BaseFragment {
         setListener();
         fetchTable();
         fetchHangUp();
-        MainActivity activity = (MainActivity) getActivity();
-        activity.fetchTable();
     }
 
     private void fetchHangUp() {
@@ -94,7 +99,10 @@ public class TableFg extends BaseFragment {
             }
         });
     }
-
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mActivity = (Activity) context;
+    }
     private void fetchTable() {
         final AVQuery<AVObject> table = new AVQuery<>("Table");
         table.orderByAscending("tableNumber");
@@ -107,12 +115,12 @@ public class TableFg extends BaseFragment {
                     try {
                         tables = list;
                         tableAdapter = new TableAdapter();
-                        gvTable.setAdapter(tableAdapter);
-                        TextView remainTable = (TextView) getActivity().findViewById(R.id.remain_table);
+                        gvTables.setAdapter(tableAdapter);
+                        TextView remainTable = (TextView) mActivity.findViewById(R.id.remain_table);
                         remainTable.setText(ProductUtil.remainTable(list) + "");
                     } catch (Exception e1) {
                         e1.printStackTrace();
-                        ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
+                        Logger.d(e1.getMessage());
                     }
 
                     hideDialog();
@@ -122,8 +130,26 @@ public class TableFg extends BaseFragment {
                 }
             }
         });
+        subscribeQuery(table);
     }
-
+    private void subscribeQuery(AVQuery<AVObject> query) {
+         avLiveQuery = AVLiveQuery.initWithQuery(query);
+        avLiveQuery.setEventHandler(new AVLiveQueryEventHandler() {
+            @Override
+            public void onObjectUpdated(AVObject avObject, List<String> updateKeyList) {
+                super.onObjectUpdated(avObject, updateKeyList);
+                fetchTable();
+            }
+        });
+        avLiveQuery.subscribeInBackground(new AVLiveQuerySubscribeCallback() {
+            @Override
+            public void done(AVException e) {
+                if (e != null) {
+                    Logger.d(e.getMessage());
+                }
+            }
+        });
+    }
     private void setListener() {
         radioBigTable.setChecked(true);
         rgChooseTableStyle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -161,17 +187,14 @@ public class TableFg extends BaseFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // TODO: inflate a fragment view
-        View rootView = super.onCreateView(inflater, container, savedInstanceState);
-        unbinder = ButterKnife.bind(this, rootView);
-        return rootView;
-    }
-
-    @Override
     public void onDestroyView() {
         super.onDestroyView();
-        unbinder.unbind();
+        avLiveQuery.unsubscribeInBackground(new AVLiveQuerySubscribeCallback() {
+            @Override
+            public void done(AVException e) {
+
+            }
+        });
     }
 
 
@@ -195,7 +218,7 @@ public class TableFg extends BaseFragment {
         public View getView(final int i, View view, ViewGroup parent) {
             final ViewHolder holder;
             if (view == null) {
-                view = LayoutInflater.from(getContext()).inflate(R.layout.adapter_table, parent, false);
+                view=getLayoutInflater().inflate(R.layout.adapter_table,null);
                 holder = new ViewHolder();
                 holder.tableNumber = (TextView) view.findViewById(R.id.table_number);
                 holder.tableCommodity = (TextView) view.findViewById(R.id.table_commodity);

@@ -43,7 +43,9 @@ public class ShowRetailAdapter extends RecyclerView.Adapter<ShowRetailAdapter.My
         ProductBean productBean =MyUtils.getProductById(retailBean.getIds().get(position));
         Double price = retailBean.getPrices().get(position);
         Double weight = retailBean.getWeight().get(position);
-        Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
+        if (productBean.getUrl()!=null&&!productBean.getUrl().equals("")){
+            Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
+        }
         holder.tvPrice.setText("￥"+price+"元");
         holder.tvCommodityName.setText(productBean.getName());
         if (weight> 20) {

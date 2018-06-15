@@ -186,7 +186,7 @@ public class MyUtils {
             productBeen = mRealmHleper.queryProductByBarcode(barcode);
         } else if (barcode.length() == 18) {
             productBeen = mRealmHleper.queryProductByBarcode(barcode.substring(2, 7));
-        } else if (barcode.length() == 5) {
+        } else if (barcode.length() == 5||barcode.length() == 8) {
             productBeen = mRealmHleper.queryProductByBarcode(barcode);
         }
         return productBeen;

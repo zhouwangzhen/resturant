@@ -44,7 +44,7 @@
     </LinearLayout>
 
     <GridView
-        android:id="@+id/gv_table"
+        android:id="@+id/gv_tables"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"

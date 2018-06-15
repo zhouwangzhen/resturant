@@ -27,6 +27,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center_vertical|right">
+            <LinearLayout
+                android:id="@+id/ll_state_res"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:gravity="center_vertical">
             <TextView
                 android:background="@drawable/order_res"
                 android:layout_width="40dp"
@@ -38,6 +43,12 @@
                 android:layout_width="wrap_content"
                 android:paddingRight="20dp"
                 android:layout_height="wrap_content" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/ll_state_retail"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:gravity="center_vertical">
             <TextView
                 android:background="@drawable/order_retail"
                 android:layout_width="40dp"
@@ -49,6 +60,12 @@
                 android:textColor="@color/black"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/ll_state_recharge"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:gravity="center_vertical">
             <TextView
                 android:background="@drawable/order_recharge"
                 android:layout_width="40dp"
@@ -60,17 +77,25 @@
                 android:textColor="@color/black"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
-            <TextView
-                android:background="@drawable/icon_hangup_state"
-                android:layout_width="40dp"
-                android:layout_height="40dp" />
-            <TextView
-                android:id="@+id/state_hangup"
-                android:text="0笔"
-                android:paddingRight="20dp"
-                android:textColor="@color/black"
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/ll_state_hangup"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="40dp"
+                android:gravity="center_vertical">
+                <TextView
+                    android:background="@drawable/icon_hangup_state"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp" />
+                <TextView
+                    android:id="@+id/state_hangup"
+                    android:text="0笔"
+                    android:paddingRight="20dp"
+                    android:textColor="@color/black"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
         </LinearLayout>
     </LinearLayout>
 

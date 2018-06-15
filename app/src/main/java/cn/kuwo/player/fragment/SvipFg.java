@@ -21,6 +21,7 @@ import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FunctionCallback;
 import com.avos.avoscloud.GetCallback;
 import com.avos.avoscloud.SaveCallback;
+import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.yzq.zxinglibrary.android.CaptureActivity;
@@ -124,6 +125,7 @@ public class SvipFg extends BaseFragment {
     private int escrow = 3;
     private String card = "";
     private Double whiteBarBalance = 0.0;
+    private String marketName="";
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
 
     @Override
@@ -312,6 +314,7 @@ public class SvipFg extends BaseFragment {
         commodityId = CONST.SVIPSTYLE.DATE_12_MONTH;
         commodityMoney = 5000.0;
         rechargeContent.setVisibility(View.GONE);
+        marketName="";
     }
 
     /**
@@ -421,7 +424,7 @@ public class SvipFg extends BaseFragment {
                     hideDialog();
                     btnRefrsh.setVisibility(View.VISIBLE);
                     ToastUtil.showShort(MyApplication.getContextObject(), "充值绑定成功");
-                    Bill.printSvipBill(commodityContent, commodityMoney, 0.0, commodityMoney, escrow,mallOrder);
+                    Bill.printSvipBill(commodityContent, commodityMoney, 0.0, commodityMoney, escrow,mallOrder,marketName);
                     reset();
                 } else {
                     hideDialog();
@@ -496,7 +499,8 @@ public class SvipFg extends BaseFragment {
                     @Override
                     public void done(Map<String, Object> objectMap, AVException e) {
                         if (e == null) {
-                            if (Integer.parseInt(objectMap.get("clerk").toString()) > 6 || (Boolean) objectMap.get("test")) {
+                            if (Integer.parseInt(objectMap.get("clerk").toString()) > 0 || (Boolean) objectMap.get("test")) {
+                                marketName=(objectMap.get("realName").toString() == null ? objectMap.get("nickName").toString() : objectMap.get("realName").toString());
                                 PayAndBind();
                             } else {
                                 ToastUtil.showShort(MyApplication.getContextObject(), "非销售账号,请扫描销售账号");
@@ -625,7 +629,8 @@ public class SvipFg extends BaseFragment {
                 payBalance.setVisibility(View.GONE);
             }
         } else if (userBean.getCallbackCode() == CONST.UserCode.SCANUSER) {
-            if (userBean.getClerk() > 6 || userBean.getTest()) {
+            if (userBean.getClerk() > 0 || userBean.getTest()) {
+                marketName=userBean.getRealName();
                 PayAndBind();
             } else {
                 ToastUtil.showShort(MyApplication.getContextObject(), "非销售账号,请扫描销售账号");

@@ -16,9 +16,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.FindCallback;
+import com.avos.avoscloud.FunctionCallback;
 import com.bumptech.glide.Glide;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
@@ -33,8 +35,10 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -137,6 +141,14 @@ public class SettleActivity extends BaseActivity {
     TextView rateReduceMoney;
     @BindView(R.id.ll_rate_reduce)
     LinearLayout llRateReduce;
+    @BindView(R.id.ll_store_reduce)
+    LinearLayout llStoreReduce;
+    @BindView(R.id.ll_full_reduce)
+    LinearLayout llFullReduce;
+    @BindView(R.id.black_five_money)
+    TextView blackFiveMoney;
+    @BindView(R.id.ll_black_five)
+    LinearLayout llBlackFive;
     private Context context;
     private RetailBean retailBean;
     private LinearLayoutManager linearLayoutManager;
@@ -156,6 +168,7 @@ public class SettleActivity extends BaseActivity {
     private Double fullReduceMoney = 0.0;
     private Double hasMeatWeight = 0.0;
     private Double deleteoddMoney = 0.0;
+    private Double blackfiveMoney = 0.0;
     private int orderRate = 100;
     private Double ratereduceMoney = 0.0;
     private CouponEvent onlineCouponEvent = null;
@@ -169,6 +182,7 @@ public class SettleActivity extends BaseActivity {
     private int REQUEST_FUNC = 100;
     private int REQUEST_RATE = 102;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
+
     @Override
     protected int getContentViewId() {
         return R.layout.activity_settle;
@@ -179,7 +193,7 @@ public class SettleActivity extends BaseActivity {
      */
     @Override
     public void initData() {
-        context=this;
+        context = this;
         retailBean = (RetailBean) getIntent().getSerializableExtra("retailBean");
         linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         recycleScanGood.setLayoutManager(linearLayoutManager);
@@ -315,6 +329,15 @@ public class SettleActivity extends BaseActivity {
             mySvipReduceWeight.setText("0.0kg");
             mySvipReduceMoney.setText("-0.0");
         }
+        blackfiveMoney = ProductUtil.calBlackFiveReduce(cbUseSvip.isChecked(), useExchangeList, ProductUtil.calExchangeMeatList(orders), orders);
+        if (blackfiveMoney > 0) {
+            llBlackFive.setVisibility(View.VISIBLE);
+            blackFiveMoney.setText("-" + blackfiveMoney);
+        } else {
+            blackFiveMoney.setText("0.0");
+            llBlackFive.setVisibility(View.GONE);
+        }
+
         if (onlineCouponEvent != null) {
             onlineCouponMoney = onlineCouponEvent.getMoney();
             tvOnlineMoeny.setText("-" + onlineCouponMoney);
@@ -327,16 +350,16 @@ public class SettleActivity extends BaseActivity {
             tvOfflineContent.setText(offlineCouponEvent.getContent());
         }
         if (cbUseSvip.isChecked()) {
-            activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - myMeatReduceMoney - offlineCouponMoney - onlineCouponMoney) * (1 - MyUtils.getDayRate()));
+            activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - myMeatReduceMoney - blackfiveMoney - offlineCouponMoney - onlineCouponMoney) * (1 - MyUtils.getDayRate()));
             if (activityReduceMoney < 0) activityReduceMoney = 0.0;
-            actualTotalMoneny = originTotalMoneny - offlineCouponMoney - onlineCouponMoney - activityReduceMoney - myMeatReduceMoney;
+            actualTotalMoneny = originTotalMoneny - offlineCouponMoney - blackfiveMoney - onlineCouponMoney - activityReduceMoney - myMeatReduceMoney;
             if (actualTotalMoneny < 0) actualTotalMoneny = 0.0;
             totalMoney.setText("￥" + actualTotalMoneny + "元");
             storeReduceMoney.setText("-" + activityReduceMoney);
         } else {
-            activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - offlineCouponMoney - onlineCouponMoney) * (1 - MyUtils.getDayRate()));
+            activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - offlineCouponMoney - blackfiveMoney - onlineCouponMoney) * (1 - MyUtils.getDayRate()));
             if (activityReduceMoney < 0) activityReduceMoney = 0.0;
-            actualTotalMoneny = originTotalMoneny - offlineCouponMoney - onlineCouponMoney - activityReduceMoney;
+            actualTotalMoneny = originTotalMoneny - offlineCouponMoney - blackfiveMoney - onlineCouponMoney - activityReduceMoney;
             if (actualTotalMoneny < 0) actualTotalMoneny = 0.0;
             totalMoney.setText("￥" + actualTotalMoneny + "元");
             storeReduceMoney.setText("-" + activityReduceMoney);
@@ -352,24 +375,33 @@ public class SettleActivity extends BaseActivity {
         fullreduceMoney.setText("-" + fullReduceMoney);
         actualTotalMoneny -= fullReduceMoney;
 
-        if (orderRate!=100){
+        if (orderRate != 100) {
             llRateReduce.setVisibility(View.VISIBLE);
-            ratereduceMoney=MyUtils.formatDouble(((double)actualTotalMoneny)*(100-orderRate)/100);
-            actualTotalMoneny-=ratereduceMoney;
-            rateReduceContent.setText("整单"+MyUtils.formatDouble((double) orderRate/10)+"折优惠");
-            rateReduceMoney.setText("-"+ratereduceMoney);
-        }else{
-            ratereduceMoney=0.0;
-            llRateReduce.setVisibility(View.VISIBLE);
+            ratereduceMoney = MyUtils.formatDouble(((double) actualTotalMoneny) * (100 - orderRate) / 100);
+            actualTotalMoneny -= ratereduceMoney;
+            rateReduceContent.setText("整单" + MyUtils.formatDouble((double) orderRate / 10) + "折优惠");
+            rateReduceMoney.setText("-" + ratereduceMoney);
+        } else {
+            ratereduceMoney = 0.0;
+            llRateReduce.setVisibility(View.GONE);
+        }
+        if (activityReduceMoney > 0) {
+            llStoreReduce.setVisibility(View.VISIBLE);
+        } else {
+            llStoreReduce.setVisibility(View.GONE);
+        }
+        if (fullReduceMoney > 0) {
+            llFullReduce.setVisibility(View.VISIBLE);
+        } else {
+            llFullReduce.setVisibility(View.GONE);
         }
         actualTotalMoneny -= deleteoddMoney;
         actualTotalMoneny = MyUtils.formatDouble(actualTotalMoneny) >= 0 ? MyUtils.formatDouble(actualTotalMoneny) : 0.0;
-
         totalMoney.setText("￥" + actualTotalMoneny + "元");
         minPayMoney.setText("-" + meatReduceMoney);
     }
 
-    @OnClick({R.id.sign_user, R.id.btn_pay, R.id.ll_max_reduce, R.id.ll_my_reduce,R.id.more_fuc})
+    @OnClick({R.id.sign_user, R.id.btn_pay, R.id.ll_max_reduce, R.id.ll_my_reduce, R.id.more_fuc})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.sign_user:
@@ -397,7 +429,7 @@ public class SettleActivity extends BaseActivity {
                 OrderDetail orderDetail = new OrderDetail(null, hasMeatWeight, originTotalMoneny,
                         actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
                         onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), userBean, orders, fullReduceMoney,
-                        deleteoddMoney, orderRate,ratereduceMoney);
+                        deleteoddMoney, orderRate, ratereduceMoney,blackfiveMoney);
                 bundle.putSerializable("table", (Serializable) orderDetail);
                 intent.putExtras(bundle);
                 startActivityForResult(intent, 1);
@@ -447,7 +479,9 @@ public class SettleActivity extends BaseActivity {
         if (bean.getCallbackCode() == CONST.UserCode.SCANCUSTOMER) {
             userBean = bean;
             llShowMember.setVisibility(View.VISIBLE);
-            Glide.with(MyApplication.getContextObject()).load(userBean.getAvatar()).into(userAvatar);
+            if (userBean.getAvatar()!=null&&!userBean.getAvatar().equals("")){
+                Glide.with(MyApplication.getContextObject()).load(userBean.getAvatar()).into(userAvatar);
+            }
             userTel.setText("用户手机号:" + userBean.getUsername());
             userStored.setText("消费金:" + userBean.getStored());
             userWhitebar.setText("白条:" + userBean.getBalance());
@@ -469,11 +503,13 @@ public class SettleActivity extends BaseActivity {
             setData();
         }
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(FuncBean event) {
         setFunc(event.getCode());
 
     }
+
     private void setFunc(int resultCode) {
         switch (resultCode) {
             case 2://抹零
@@ -489,10 +525,14 @@ public class SettleActivity extends BaseActivity {
         }
 
     }
+
     private void printPreOrder() {
         LinkedHashMap<String, Double> reduceMap = new LinkedHashMap<>();
-        if (meatReduceMoney > 0&&cbUseSvip.isChecked()) {
+        if (meatReduceMoney > 0 && cbUseSvip.isChecked()) {
             reduceMap.put("牛肉抵扣金额", meatReduceMoney);
+        }
+        if (blackfiveMoney>0){
+            reduceMap.put("周五冻肉半价优惠", blackfiveMoney);
         }
         if (offlineCouponMoney > 0) {
             reduceMap.put(offlineCouponEvent.getContent(), offlineCouponMoney);
@@ -506,12 +546,17 @@ public class SettleActivity extends BaseActivity {
         if (fullReduceMoney > 0) {
             reduceMap.put("满减优惠", fullReduceMoney);
         }
+        if (orderRate != 100) {
+            String content = "整单" + orderRate + "折优惠";
+            reduceMap.put(content, ratereduceMoney);
+        }
         if (deleteoddMoney > 0) {
             reduceMap.put("抹零", deleteoddMoney);
         }
 
-        Bill.printPreOrderRest(MyApplication.getContextObject(), originTotalMoneny, actualTotalMoneny, reduceMap, useExchangeList, ProductUtil.calExchangeMeatList(orders),orders);
+        Bill.printPreOrderRest(MyApplication.getContextObject(), originTotalMoneny, actualTotalMoneny, reduceMap, useExchangeList, ProductUtil.calExchangeMeatList(orders), orders);
     }
+
     private void deleteOdd() {
         double v = (actualTotalMoneny / 10 - new Double(actualTotalMoneny).intValue() / 10) * 10;
         final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(context);
@@ -541,7 +586,7 @@ public class SettleActivity extends BaseActivity {
                                         Toast.makeText(context, "超过可抹零的权限", Toast.LENGTH_SHORT).show();
 
                                     }
-                                }else{
+                                } else {
                                     deleteoddMoney = Double.parseDouble(text);
                                     dialog.dismiss();
                                     refreshList();
@@ -559,6 +604,7 @@ public class SettleActivity extends BaseActivity {
                 })
                 .create(mCurrentDialogStyle).show();
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -566,6 +612,77 @@ public class SettleActivity extends BaseActivity {
             Intent intent = getIntent();
             setResult(1, intent);
             finish();
+        } else if (requestCode == REQUEST_CODE_SCAN && resultCode == RESULT_OK) {
+            if (data != null) {
+                showDialog();
+                String code = data.getStringExtra(Constant.CODED_CONTENT);
+                Map<String, String> parameters = new HashMap<String, String>();
+                parameters.put("payCode", code.trim());
+                AVCloud.callFunctionInBackground("payCodeGetUser", parameters, new FunctionCallback<Map<String, Object>>() {
+                    @Override
+                    public void done(final Map<String, Object> object, AVException e) {
+                        if (e == null) {
+                            showDialog();
+                            Map<String, Object> parameter = new HashMap<String, Object>();
+                            parameter.put("userID", object.get("objectId").toString());
+                            AVCloud.callFunctionInBackground("svip", parameter, new FunctionCallback<Map<String, Object>>() {
+                                @Override
+                                public void done(Map<String, Object> objectMap, AVException e) {
+                                    if (e == null) {
+                                        hideDialog();
+                                        Logger.d(objectMap);
+                                        userBean = new UserBean(CONST.UserCode.SCANCUSTOMER,
+                                                object.get("objectId").toString(),
+                                                object.get("username").toString(),
+                                                object.get("realName").toString() == null ? object.get("nickName").toString() : object.get("realName").toString(),
+                                                Integer.parseInt(object.get("vip").toString()),
+                                                MyUtils.formatDouble(Double.parseDouble(object.get("credits").toString())),
+                                                MyUtils.formatDouble(Double.parseDouble(object.get("stored").toString())),
+                                                MyUtils.formatDouble(Double.parseDouble(object.get("gold").toString()) - Double.parseDouble(object.get("arrears").toString())),
+                                                (Boolean) object.get("test"),
+                                                Integer.parseInt(object.get("clerk").toString()),
+                                                MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
+                                                objectMap.get("meatId").toString().length() > 0 ? objectMap.get("meatId").toString() : "",
+                                                (Boolean) objectMap.get("svip"),
+                                                object.get("avatarurl").toString(),
+                                                (Boolean) objectMap.get("alreadySVIP"));
+                                        llShowMember.setVisibility(View.VISIBLE);
+                                        if (userBean.getAvatar()!=null&&!userBean.getAvatar().equals("")){
+                                            Glide.with(MyApplication.getContextObject()).load(userBean.getAvatar()).into(userAvatar);
+                                        }
+                                        userTel.setText("用户手机号:" + userBean.getUsername());
+                                        userStored.setText("消费金:" + userBean.getStored());
+                                        userWhitebar.setText("白条:" + userBean.getBalance());
+                                        userMeatweight.setText("牛肉额度:" + userBean.getMeatWeight() + "kg");
+                                        userMeatweight.setText("牛肉额度:" + userBean.getMeatWeight() + "kg");
+                                        hasMeatWeight = userBean.getMeatWeight();
+                                        userId = userBean.getId();
+                                        useMeatId = userBean.getMeatId();
+                                        if (userBean.getSvip()) {
+                                            svipAvatar.setVisibility(View.VISIBLE);
+                                            userType.setText("超牛会员");
+                                            isSvip = true;
+                                        } else {
+                                            svipAvatar.setVisibility(View.GONE);
+                                            userType.setText("普通会员");
+                                            isSvip = false;
+                                        }
+                                        signUser.setText("退出登录");
+                                        setData();
+                                    } else {
+                                        hideDialog();
+                                        ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
+                                    }
+                                }
+                            });
+
+                        } else {
+                            hideDialog();
+                            ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
+                        }
+                    }
+                });
+            }
         }
     }
 
@@ -577,12 +694,22 @@ public class SettleActivity extends BaseActivity {
         } else if (event.getType() == 2) {
             offlineCouponEvent = event;
         }
+        deleteoddMoney = 0.0;
         setData();
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(RateBean event) {
         orderRate = event.getRate();
+        deleteoddMoney = 0.0;
         refreshList();
 
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // TODO: add setContentView(...) invocation
+        ButterKnife.bind(this);
     }
 }

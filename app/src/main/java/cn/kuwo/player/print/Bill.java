@@ -102,7 +102,7 @@ public class Bill {
                             pos.printWordSpace(1);
                             pos.printText(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getPrice() + "");
                             pos.printWordSpace(2);
-                            pos.printText(MyUtils.formatDouble(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getPrice() * ObjectUtil.getDouble(format, "number")) + "");
+                            pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")) + "");
                             pos.printLine(1);
                             try {
                                 if (ObjectUtil.getList(format, "comboList").size() > 0) {
@@ -239,7 +239,9 @@ public class Bill {
                                             pos1.printLine();
                                         }
                                         if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
+                                            pos1.bold(true);
                                             pos1.printText("(备注:" + ObjectUtil.getString(format, "comment") + ")");
+                                            pos1.bold(false);
                                             pos1.printLine(1);
                                         }
                                         if (number > 0 && number != serialNumber) {
@@ -359,7 +361,9 @@ public class Bill {
                                             pos1.printLine();
                                         }
                                         if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
+                                            pos1.bold(true);
                                             pos1.printText("(备注:" + ObjectUtil.getString(format, "comment") + ")");
+                                            pos1.bold(false);
                                             pos1.printLine(1);
                                         }
                                         if (number > 0 && number != serialNumber) {
@@ -407,7 +411,7 @@ public class Bill {
                             for (int i = 0; i < orders.size(); i++) {
                                 pos2.printLocation(0);
                                 HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-                                if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 5) {
+                                if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 3||MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 4) {
                                     pos2.printLocation(0);
                                     pos2.printTextNewLine(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName());
                                     pos2.printLine(1);
@@ -747,9 +751,9 @@ public class Bill {
                     pos.printTextNewLine("------------------------------------------------");
                     pos.printLocation(1);
                     pos.printLine(1);
-                    pos.printText("地址：上海市徐汇区龙华路2520号");
+                    pos.printText("地址:" + CONST.ADDRESS);
                     pos.printLine(2);
-                    pos.printText("电话：021-54566808");
+                    pos.printText("电话:" + CONST.TEL);
                     pos.printLine(2);
                     pos.printText("祝您生活越来越牛!");
                     pos.printLine(2);
@@ -884,9 +888,9 @@ public class Bill {
                     pos1.printTextNewLine("----------------------------------------------");
                     pos1.printLocation(1);
                     pos1.printLine(1);
-                    pos1.printText("地址：上海市徐汇区龙华路2520号");
+                    pos1.printText("地址:" + CONST.ADDRESS);
                     pos1.printLine(2);
-                    pos1.printText("电话：021-54566808");
+                    pos1.printText("电话:" + CONST.TEL);
                     pos1.printLine(2);
                     pos1.printText("祝您生活越来越牛!");
                     pos1.printLine(2);
@@ -985,7 +989,7 @@ public class Bill {
                         pos.printWordSpace(1);
                         pos.printText("  ");
                         pos.printWordSpace(2);
-                        pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * productBean.getPrice()) + "");
+                        pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")) + "");
                         pos.printLine(1);
                     }
                     pos.printTextNewLine("------------------------------------------------");
@@ -1131,7 +1135,7 @@ public class Bill {
                         pos1.printWordSpace(1);
                         pos1.printText("  ");
                         pos1.printWordSpace(2);
-                        pos1.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * productBean.getPrice()) + "");
+                        pos1.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")) + "");
                         pos1.printLine(1);
                     }
                     pos1.printTextNewLine("------------------------------------------------");
@@ -1314,9 +1318,9 @@ public class Bill {
                     pos.printTextNewLine("----------------------------------------------");
                     pos.printLocation(1);
                     pos.printLine(1);
-                    pos.printText("地址：上海市徐汇区龙华路2520号");
+                    pos.printText("地址:" + CONST.ADDRESS);
                     pos.printLine(2);
-                    pos.printText("电话：021-54566808");
+                    pos.printText("电话:" + CONST.TEL);
                     pos.printLine(2);
                     pos.printText("祝您生活越来越牛!");
                     pos.printLine(2);
@@ -1376,8 +1380,12 @@ public class Bill {
                         pos.printTwoColumn("", mapping.getValue() + "份");
                         pos.printLine(1);
                         if (weights.containsKey(mapping.getKey())) {
-                            pos.printTwoColumn("", weights.get(mapping.getValue()) + "kg");
-                            pos.printLine(1);
+                            if (weights.get(mapping.getKey())>20){
+                                pos.printTwoColumn("", weights.get(mapping.getKey()) + "ml");
+                            }else{
+                                pos.printTwoColumn("", weights.get(mapping.getKey()) + "kg");
+                            }
+
                         }
                     }
                     pos.printTextNewLine("------------------------------------------------");
@@ -1585,9 +1593,9 @@ public class Bill {
                     pos.printTextNewLine("------------------------------------------------");
                     pos.printLocation(1);
                     pos.printLine(1);
-                    pos.printText("地址：上海市徐汇区龙华路2520号");
+                    pos.printText("地址:" + CONST.ADDRESS);
                     pos.printLine(2);
-                    pos.printText("电话：021-54566808");
+                    pos.printText("电话:" + CONST.TEL);
                     pos.printLine(2);
                     pos.printText("祝您生活越来越牛!");
                     pos.printLine(4);
@@ -1725,9 +1733,9 @@ public class Bill {
                     pos1.printLine(3);
                     pos1.printLocation(1);
                     pos1.printLine(1);
-                    pos1.printText("地址：上海市徐汇区龙华路2520号");
+                    pos1.printText("地址:" + CONST.ADDRESS);
                     pos1.printLine(2);
-                    pos1.printText("电话：021-54566808");
+                    pos1.printText("电话:" + CONST.TEL);
                     pos1.printLine(2);
                     pos1.printText("祝您生活越来越牛!");
                     pos1.printLine(4);
@@ -1751,7 +1759,8 @@ public class Bill {
                                      final Double reduce,
                                      final Double finalMoney,
                                      final int escrow,
-                                     final AVObject avObject) {
+                                     final AVObject avObject,
+                                     final String marketName) {
         new Thread() {
             @Override
             public void run() {
@@ -1767,9 +1776,9 @@ public class Bill {
                     pos.bold(false);
                     pos.printLine(1);
                     pos.printLocation(0);
-                    pos.printTextNewLine("操作人:" + (avObject.getAVObject("cashier") != null ? avObject.getAVObject("cashier").getString("realName") : avObject.getAVObject("cashier").getString("nickName")));
-                    pos.printTextNewLine("负责人:" + (avObject.getAVObject("market") != null ? avObject.getAVObject("market").getString("realName") : avObject.getAVObject("market").getString("nickName")));
-                    pos.printTextNewLine("时间:" + MyUtils.dateFormat(avObject.getCreatedAt()));
+                    pos.printTextNewLine("操作人:" + SharedHelper.read("cashierName"));
+                    pos.printTextNewLine("负责人:" + marketName);
+                    pos.printTextNewLine("时间:" + MyUtils.dateFormat(new Date()));
                     pos.printTextNewLine("----------------------------------------------");
                     pos.printLine(1);
                     pos.printLocation(0);
@@ -1891,17 +1900,18 @@ public class Bill {
                     pos.bold(false);
                     pos.printLine(1);
                     pos.printLocation(0);
-                    pos.printText("桌号:" + avObject.getString("tableNumber"));
-                    pos.printLine(1);
-                    pos.printText("人数:" + avObject.getInt("customer"));
-                    pos.printLine(1);
                     if (avObject.getDate("startedAt") != null) {
+                        pos.printText("桌号:" + avObject.getString("tableNumber"));
+                        pos.printLine(1);
+                        pos.printText("人数:" + avObject.getInt("customer"));
+                        pos.printLine(1);
                         pos.printTextNewLine("开单时间:" + MyUtils.dateFormat(avObject.getDate("startedAt")));
+                        pos.printLine(1);
+                        pos.printText("结账时间:" + getNowDate());
                     } else {
-                        pos.printTextNewLine("开单时间:" + MyUtils.dateFormat(new Date()));
+                        pos.printTextNewLine("开单时间:" + MyUtils.dateFormat(avObject.getCreatedAt()));
                     }
-                    pos.printLine(1);
-                    pos.printText("结账时间:" + getNowDate());
+
                     pos.printLine(1);
                     pos.printTwoColumn("收银员:" + sharedHelper.read("cashierName"), "服务人员:" + sharedHelper.read("cashierName"));
                     pos.printLine(1);
@@ -1932,6 +1942,11 @@ public class Bill {
                         pos.printWordSpace(2);
                         pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
                         pos.printLine(1);
+                        if (ObjectUtil.getList(format,"comboList").size()>0) {
+                            for (int j = 0; j < ObjectUtil.getList(format, "comboList").size(); j++) {
+                                pos.printTextNewLine("   "+ObjectUtil.getList(format, "comboList").get(j).toString());
+                            }
+                        }
                     }
                     pos.printTextNewLine("------------------------------------------------");
                     pos.printLocation(0);
@@ -2111,6 +2126,68 @@ public class Bill {
                     pos.printLine(4);
                     pos.feedAndCut();
                     pos.closeIOAndSocket();
+
+                    Pos pos1;
+                    pos1 = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+
+                    //初始化打印机
+                    pos1.initPos();
+                    pos1.printLocation(1);
+                    Bitmap bitmap1 = BitmapFactory.decodeResource(context.getResources(), R.mipmap.logo);
+                    pos1.printBitmap(bitmap);
+                    pos1.bold(true);
+                    pos1.printLargeText("BEEF X-用户联");
+                    pos1.printLine(1);
+                    pos1.bold(false);
+                    pos1.printLine(1);
+                    pos1.printLocation(0);
+                    pos1.printText("时间:" + MyUtils.dateFormat(new Date()));
+                    pos1.printLine(1);
+                    pos1.printText("服务员:" + cashierName);
+                    pos1.printLine(1);
+                    pos1.printText("销售:" + marketName);
+                    pos1.printLine(1);
+                    pos1.printTextNewLine("----------------------------------------------");
+                    pos1.printLocation(0);
+                    pos1.printLine(1);
+                    pos1.printTwoColumn("电话号:", username.replaceAll("(\\d{3})\\d{4}(\\d{4})", "$1****$2"));
+                    pos1.printLine(1);
+                    pos1.printTextNewLine("----------------------------------------------");
+                    pos1.printLocation(0);
+                    pos1.printLine(1);
+                    pos1.printTwoColumn("消费金充值:", rechargeMoney + "元");
+                    pos1.printLine(1);
+                    pos1.printTextNewLine("----------------------------------------------");
+                    pos1.printLocation(0);
+                    pos1.printLine(1);
+                    String payContent1 = "";
+                    switch (escrow) {
+                        case 3:
+                            payContent1 = "支付宝支付";
+                            break;
+                        case 4:
+                            payContent1 = "微信支付";
+                            break;
+                        case 5:
+                            payContent1 = "银行卡支付";
+                            break;
+                        case 6:
+                            payContent1 = "现金支付";
+                            break;
+                    }
+                    pos1.printTwoColumn(payContent1 + ":", rechargeMoney + "元");
+                    pos1.printLine(1);
+                    pos1.printTextNewLine("------------------------------------------------");
+                    pos1.printLocation(1);
+                    pos1.printLine(1);
+                    pos1.printText("地址:" + CONST.ADDRESS);
+                    pos1.printLine(2);
+                    pos1.printText("电话:" + CONST.TEL);
+                    pos1.printLine(2);
+                    pos1.printText("祝您生活越来越牛!");
+                    pos1.printLine(4);
+                    pos1.feedAndCut();
+                    pos1.closeIOAndSocket();
                 } catch (Exception e) {
 
                 }
@@ -2171,7 +2248,12 @@ public class Bill {
                         pos.printWordSpace(1);
                         pos.printText(productBean.getPrice() + "");
                         pos.printWordSpace(2);
-                        pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * productBean.getPrice()) + "");
+                        pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")) + "");
+                        if (ObjectUtil.getList(format,"comboList").size()>0) {
+                            for (int j = 0; j < ObjectUtil.getList(format, "comboList").size(); j++) {
+                                    pos.printTextNewLine("   "+ObjectUtil.getList(format, "comboList").get(j).toString());
+                            }
+                        }
                     }
                     pos.printTextNewLine("------------------------------------------------");
                     pos.printLocation(0);
@@ -2335,7 +2417,7 @@ public class Bill {
         }.start();
     }
 
-    public static void printPreOrderRest(final Context context, final Double originTotalMoneny, final Double actualTotalMoneny, final LinkedHashMap<String, Double> reduceMap, final List<Object> useExchangeList, final List<Object> canExchangeList,final List<Object> orders) {
+    public static void printPreOrderRest(final Context context, final Double originTotalMoneny, final Double actualTotalMoneny, final LinkedHashMap<String, Double> reduceMap, final List<Object> useExchangeList, final List<Object> canExchangeList, final List<Object> orders) {
         new Thread() {
             @Override
             public void run() {
@@ -2375,9 +2457,9 @@ public class Bill {
                         pos.printText(ObjectUtil.getDouble(format, "number") + "");
                         pos.printLocation(90, 1);
                         pos.printWordSpace(1);
-                        pos.printText(productBean.getPrice() + "");
+                        pos.printText(ObjectUtil.getDouble(format, "weight") + "");
                         pos.printWordSpace(2);
-                        pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * productBean.getPrice()) + "");
+                        pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")) + "");
                     }
                     pos.printTextNewLine("------------------------------------------------");
                     pos.printLocation(0);

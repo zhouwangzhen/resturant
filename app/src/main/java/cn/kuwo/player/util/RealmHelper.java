@@ -105,6 +105,10 @@ public class RealmHelper {
         return null;
 
     }
+    public List<ProductBean> queryOtherType(int index) {
+        RealmResults<ProductBean> productBeen = mRealm.where(ProductBean.class).equalTo("store",1).equalTo("combo", index).findAll();
+        return mRealm.copyFromRealm(productBeen);
+    }
     public List<ProductBean>  queryCommodityBySerial(String serial) {
         RealmResults<ProductBean> productBeans = mRealm.where(ProductBean.class).equalTo("active",1).equalTo("serial", serial).findAll();
         return mRealm.copyFromRealm(productBeans);

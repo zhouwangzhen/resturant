@@ -161,6 +161,10 @@ public class SettleFg extends BaseFragment {
     TextView rateReduceMoney;
     @BindView(R.id.ll_rate_reduce)
     LinearLayout llRateReduce;
+    @BindView(R.id.ll_store_reduce)
+    LinearLayout llStoreReduce;
+    @BindView(R.id.ll_full_reduce)
+    LinearLayout llFullReduce;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private int REQUEST_CODE_SCAN = 111;
     private int REQUEST_FUNC = 100;
@@ -232,7 +236,9 @@ public class SettleFg extends BaseFragment {
                                     Double whiteBarBalance = MyUtils.formatDouble(MyUtils.formatDouble(userObject.getDouble("gold")) - MyUtils.formatDouble(userObject.getDouble("arrears")));
                                     Double storedBalance = MyUtils.formatDouble(userObject.getDouble("stored"));
                                     AVFile avatar = (AVFile) userObject.get("avatar");
-                                    Glide.with(MyApplication.getContextObject()).load(avatar.getUrl()).into(userAvatar);
+                                    if (avatar != null) {
+                                        Glide.with(MyApplication.getContextObject()).load(avatar.getUrl()).into(userAvatar);
+                                    }
                                     userTel.setText("用户手机号:" + userObject.getString("username"));
                                     userStored.setText("消费金:" + storedBalance);
                                     userWhitebar.setText("白条:" + whiteBarBalance);
@@ -462,27 +468,39 @@ public class SettleFg extends BaseFragment {
             totalMoney.setText("￥" + actualTotalMoneny + "元");
             storeReduceMoney.setText("-" + activityReduceMoney);
         }
+
+        fullReduceMoney = MyUtils.formatDouble(ProductUtil.calFullReduceMoney(actualTotalMoneny) > actualTotalMoneny ? actualTotalMoneny : ProductUtil.calFullReduceMoney(actualTotalMoneny));
+        fullreduceMoney.setText("-" + fullReduceMoney);
+        actualTotalMoneny -= fullReduceMoney;
+        if (orderRate != 100) {
+            llRateReduce.setVisibility(View.VISIBLE);
+            ratereduceMoney = MyUtils.formatDouble(((double) actualTotalMoneny) * (100 - orderRate) / 100);
+            actualTotalMoneny -= ratereduceMoney;
+            rateReduceContent.setText("整单" + MyUtils.formatDouble((double) orderRate / 10) + "折优惠");
+            rateReduceMoney.setText("-" + ratereduceMoney);
+        } else {
+            ratereduceMoney = 0.0;
+            llRateReduce.setVisibility(View.GONE);
+        }
         if (deleteoddMoney > 0) {
             llDeleteOdd.setVisibility(View.VISIBLE);
             deleteOddMoney.setText("-" + deleteoddMoney);
+            actualTotalMoneny -= deleteoddMoney;
+
         } else {
             llDeleteOdd.setVisibility(View.GONE);
             deleteOddMoney.setText("0");
         }
-        fullReduceMoney = MyUtils.formatDouble(ProductUtil.calFullReduceMoney(actualTotalMoneny) > actualTotalMoneny ? actualTotalMoneny : ProductUtil.calFullReduceMoney(actualTotalMoneny));
-        fullreduceMoney.setText("-" + fullReduceMoney);
-        actualTotalMoneny -= fullReduceMoney;
-        if (orderRate!=100){
-            llRateReduce.setVisibility(View.VISIBLE);
-            ratereduceMoney=MyUtils.formatDouble(((double)actualTotalMoneny)*(100-orderRate)/100);
-            actualTotalMoneny-=ratereduceMoney;
-            rateReduceContent.setText("整单"+MyUtils.formatDouble((double) orderRate/10)+"折优惠");
-            rateReduceMoney.setText("-"+ratereduceMoney);
-        }else{
-            ratereduceMoney=0.0;
-            llRateReduce.setVisibility(View.VISIBLE);
+        if (activityReduceMoney > 0) {
+            llStoreReduce.setVisibility(View.VISIBLE);
+        } else {
+            llStoreReduce.setVisibility(View.GONE);
         }
-
+        if (fullReduceMoney > 0) {
+            llFullReduce.setVisibility(View.VISIBLE);
+        } else {
+            llFullReduce.setVisibility(View.GONE);
+        }
         actualTotalMoneny = MyUtils.formatDouble(actualTotalMoneny) >= 0 ? MyUtils.formatDouble(actualTotalMoneny) : 0.0;
         totalMoney.setText("￥" + actualTotalMoneny + "元");
         minPayMoney.setText("-" + meatReduceMoney);
@@ -521,13 +539,18 @@ public class SettleFg extends BaseFragment {
                                     @Override
                                     public void onClick(QMUIDialog dialog, int index) {
                                         dialog.dismiss();
+                                        showDialog();
                                         tableAVObject.put("user", null);
                                         tableAVObject.saveInBackground(new SaveCallback() {
                                             @Override
                                             public void done(AVException e) {
                                                 if (e == null) {
+                                                    hideDialog();
                                                     ToastUtil.showShort(MyApplication.getContextObject(), "清空用户数据成功");
                                                     initData();
+                                                } else {
+                                                    hideDialog();
+                                                    ToastUtil.showShort(MyApplication.getContextObject(), "网络错误" + e.getMessage());
                                                 }
                                             }
                                         });
@@ -548,7 +571,7 @@ public class SettleFg extends BaseFragment {
                 OrderDetail orderDetail = new OrderDetail(tableAVObject, hasMeatWeight, originTotalMoneny,
                         actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
                         onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), orders, selectTableIds, selectTableNumber, fullReduceMoney, isHangUp, deleteoddMoney,
-                        orderRate,ratereduceMoney);
+                        orderRate, ratereduceMoney);
                 Logger.d(useExchangeList);
                 bundle.putSerializable("table", (Serializable) orderDetail);
                 payFg.setArguments(bundle);
@@ -612,7 +635,9 @@ public class SettleFg extends BaseFragment {
                                         llShowMember.setVisibility(View.VISIBLE);
                                         Double whiteBarBalance = MyUtils.formatDouble(Double.parseDouble(object.get("gold").toString()) - Double.parseDouble(object.get("arrears").toString()));
                                         Double storedBalance = MyUtils.formatDouble(Double.parseDouble(object.get("stored").toString()));
-                                        Glide.with(MyApplication.getContextObject()).load(object.get("avatarurl").toString()).into(userAvatar);
+                                        if (object.get("avatarurl") != null&&!object.get("avatarurl").equals("")) {
+                                            Glide.with(MyApplication.getContextObject()).load(object.get("avatarurl").toString()).into(userAvatar);
+                                        }
                                         userTel.setText("用户手机号:" + object.get("username").toString());
                                         userStored.setText("消费金:" + storedBalance);
                                         userWhitebar.setText("白条:" + whiteBarBalance);
@@ -685,22 +710,27 @@ public class SettleFg extends BaseFragment {
         }
 
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(FuncBean event) {
         setFunc(event.getCode());
 
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(RateBean event) {
         orderRate = event.getRate();
+        deleteoddMoney = 0.0;
         refreshList();
-
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void UserMessgae(UserBean userBean) {
         if (userBean.getCallbackCode() == CONST.UserCode.SCANCUSTOMER) {
             llShowMember.setVisibility(View.VISIBLE);
-            Glide.with(MyApplication.getContextObject()).load(userBean.getAvatar()).into(userAvatar);
+            if (userBean.getAvatar()!=null&&!userBean.getAvatar().equals("")){
+                Glide.with(MyApplication.getContextObject()).load(userBean.getAvatar()).into(userAvatar);
+            }
             userTel.setText("用户手机号:" + userBean.getUsername());
             userStored.setText("消费金:" + userBean.getStored());
             userWhitebar.setText("白条:" + userBean.getBalance());
@@ -761,7 +791,7 @@ public class SettleFg extends BaseFragment {
 
     private void printPreOrder() {
         LinkedHashMap<String, Double> reduceMap = new LinkedHashMap<>();
-        if (meatReduceMoney > 0&&cbUseSvip.isChecked()) {
+        if (meatReduceMoney > 0 && cbUseSvip.isChecked()) {
             reduceMap.put("牛肉抵扣金额", meatReduceMoney);
         }
         if (offlineCouponMoney > 0) {
@@ -775,6 +805,10 @@ public class SettleFg extends BaseFragment {
         }
         if (fullReduceMoney > 0) {
             reduceMap.put("满减优惠", fullReduceMoney);
+        }
+        if (orderRate != 100) {
+            String content = "整单" + orderRate + "折优惠";
+            reduceMap.put(content, ratereduceMoney);
         }
         if (deleteoddMoney > 0) {
             reduceMap.put("抹零", deleteoddMoney);
@@ -886,7 +920,7 @@ public class SettleFg extends BaseFragment {
                                     } else {
                                         Toast.makeText(getActivity(), "超过可抹零的权限", Toast.LENGTH_SHORT).show();
                                     }
-                                }else{
+                                } else {
                                     deleteoddMoney = Double.parseDouble(text);
                                     dialog.dismiss();
                                     refreshList();

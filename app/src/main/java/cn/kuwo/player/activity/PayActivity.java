@@ -112,6 +112,14 @@ public class PayActivity extends BaseActivity {
     TextView rateReduceMoney;
     @BindView(R.id.ll_rate_reduce)
     LinearLayout llRateReduce;
+    @BindView(R.id.black_five_money)
+    TextView blackFiveMoney;
+    @BindView(R.id.ll_black_five)
+    LinearLayout llBlackFive;
+    @BindView(R.id.ll_full_reduce)
+    LinearLayout llFullReduce;
+    @BindView(R.id.ll_store_reduce)
+    LinearLayout llStoreReduce;
     private OrderDetail orderDetail;
     private List<Integer> paymentTypes = new ArrayList<>();
     private JSONObject jsonReduce;
@@ -211,7 +219,7 @@ public class PayActivity extends BaseActivity {
                     mallOrder.put("store", 1);
                     mallOrder.put("outside", true);
                     mallOrder.put("commodityDetail", orderDetail.getOrders());
-                    if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null) {
+                    if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null&&orderDetail.getMyReduceMoney()>0) {
                         mallOrder.put("meatWeights", ProductUtil.listToList(orderDetail.getUseExchangeList()));
                         mallOrder.put("meatDetail", ProductUtil.listToObject(orderDetail.getUseExchangeList()));
                         mallOrder.put("useMeat", AVObject.createWithoutData("Meat", orderDetail.getUseMeatId()));
@@ -224,6 +232,12 @@ public class PayActivity extends BaseActivity {
                     mallOrder.put("type", 1);
                     jsonReduce = new JSONObject();
                     try {
+                        if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null&&orderDetail.getMyReduceMoney()>0) {
+                            jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
+                        }
+                        if (orderDetail.getBlackfiveMoney() > 0) {
+                            jsonReduce.put("周五冻肉半价优惠", orderDetail.getBlackfiveMoney());
+                        }
                         if (orderDetail.getOnlineCouponEvent() != null) {
                             jsonReduce.put(orderDetail.getOnlineCouponEvent().getContent(), orderDetail.getOnlineCouponEvent().getMoney());
                             mallOrder.put("useUserCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOnlineCouponEvent().getId()));
@@ -232,9 +246,7 @@ public class PayActivity extends BaseActivity {
                             jsonReduce.put(orderDetail.getOfflineCouponEvent().getContent(), orderDetail.getOfflineCouponEvent().getMoney());
                             mallOrder.put("useSystemCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOfflineCouponEvent().getId()));
                         }
-                        if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null) {
-                            jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
-                        }
+
                         if (orderDetail.getActivityMoney() > 0) {
                             jsonReduce.put("线下店打折优惠", orderDetail.getActivityMoney());
                         }
@@ -291,6 +303,16 @@ public class PayActivity extends BaseActivity {
         storeReduceMoney.setText("-" + orderDetail.getActivityMoney());
         totalMoney.setText("￥" + orderDetail.getActualMoney());
         fullreduceMoney.setText("-" + orderDetail.getFullReduceMoney());
+        if (orderDetail.getFullReduceMoney() > 0) {
+            llFullReduce.setVisibility(View.VISIBLE);
+        } else {
+            llFullReduce.setVisibility(View.GONE);
+        }
+        if (orderDetail.getActivityMoney()>0){
+            llStoreReduce.setVisibility(View.VISIBLE);
+        }else{
+            llStoreReduce.setVisibility(View.GONE);
+        }
         if (orderDetail.getOfflineCouponEvent() != null) {
             tvOfflineContent.setText(orderDetail.getOfflineCouponEvent().getContent());
             tvOfflineMoeny.setText("-" + orderDetail.getOfflineCouponEvent().getMoney());
@@ -305,12 +327,18 @@ public class PayActivity extends BaseActivity {
         } else {
             llDeleteOdd.setVisibility(View.GONE);
         }
-        if (orderDetail.getRate()!=100){
+        if (orderDetail.getBlackfiveMoney() > 0) {
+            llBlackFive.setVisibility(View.VISIBLE);
+            blackFiveMoney.setText("-" + orderDetail.getBlackfiveMoney());
+        } else {
+            llBlackFive.setVisibility(View.GONE);
+        }
+        if (orderDetail.getRate() != 100) {
             llRateReduce.setVisibility(View.VISIBLE);
-            rateReduceContent.setText("整单"+ MyUtils.formatDouble((double) orderDetail.getRate()/10)+"折优惠");
-            rateReduceMoney.setText("-"+orderDetail.getRateReduceMoney());
+            rateReduceContent.setText("整单" + MyUtils.formatDouble((double) orderDetail.getRate() / 10) + "折优惠");
+            rateReduceMoney.setText("-" + orderDetail.getRateReduceMoney());
 
-        }else{
+        } else {
             llRateReduce.setVisibility(View.GONE);
         }
         if (orderDetail.getUserBean() != null) {
@@ -321,6 +349,7 @@ public class PayActivity extends BaseActivity {
             paymentTypes.add(5);
             paymentTypes.add(6);
             paymentTypes.add(21);
+            paymentTypes.add(22);
         }
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
 
@@ -375,6 +404,7 @@ public class PayActivity extends BaseActivity {
         paymentTypes.add(5);
         paymentTypes.add(6);
         paymentTypes.add(21);
+        paymentTypes.add(22);
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
 
     }

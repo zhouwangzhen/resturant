@@ -52,14 +52,33 @@ public class ShowGoodAdapter extends RecyclerView.Adapter<ShowGoodAdapter.MyView
     public void onBindViewHolder(MyViewHolder holder, final int position) {
         HashMap<String, Object> format = ObjectUtil.format(finalOrders.get(finalOrders.size() - position - 1));
         ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-        holder.tvName.setText(productBean.getName());
-        Drawable drawable = mContext.getResources().getDrawable(R.mipmap.icon_already);
-        holder.tvPrice.setText("￥" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "number") * productBean.getPrice()));
-        Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
-        holder.imageState.setImageDrawable(drawable);
+        String contnet = productBean.getName();
+        try {
+            if (format.containsKey("comboList") && ObjectUtil.getList(format, "comboList").size() > 0) {
+                List<String> comboList = ObjectUtil.getList(format, "comboList");
+                for (int j = 0; j < comboList.size(); j++) {
+                    if (j == 0) {
+                        contnet += " (";
+                    }
+                    contnet += comboList.get(j);
+                    if (j == comboList.size() - 1) {
+                        contnet += ")";
+                    } else {
+                        contnet += ",";
+                    }
+                }
+
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+        holder.tvName.setText(contnet);
+        holder.tvPrice.setText("￥" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")));
         holder.tvSerial.setText(productBean.getSerial());
-        String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + "kg";
-        if (productBean.getScale() > 0) {
+        String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  +  (ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
+        if (productBean.getScale() > 0&&ObjectUtil.getDouble(format,"price")>0) {
             weightContent += "超牛会员可抵扣" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")*productBean.getScale()) + "kg";
             if (productBean.getRemainMoney() > 0) {
                 weightContent += ",额外需要" + MyUtils.formatDouble(productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number"));
@@ -84,8 +103,6 @@ public class ShowGoodAdapter extends RecyclerView.Adapter<ShowGoodAdapter.MyView
             tvName = itemView.findViewById(R.id.tv_name);
             tvPrice = itemView.findViewById(R.id.tv_price);
             llItem = itemView.findViewById(R.id.ll_item);
-            imageAvatar = itemView.findViewById(R.id.image_avatar);
-            imageState = itemView.findViewById(R.id.image_state);
             tvSerial = itemView.findViewById(R.id.tv_serial);
             tvWeight = itemView.findViewById(R.id.tv_weight);
             tvWeight = itemView.findViewById(R.id.tv_weight);

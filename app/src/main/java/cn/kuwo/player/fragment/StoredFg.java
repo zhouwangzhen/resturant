@@ -329,7 +329,7 @@ public class StoredFg extends BaseFragment {
                     @Override
                     public void done(Map<String, Object> objectMap, AVException e) {
                         if (e == null) {
-                            if (Integer.parseInt(objectMap.get("clerk").toString()) > 6 || (Boolean) objectMap.get("test")) {
+                            if (Integer.parseInt(objectMap.get("clerk").toString()) > 0 || (Boolean) objectMap.get("test")) {
                                 marketId = objectMap.get("objectId").toString();
                                 marketName= objectMap.get("realName").toString() == null ? objectMap.get("nickName").toString() : objectMap.get("realName").toString();
                                 toRecharge();
@@ -402,7 +402,7 @@ public class StoredFg extends BaseFragment {
                 tvIsSvip.setText("会员类型:普通会员");
             }
         } else if (userBean.getCallbackCode() == CONST.UserCode.SCANUSER) {
-            if (userBean.getClerk() > 6 || userBean.getTest()) {
+            if (userBean.getClerk() > 0 || userBean.getTest()) {
                 marketId = userBean.getId();
                 marketName=userBean.getRealName();
                 toRecharge();

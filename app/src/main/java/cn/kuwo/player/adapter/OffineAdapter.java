@@ -28,6 +28,7 @@ import cn.kuwo.player.custom.ShowComboMenuFragment;
 import cn.kuwo.player.interfaces.MyItemClickListener;
 import cn.kuwo.player.util.AppUtils;
 import cn.kuwo.player.util.MyUtils;
+import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.ToastUtil;
@@ -132,19 +133,16 @@ public class OffineAdapter extends RecyclerView.Adapter<OffineAdapter.MyViewHold
             holder.number.setText(productBean.getSerial());
             holder.name.setText(productBean.getName().toString());
             if (productBean.getSerial()!=null) {
-                holder.weight.setText("菜品重量:" + productBean.getWeight() + "kg  " + (productBean.getScale() > 0 ? "可抵扣牛肉重量:" + MyUtils.formatDouble(productBean.getScale() * productBean.getWeight()) + "kg" + "抵扣后需支付:" + productBean.getRemainMoney() + "元" : ""));
+                holder.weight.setText("菜品重量:" + productBean.getWeight() +  (productBean.getWeight()>20?"ml":"kg") + (productBean.getScale() > 0 ? "可抵扣牛肉重量:" + MyUtils.formatDouble(productBean.getScale() * productBean.getWeight()) + "kg" + "抵扣后需支付:" + productBean.getRemainMoney() + "元" : ""));
 
             }
             holder.price.setText("￥" + productBean.getPrice());
-            Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.ImageAvatar);
+            if (productBean.getUrl()!=null&&!productBean.getUrl().equals("")){
+                Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.ImageAvatar);
+            }
             holder.llCommodityItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-//                    if (productBean.getComboMenu()!=null) {
-//
-//                        ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(context, productBean, false);
-//                        showComboMenuFragment.show(supportFragmentManager, "showcomboMenu");
-//                    }
 
 
                 }

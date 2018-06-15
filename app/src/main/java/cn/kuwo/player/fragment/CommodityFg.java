@@ -141,7 +141,9 @@ public class CommodityFg extends BaseFragment {
                     offineAdapter = new OffineAdapter(MyApplication.getContextObject(), mRealmHleper.queryAllProduct(), mRealmHleper.queryAllType(), mActivity.getFragmentManager());
                     offinelist.setAdapter(offineAdapter);
                     emptyView.show(false);
-
+                    hideDialog();
+                }else{
+                    hideDialog();
                 }
             }
         });
@@ -198,6 +200,7 @@ public class CommodityFg extends BaseFragment {
     }
 
     public void loadType() {
+        showDialog();
         emptyView.show(true);
         CommodityTypeApi.getCommodityType().findInBackground(new FindCallback<AVObject>() {
             @Override
@@ -215,6 +218,7 @@ public class CommodityFg extends BaseFragment {
                     }
                     loadCommodity();
                 } else {
+                    hideDialog();
                     emptyView.show(false);
                     ToastUtil.showLong(MyApplication.getContextObject(), "加载失败");
                 }
