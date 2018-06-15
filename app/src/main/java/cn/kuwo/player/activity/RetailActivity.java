@@ -72,6 +72,7 @@ public class RetailActivity extends BaseActivity {
     private ArrayList<Double> weights = new ArrayList<>();
     private ArrayList<String> codes = new ArrayList<>();
     private ArrayList<String> ids = new ArrayList<>();
+    private ArrayList<String> names = new ArrayList<>();
 
     private String barcode = "";
     private Double money = 0.0;
@@ -142,7 +143,7 @@ public class RetailActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(RetailActivity.this, SettleActivity.class);
-                RetailBean retailBean = new RetailBean(ids, codes, prices, weights);
+                RetailBean retailBean = new RetailBean(ids, codes, prices, weights,names);
                 intent.putExtra("retailBean", retailBean);
                 startActivityForResult(intent, 1);
             }
@@ -202,6 +203,7 @@ public class RetailActivity extends BaseActivity {
         ProductBean productBean = MyUtils.getProductBean(barcode).get(0);
         commodityList.add(productBean);
         codes.add(barcode);
+        names.add(productBean.getName());
         weights.add(ProductUtil.calCommodityWeight(barcode));
         prices.add(ProductUtil.calCommodityMoney(barcode));
         ids.add(ProductUtil.calCommodityId(barcode));
@@ -220,6 +222,7 @@ public class RetailActivity extends BaseActivity {
         commodityList.remove(postion);
         weights.remove(postion);
         ids.remove(postion);
+        names.remove(postion);
         scanAdapter.notifyDataSetChanged();
         money = MyUtils.totalPrice(prices);
         totalMoney.setText("共" + codes.size() + "件" + "     总计:" + money + "元");
@@ -241,10 +244,12 @@ public class RetailActivity extends BaseActivity {
             codes = new ArrayList<>();
             weights = new ArrayList<>();
             ids = new ArrayList<>();
+            names = new ArrayList<>();
             money = 0.0;
             commodityList = new ArrayList<>();
             noInfo.setVisibility(View.VISIBLE);
             flTotal.setVisibility(View.GONE);
+            listOther.setVisibility(View.GONE);
             scanAdapter = new ScanAdapter(getApplication(), commodityList, codes, prices, weights);
             recycleScan.setAdapter(scanAdapter);
             scanAdapter.setOnItemClickListener(new MyItemClickListener() {

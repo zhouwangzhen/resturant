@@ -84,6 +84,7 @@ public class ShowCouponFragment extends DialogFragment {
                 double aDouble = avObject.getAVObject("type").getDouble("section");
                 if (originTotalMoneny>=aDouble){
                     getDialog().dismiss();
+                    Logger.d(avObject.getAVObject("type"));
                     EventBus.getDefault().post(new CouponEvent(type,avObject.getObjectId(),avObject.getDouble("gold"),avObject.getAVObject("type").getString("name")));
                 }else{
                     ToastUtil.showShort(MyApplication.getContextObject(),"未达到指定金额");

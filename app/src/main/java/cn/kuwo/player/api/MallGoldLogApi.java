@@ -30,6 +30,8 @@ public class MallGoldLogApi {
                 mallGoldLog.whereNotContainedIn("cashier",testUsers);
             }
             mallGoldLog.whereGreaterThan("createdAt", date);
+            mallGoldLog.include("cashier");
+            mallGoldLog.include("user");
             mallGoldLog.whereLessThan("createdAt", nextDate);
             return mallGoldLog;
         }catch (Exception e){

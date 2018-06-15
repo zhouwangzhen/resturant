@@ -243,13 +243,18 @@ public class ScanUserFragment extends DialogFragment {
                                     getDialog().dismiss();
                                 } else if (type == 1) {//获取客户信息和剩余可提牛肉数量
                                     Map<String, Object> parameters = new HashMap<String, Object>();
-                                    Logger.d(map);
                                     parameters.put("userID", map.getObjectId());
                                     AVCloud.callFunctionInBackground("svip", parameters, new FunctionCallback<Map<String, Object>>() {
                                         @Override
                                         public void done(Map<String, Object> objectMap, AVException e) {
                                             if (e == null) {
                                                 hideDialog();
+                                                String avatar=null;
+                                                try {
+                                                    avatar = map.get("avatarurl") != null && !map.get("avatarurl").equals("") ? map.get("avatarurl").toString() : null;
+                                                } catch (Exception e1) {
+                                                    e1.printStackTrace();
+                                                }
                                                 UserBean userBean = new UserBean(
                                                         CONST.UserCode.SCANCUSTOMER,
                                                         map.getObjectId(),
@@ -264,7 +269,7 @@ public class ScanUserFragment extends DialogFragment {
                                                         MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
                                                         objectMap.get("meatId").toString().length() > 0 ? objectMap.get("meatId").toString() : "",
                                                         (Boolean) objectMap.get("svip"),
-                                                        map.get("avatarurl") != null ? map.get("avatarurl").toString() : null,
+                                                        avatar,
                                                         (Boolean) objectMap.get("alreadySVIP")
                                                 );
                                                 EventBus.getDefault().post(userBean);
@@ -321,6 +326,12 @@ public class ScanUserFragment extends DialogFragment {
                                     public void done(Map<String, Object> objectMap, AVException e) {
                                         if (e == null) {
                                             hideDialog();
+                                            String avatar = null;
+                                            try {
+                                                avatar = map.get("avatarurl") != null && !map.get("avatarurl").equals("") ? map.get("avatarurl").toString() : null;
+                                            } catch (Exception e1) {
+                                                e1.printStackTrace();
+                                            }
                                             UserBean userBean = new UserBean(
                                                     CONST.UserCode.SCANCUSTOMER,
                                                     map.get("objectId").toString(),
@@ -335,7 +346,7 @@ public class ScanUserFragment extends DialogFragment {
                                                     MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
                                                     objectMap.get("meatId").toString().length() > 0 ? objectMap.get("meatId").toString() : "",
                                                     (Boolean) objectMap.get("svip"),
-                                                    (map.get("avatarurl") != null && !map.get("avatarurl").equals("") ? map.get("avatarurl").toString() : null),
+                                                    avatar,
                                                     (Boolean) objectMap.get("alreadySVIP")
                                             );
                                             EventBus.getDefault().post(userBean);

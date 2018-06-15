@@ -1,6 +1,8 @@
 package cn.kuwo.player.event;
 
-public class CouponEvent {
+import java.io.Serializable;
+
+public class CouponEvent implements Serializable{
     private int type;
     private String id;
     private Double money;

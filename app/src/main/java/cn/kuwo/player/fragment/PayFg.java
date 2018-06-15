@@ -289,8 +289,7 @@ public class PayFg extends BaseFragment {
                         public void done(AVException e) {
                             hideDialog();
                             if (e == null) {
-                                showDialog();
-//                                ProductUtil.saveOperateLog(4, orderDetail.getFinalOrders(), orderDetail.getAvObject());
+                                resetTable();
                                 Bill.printSettleBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow, finalTableNumber);
                                 ToastUtil.showShort(MyApplication.getContextObject(), "订单结算完成");
                             } else {
@@ -598,7 +597,7 @@ public class PayFg extends BaseFragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(PrintEvent event) {
-        hideDialog();
-        resetTable();
+//        hideDialog();
+//        resetTable();
     }
 }

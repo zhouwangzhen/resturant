@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
@@ -19,13 +20,16 @@ import android.widget.Toast;
 import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.DeleteCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.FunctionCallback;
+import com.avos.avoscloud.SaveCallback;
 import com.bumptech.glide.Glide;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.yzq.zxinglibrary.android.CaptureActivity;
 import com.yzq.zxinglibrary.common.Constant;
 
@@ -47,6 +51,8 @@ import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.adapter.ShowRetailAdapter;
 import cn.kuwo.player.api.CouponApi;
+import cn.kuwo.player.api.HangUpApi;
+import cn.kuwo.player.api.TableApi;
 import cn.kuwo.player.base.BaseActivity;
 import cn.kuwo.player.bean.FuncBean;
 import cn.kuwo.player.bean.RateBean;
@@ -60,6 +66,7 @@ import cn.kuwo.player.custom.ShowReduceListFragment;
 import cn.kuwo.player.custom.ShowWholeSaleFragment;
 import cn.kuwo.player.event.CouponEvent;
 import cn.kuwo.player.event.OrderDetail;
+import cn.kuwo.player.fragment.TableFg;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
@@ -182,6 +189,7 @@ public class SettleActivity extends BaseActivity {
     private int REQUEST_FUNC = 100;
     private int REQUEST_RATE = 102;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
+    private static boolean isHangUp = false;
 
     @Override
     protected int getContentViewId() {
@@ -194,6 +202,7 @@ public class SettleActivity extends BaseActivity {
     @Override
     public void initData() {
         context = this;
+        isHangUp = getIntent().getBooleanExtra("isHangUp",false);
         retailBean = (RetailBean) getIntent().getSerializableExtra("retailBean");
         linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         recycleScanGood.setLayoutManager(linearLayoutManager);
@@ -431,6 +440,11 @@ public class SettleActivity extends BaseActivity {
                         onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), userBean, orders, fullReduceMoney,
                         deleteoddMoney, orderRate, ratereduceMoney,blackfiveMoney);
                 bundle.putSerializable("table", (Serializable) orderDetail);
+                if (isHangUp){
+                    bundle.putString("remark",getIntent().getStringExtra("remark"));
+                    bundle.putString("hangUpId",getIntent().getStringExtra("hangUpId"));
+                    bundle.putBoolean("isHangUp",getIntent().getBooleanExtra("isHangUp",false));
+                }
                 intent.putExtras(bundle);
                 startActivityForResult(intent, 1);
                 break;
@@ -512,6 +526,13 @@ public class SettleActivity extends BaseActivity {
 
     private void setFunc(int resultCode) {
         switch (resultCode) {
+            case 1://挂单
+                if (isHangUp) {
+                    ToastUtil.showShort(MyApplication.getContextObject(), "挂账订单不可继续挂账");
+                } else {
+                    hangUp();//挂账
+                }
+                break;
             case 2://抹零
                 deleteOdd();
                 break;
@@ -525,7 +546,34 @@ public class SettleActivity extends BaseActivity {
         }
 
     }
+    private void hangUp() {
+        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(this);
+        builder.setTitle("提示")
+                .setPlaceholder("在此输入挂单原因")
+                .setInputType(InputType.TYPE_CLASS_TEXT)
+                .setCanceledOnTouchOutside(false)
+                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        dialog.dismiss();
+                    }
+                })
+                .addAction("确定", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        String text = builder.getEditText().getText().toString();
+                        if (text != null && text.length() > 0) {
+                            HangUpOrder(text);
+                            dialog.dismiss();
+                        } else {
+                            Toast.makeText(MyApplication.getContextObject(), "请输入挂单原因", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .create(mCurrentDialogStyle).show();
 
+
+    }
     private void printPreOrder() {
         LinkedHashMap<String, Double> reduceMap = new LinkedHashMap<>();
         if (meatReduceMoney > 0 && cbUseSvip.isChecked()) {
@@ -689,6 +737,7 @@ public class SettleActivity extends BaseActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(CouponEvent event) {
+        Logger.d(event);
         if (event.getType() == 1) {
             onlineCouponEvent = event;
         } else if (event.getType() == 2) {
@@ -711,5 +760,22 @@ public class SettleActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         // TODO: add setContentView(...) invocation
         ButterKnife.bind(this);
+    }
+    private void HangUpOrder(String content) {
+        showDialog();
+            final AVObject hangUpOrder = HangUpApi.saveHangUpOrderByRest(retailBean,content);
+            hangUpOrder.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(AVException e) {
+                    if (e == null) {
+                        ToastUtil.showLong(context,"挂单成功");
+                        setResult(1,getIntent());
+                        finish();
+                    } else {
+                        hideDialog();
+                        ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage() + "订单信息错误");
+                    }
+                }
+            });
     }
 }

@@ -2,6 +2,7 @@ package cn.kuwo.player.fragment;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.CardView;
@@ -17,7 +18,11 @@ import android.widget.TextView;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.FindCallback;
+import com.orhanobut.logger.Logger;
 
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -25,9 +30,15 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import cn.kuwo.player.R;
+import cn.kuwo.player.activity.RetailActivity;
+import cn.kuwo.player.activity.SettleActivity;
 import cn.kuwo.player.api.HangUpApi;
 import cn.kuwo.player.base.BaseFragment;
+import cn.kuwo.player.bean.ProductBean;
+import cn.kuwo.player.bean.RetailBean;
+import cn.kuwo.player.util.DataUtil;
 import cn.kuwo.player.util.DateUtil;
+import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 
 public class HangUpFragment extends BaseFragment {
@@ -46,13 +57,17 @@ public class HangUpFragment extends BaseFragment {
 
     @Override
     public void initData() {
+        showDialog();
         HangUpApi.getHangUpOrders().findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(List<AVObject> list, AVException e) {
                 if (e == null) {
+                    hideDialog();
                     hangUpList = list;
                     hangAdapter = new HangAdapter();
                     gvHangup.setAdapter(hangAdapter);
+                }else{
+                    hideDialog();
                 }
             }
         });
@@ -115,10 +130,19 @@ public class HangUpFragment extends BaseFragment {
             holder.order_remark.setText("备注信息:" + avObject.getString("remark"));
             holder.order_state.setText("订单状态:挂单中");
             String commodityList = "菜品详情\n";
-            for (int i = 0; i < avObject.getList("order").size(); i++) {
-                HashMap<String, Object> order = ObjectUtil.format(avObject.getList("order").get(i));
-                commodityList += order.get("name").toString() + "*" + order.get("number").toString() + "份\n";
+            if (avObject.getInt("type")==0){
+                for (int i = 0; i < avObject.getList("order").size(); i++) {
+                    HashMap<String, Object> order = ObjectUtil.format(avObject.getList("order").get(i));
+                    commodityList += order.get("name").toString() + "*" + order.get("number").toString() + "份\n";
+                }
+            }else if(avObject.getInt("type")==1){
+
+                for (int i = 0; i < avObject.getList("order").size(); i++) {
+                    HashMap<String, Object> order = ObjectUtil.format(avObject.getList("order").get(i));
+                    commodityList += order.get("name").toString() + "*" + order.get("weight").toString() + (Double.parseDouble(order.get("weight").toString())>20?"ml":"kg")+"份\n";
+                }
             }
+
             holder.order_detail.setText(commodityList);
             holder.card_order.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -138,8 +162,19 @@ public class HangUpFragment extends BaseFragment {
             holder.btn_to_settle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                    ft.replace(R.id.fragment_content, SettleFg.newInstance(avObject.getObjectId(),true)).commit();
+                    if (avObject.getInt("type")==0){
+                        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                        ft.replace(R.id.fragment_content, SettleFg.newInstance(avObject.getObjectId(),true)).commit();
+                    }else{
+                        Intent intent = new Intent(getActivity(), SettleActivity.class);
+                        RetailBean retailBean = DataUtil.buildRetailBean((List<Object>)avObject.get("order"));
+                        intent.putExtra("retailBean", retailBean);
+                        intent.putExtra("isHangUp", true);
+                        intent.putExtra("remark",avObject.getString("remark"));
+                        intent.putExtra("hangUpId",avObject.getObjectId());
+                        startActivityForResult(intent,1);
+                    }
+
                 }
             });
             return convertView;
@@ -154,6 +189,14 @@ public class HangUpFragment extends BaseFragment {
             LinearLayout show_detail;
             CardView card_order;
             Button btn_to_settle;
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode==1){
+            initData();
         }
     }
 }

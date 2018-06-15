@@ -13,10 +13,13 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toolbar;
 
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FindCallback;
+import com.avos.avoscloud.GetCallback;
 import com.bigkoo.pickerview.TimePickerView;
 import com.orhanobut.logger.Logger;
 
@@ -49,6 +52,7 @@ import cn.kuwo.player.util.DateUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
+import cn.kuwo.player.util.RechargeUtil;
 import cn.kuwo.player.util.StatisticsUtil;
 import cn.kuwo.player.util.ToastUtil;
 
@@ -241,11 +245,13 @@ public class OrderListFg extends BaseFragment {
     private void findOrders() {
         findOrders.removeAll(findOrders);
         for (int i = 0; i < orders.size(); i++) {
-            Logger.d(orders.get(i).getInt("type"));
-            Logger.d(orderType);
             if (orders.get(i).getInt("type") == orderType || orderType == -1) {
                 findOrders.add(orders.get(i));
             }
+        }
+        if (orderType == 2 || orderType == -1) {
+            findOrders.addAll(rechargeOrders);
+
         }
         orderListAdapter = new OrderListAdapter();
         gvTable.setAdapter(orderListAdapter);
@@ -306,77 +312,130 @@ public class OrderListFg extends BaseFragment {
                 holder = (ViewHolder) view.getTag();
             }
             final AVObject avObject = findOrders.get(position);
-            if (avObject.getDate("startedAt") != null) {
-                holder.order_date.setText("用餐时间:" + DateUtil.formatDate(avObject.getDate("startedAt")) + "~" + DateUtil.formatDate(avObject.getDate("endAt")));
-                holder.order_table_number.setText("桌号:" + avObject.getString("tableNumber"));
-                holder.order_paysum.setText("用餐人数:" + avObject.getInt("customer"));
-            } else {
-                holder.order_date.setText("点单时间:" + DateUtil.formatDate(avObject.getDate("createdAt")));
-                holder.order_paysum.setText("");
-                holder.order_table_number.setText("");
-            }
-            if (avObject.getAVObject("orderStatus").getObjectId().equals(CONST.OrderState.ORDER_STATUS_FINSIH)) {
-                holder.order_state.setText("订单状态:已完成");
-            } else {
-                holder.order_state.setText("订单状态:已退款");
-            }
-            if (!avObject.getAVUser("user").getObjectId().equals(CONST.ACCOUNT.SYSTEMACCOUNT)) {
-                holder.order_memberstyle.setText("会员用户:" + avObject.getAVUser("user").getString("username"));
-            } else {
-                holder.order_memberstyle.setText("非会员账号");
-            }
-            String commodityList = "菜品详情\n";
-            for (int i = 0; i < avObject.getList("commodityDetail").size(); i++) {
-                HashMap<String, Object> commodityDetail = ObjectUtil.format(avObject.getList("commodityDetail").get(i));
-                commodityList += commodityDetail.get("name").toString() + "*" + commodityDetail.get("number").toString() + "份\n";
-            }
-            if (ProductUtil.isRechargeSvipOrder(avObject)) {
-                holder.order_state_img.setBackgroundResource(R.drawable.order_recharge);
-            } else {
-                if (!avObject.getBoolean("hangUp")) {
-                    if (avObject.getBoolean("outside")) {
-                        holder.order_state_img.setBackgroundResource(R.drawable.order_retail);
-                    } else {
-                        holder.order_state_img.setBackgroundResource(R.drawable.order_res);
-                    }
+            if (avObject.getClassName().equals("MallOrder")) {
+                if (avObject.getDate("startedAt") != null) {
+                    holder.order_date.setText("用餐时间:" + DateUtil.formatDate(avObject.getDate("startedAt")) + "~" + DateUtil.formatDate(avObject.getDate("endAt")));
+                    holder.order_table_number.setText("桌号:" + avObject.getString("tableNumber"));
+                    holder.order_paysum.setText("用餐人数:" + avObject.getInt("customer"));
                 } else {
-                    holder.order_state_img.setBackgroundResource(R.drawable.icon_hangup_state);
+                    holder.order_date.setText("点单时间:" + DateUtil.formatDate(avObject.getDate("createdAt")));
+                    holder.order_paysum.setText("");
+                    holder.order_table_number.setText("");
                 }
-            }
-            holder.order_detail.setText(commodityList);
-            String settleContent = "                                     结账详情\n";
-            settleContent += "订单原价:" + avObject.getDouble("paysum") + "\n";
-            JSONObject reduceDetail = new JSONObject((Map) avObject.get("reduceDetail"));
-            Iterator iterator = reduceDetail.keys();
-            while (iterator.hasNext()) {
-                try {
-                    String key = (String) iterator.next();
-                    Double value = reduceDetail.getDouble(key);
-                    settleContent += key + ":" + "-" + value + "\n";
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                if (avObject.getAVObject("orderStatus").getObjectId().equals(CONST.OrderState.ORDER_STATUS_FINSIH)) {
+                    holder.order_state.setText("订单状态:已完成");
+                } else {
+                    holder.order_state.setText("订单状态:已退款");
                 }
-            }
-            settleContent += "优惠总价:-" + avObject.getDouble("reduce") + "\n";
-            Double meatweigth = 0.0;
-            List meatWeights = avObject.getList("meatWeights");
-            for (int i = 0; i < meatWeights.size(); i++) {
-                meatweigth += Double.parseDouble(meatWeights.get(i).toString());
-            }
-            settleContent += "牛肉抵扣重量:" + MyUtils.formatDouble(meatweigth) + "kg\n";
-            settleContent += "实付金额:" + MyUtils.formatDouble(avObject.getDouble("paysum") - avObject.getDouble("reduce")) + "\n";
-            JSONObject escrowDetail = new JSONObject((Map) avObject.get("escrowDetail"));
-            Iterator iterator1 = escrowDetail.keys();
-            while (iterator1.hasNext()) {
-                try {
-                    String key = (String) iterator1.next();
-                    Double value = escrowDetail.getDouble(key);
-                    settleContent += key + ":" + "-" + value + "\n";
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                if (!avObject.getAVUser("user").getObjectId().equals(CONST.ACCOUNT.SYSTEMACCOUNT)) {
+                    holder.order_memberstyle.setText("会员用户:" + avObject.getAVUser("user").getString("username"));
+                } else {
+                    holder.order_memberstyle.setText("非会员账号");
                 }
+                String commodityList = "菜品详情\n";
+                for (int i = 0; i < avObject.getList("commodityDetail").size(); i++) {
+                    HashMap<String, Object> commodityDetail = ObjectUtil.format(avObject.getList("commodityDetail").get(i));
+                    commodityList += commodityDetail.get("name").toString() + "*" + commodityDetail.get("number").toString() + "份\n";
+                }
+                if (ProductUtil.isRechargeSvipOrder(avObject)) {
+                    holder.order_state_img.setBackgroundResource(R.drawable.order_recharge);
+                } else {
+                    if (!avObject.getBoolean("hangUp")) {
+                        if (avObject.getBoolean("outside")) {
+                            holder.order_state_img.setBackgroundResource(R.drawable.order_retail);
+                        } else {
+                            holder.order_state_img.setBackgroundResource(R.drawable.order_res);
+                        }
+                    } else {
+                        holder.order_state_img.setBackgroundResource(R.drawable.icon_hangup_state);
+                    }
+                }
+                holder.order_detail.setText(commodityList);
+                String settleContent = "                                     结账详情\n";
+                settleContent += "订单原价:" + avObject.getDouble("paysum") + "\n";
+                JSONObject reduceDetail = new JSONObject((Map) avObject.get("reduceDetail"));
+                Iterator iterator = reduceDetail.keys();
+                while (iterator.hasNext()) {
+                    try {
+                        String key = (String) iterator.next();
+                        Double value = reduceDetail.getDouble(key);
+                        settleContent += key + ":" + "-" + value + "\n";
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                settleContent += "优惠总价:-" + avObject.getDouble("reduce") + "\n";
+                Double meatweigth = 0.0;
+                List meatWeights = avObject.getList("meatWeights");
+                for (int i = 0; i < meatWeights.size(); i++) {
+                    meatweigth += Double.parseDouble(meatWeights.get(i).toString());
+                }
+                settleContent += "牛肉抵扣重量:" + MyUtils.formatDouble(meatweigth) + "kg\n";
+                settleContent += "实付金额:" + MyUtils.formatDouble(avObject.getDouble("paysum") - avObject.getDouble("reduce")) + "\n";
+                JSONObject escrowDetail = new JSONObject((Map) avObject.get("escrowDetail"));
+                Iterator iterator1 = escrowDetail.keys();
+                while (iterator1.hasNext()) {
+                    try {
+                        String key = (String) iterator1.next();
+                        Double value = escrowDetail.getDouble(key);
+                        settleContent += key + ":" + "-" + value + "\n";
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                holder.order_settle.setText(settleContent);
+
+                holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (avObject.getInt("type") == 2) {
+                            Bill.reprintSvipBill(avObject);
+                        } else {
+                            Bill.reprintBill(MyApplication.getContextObject(), avObject);
+                        }
+
+                    }
+                });
+            } else if (avObject.getClassName().equals("MallGoldLog")) {
+                holder.order_state_img.setBackgroundResource(R.drawable.order_recharge);
+                holder.order_date.setText("充值时间:" + DateUtil.formatDate(avObject.getDate("createdAt")));
+                holder.order_memberstyle.setText("会员用户:" + avObject.getAVObject("user").getString("username"));
+                holder.order_detail.setText("消费金充值" + RechargeUtil.findRealMoney(avObject.getDouble("change")) + "元");
+                String payContent = "";
+                switch (avObject.getInt("escrow")) {
+                    case 3:
+                        payContent = "支付宝支付";
+                        break;
+                    case 4:
+                        payContent = "微信支付";
+                        break;
+                    case 5:
+                        payContent = "银行卡支付";
+                        break;
+                    case 6:
+                        payContent = "现金支付";
+                        break;
+                }
+                holder.order_settle.setText("支付方式:" + payContent);
+                holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AVQuery<AVObject> query = new AVQuery<>("_User");
+                        query.getInBackground(avObject.getString("market"), new GetCallback<AVObject>() {
+                            @Override
+                            public void done(AVObject userObject, AVException e) {
+                                if (e == null) {
+                                    Bill.reprintRechargeBill(avObject,userObject.getString("realName")!=null&&!userObject.getString("realName").equals("")?userObject.getString("realName"):userObject.getString("nickName"));
+                                } else {
+                                    ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
+                                }
+                            }
+                        });
+
+
+                    }
+                });
             }
-            holder.order_settle.setText(settleContent);
             holder.card_order.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -392,18 +451,6 @@ public class OrderListFg extends BaseFragment {
             if (position != selectIndex) {
                 holder.show_detail.setVisibility(View.GONE);
             }
-            holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (avObject.getInt("type") == 2) {
-                        Bill.reprintSvipBill(avObject);
-                    } else {
-                        Bill.reprintBill(MyApplication.getContextObject(), avObject);
-                    }
-
-                }
-            });
-
             return view;
         }
 

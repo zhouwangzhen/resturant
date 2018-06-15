@@ -120,28 +120,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void test() {
-//        AVQuery<AVObject> query = new AVQuery<>("OfflineCommodity");
-//        query.whereEqualTo("store",1);
-//        query.whereEqualTo("type",20);
-//        query.findInBackground(new FindCallback<AVObject>() {
-//            @Override
-//            public void done(List<AVObject> list, AVException e) {
-//                if (e==null){
-//                    for (int i=0;i<list.size();i++){
-//                        AVObject avObject = list.get(i);
-//                        avObject.put("type",3);
-//                        avObject.saveInBackground(new SaveCallback() {
-//                            @Override
-//                            public void done(AVException e) {
-//                                if (e==null){
-//                                    Logger.d("修改成功");
-//                                }
-//                            }
-//                        });
-//                    }
-//                }
-//            }
-//        });
+
     }
 
     /**
@@ -160,7 +139,7 @@ public class MainActivity extends BaseActivity {
         }
         SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
         if (sharedHelper.readBoolean("cashierLogin")) {
-            waiterName.setText(sharedHelper.read("cashierName"));
+            waiterName.setText("收银人员:"+sharedHelper.read("cashierName"));
         } else {
             sharedHelper.saveBoolean("cashierLogin", false);
             ScanUserFragment scanUserFragment = new ScanUserFragment(0);

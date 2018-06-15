@@ -218,6 +218,9 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         if (order != null && isEdit) {
             HashMap<String, Object> format = ObjectUtil.format(order);
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+            if (productBean.getType()==3||productBean.getType()==4){
+                radioSerial.setVisibility(View.GONE);
+            }
             Double number = ObjectUtil.getDouble(format, "number");
             commodityNumber = number;
             price.setText("￥" + MyUtils.formatDouble(number * productBean.getPrice()));

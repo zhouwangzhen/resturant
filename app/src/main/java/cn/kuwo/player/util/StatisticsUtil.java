@@ -26,16 +26,16 @@ public class StatisticsUtil {
         for (AVObject recharge : rechargeOrders) {
             switch (recharge.getInt("escrow")) {
                 case 3:
-                    capitalDetail.put("支付宝", capitalDetail.get("支付宝") + recharge.getDouble("change"));
+                    capitalDetail.put("支付宝", capitalDetail.get("支付宝") + RechargeUtil.findRealMoney(recharge.getDouble("change")));
                     break;
                 case 4:
-                    capitalDetail.put("微信", capitalDetail.get("微信") + recharge.getDouble("change"));
+                    capitalDetail.put("微信", capitalDetail.get("微信") + RechargeUtil.findRealMoney(recharge.getDouble("change")));
                     break;
                 case 5:
-                    capitalDetail.put("银行卡", capitalDetail.get("银行卡") + recharge.getDouble("change"));
+                    capitalDetail.put("银行卡", capitalDetail.get("银行卡") + RechargeUtil.findRealMoney(recharge.getDouble("change")));
                     break;
                 case 6:
-                    capitalDetail.put("现金", capitalDetail.get("现金") + recharge.getDouble("change"));
+                    capitalDetail.put("现金", capitalDetail.get("现金") + RechargeUtil.findRealMoney(recharge.getDouble("change")));
                     break;
             }
         }
@@ -137,6 +137,8 @@ public class StatisticsUtil {
         HashMap<Integer, Integer> orderTypes = new HashMap<>();
         Double online = 0.0;
         Double offline = 0.0;
+        Double rechargeMoney = 0.0;
+        Double svipMoney = 0.0;
         int retail = 0;
         int restaurarnt = 0;
         int svip = 0;
@@ -146,9 +148,10 @@ public class StatisticsUtil {
         int recharge = rechargeOrders.size();
         Double reduceWeight = 0.0;
         for (AVObject rechargeOrder : rechargeOrders) {
-            offline += rechargeOrder.getDouble("change");
+            offline += RechargeUtil.findRealMoney(rechargeOrder.getDouble("change"));
+            rechargeMoney += RechargeUtil.findRealMoney(rechargeOrder.getDouble("change"));
         }
-        capitalDetail=getCapitalDetail(orders,rechargeOrders);
+        capitalDetail = getCapitalDetail(orders, rechargeOrders);
         for (AVObject order : orders) {
             Double actualMoney = order.getDouble("paysum") - order.getDouble("reduce");
             online += order.getDouble("actuallyPaid");
@@ -159,6 +162,7 @@ public class StatisticsUtil {
                 retail++;
             } else if (order.getInt("type") == 2) {
                 svip++;
+                svipMoney += actualMoney;
             } else if (order.getInt("type") == 3) {
                 hangup++;
             }
@@ -226,7 +230,7 @@ public class StatisticsUtil {
         detail.put("noMember", noMember + "单");
         detail.put("retailNumber", retail + "单");
         detail.put("restaurarntNumber", restaurarnt + "单");
-        detail.put("svipNumber", svip + "单");
+        detail.put("svip", svip + "单");
         detail.put("hangupNumber", hangup + "单");
         detail.put("reduceWeight", MyUtils.formatDouble(reduceWeight) + "kg");
         detail.put("numbers", list);
@@ -235,7 +239,9 @@ public class StatisticsUtil {
         detail.put("onlineCoupon", onlineCoupon);
         detail.put("orderTypes", orderTypes);
         detail.put("capitalDetail", capitalDetail);
+        detail.put("rechargeMoney", MyUtils.formatDouble(rechargeMoney));
         detail.put("storedRechargeNumber", recharge + "单");
+        detail.put("svipMoney", MyUtils.formatDouble(svipMoney) + "元");
         Logger.d(detail);
         return detail;
     }

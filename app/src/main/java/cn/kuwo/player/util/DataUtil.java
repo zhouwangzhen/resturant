@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import cn.kuwo.player.bean.ProductBean;
+import cn.kuwo.player.bean.RetailBean;
 import cn.kuwo.player.event.ComboEvent;
 
 public class DataUtil {
@@ -82,7 +83,7 @@ public class DataUtil {
                 if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
                     format.put("comboList", event.getComboList());
                 } else {
-                    format.put("comboList",new ArrayList<Object>());
+                    format.put("comboList", new ArrayList<Object>());
                 }
                 format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
                 format.put("cookSerial", event.getCookSerial());
@@ -92,4 +93,21 @@ public class DataUtil {
         }
     }
 
+
+    public static RetailBean buildRetailBean(List<Object> orders) {
+        ArrayList<String> ids = new ArrayList<>();
+        ArrayList<String> codes = new ArrayList<>();
+        ArrayList<Double> prices = new ArrayList<>();
+        ArrayList<Double> weight = new ArrayList<>();
+        ArrayList<String> name = new ArrayList<>();
+        for (int i = 0; i < orders.size(); i++) {
+            HashMap<String, Object> o = (HashMap<String, Object>)orders.get(i);
+            ids.add(ObjectUtil.getString(o, "id"));
+            codes.add(ObjectUtil.getString(o, "code"));
+            prices.add(ObjectUtil.getDouble(o, "price"));
+            weight.add(ObjectUtil.getDouble(o, "weight"));
+            name.add(ObjectUtil.getString(o, "id"));
+        }
+        return new RetailBean(ids, codes, prices, weight, name);
+    }
 }

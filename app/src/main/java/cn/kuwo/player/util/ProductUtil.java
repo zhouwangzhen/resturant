@@ -769,8 +769,13 @@ public class ProductUtil {
         int number = 0;
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 5) {
+            Logger.d(format);
+            Logger.d(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 3);
+            Logger.d(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 4);
+            Logger.d(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 3||MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 4);
+            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 3&&MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 4) {
                 ++number;
+                Logger.d(number);
             }
         }
         return number;
@@ -780,7 +785,7 @@ public class ProductUtil {
         int number = 0;
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 5) {
+            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 3||MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 4) {
                 ++number;
             }
         }

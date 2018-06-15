@@ -126,7 +126,7 @@ public class ShowFuncFragment extends DialogFragment {
                 @Override
                 public void onClick(View v) {
                     if (mode==1&&(position==0||position==1)){
-                        if (position==0||position==1){
+                        if (position==0){
                             ToastUtil.showShort(MyApplication.getContextObject(),"尚未开放此功能");
                             return;
                         }

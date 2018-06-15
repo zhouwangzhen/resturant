@@ -154,7 +154,7 @@
                 android:id="@+id/menu_inventory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_menu_nor"
+                android:drawableLeft="@drawable/icon_inventory"
                 android:drawablePadding="10dp"
                 android:gravity="center_vertical"
                 android:padding="10dp"

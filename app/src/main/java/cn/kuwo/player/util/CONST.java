@@ -42,5 +42,5 @@ public class CONST {
 
     public static final String[] TESTUSERID={"56f8cd772e958a005a2a141e","56f8ef2cc4c971005bbf7235","5655460f00b0bf379ee81d75","56f8cb9571cfe4005c8cf7fc","56f8c3172e958a005ae2dde9"};
 
-    public static final boolean isShowTEST=true;
+    public static final boolean isShowTEST=false;
 }

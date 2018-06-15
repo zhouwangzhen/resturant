@@ -18,7 +18,9 @@ import android.widget.TextView;
 import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FunctionCallback;
+import com.avos.avoscloud.GetCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
@@ -134,7 +136,7 @@ public class PayActivity extends BaseActivity {
 
     private Double whiteBarBalance;
     private Double storedBalance;
-
+    private Boolean paySuccess=false;
     @Override
     protected int getContentViewId() {
         return R.layout.activity_pay;
@@ -225,6 +227,12 @@ public class PayActivity extends BaseActivity {
                         mallOrder.put("useMeat", AVObject.createWithoutData("Meat", orderDetail.getUseMeatId()));
 
                     }
+                    if (getIntent().getBooleanExtra("isHangUp",false)){
+                        mallOrder.put("hangUp",true);
+                        mallOrder.put("message", orderDetail.getAvObject().getString("remark"));
+                        mallOrder.put("type", 4);
+
+                    }
                     mallOrder.put("maxMeatDeduct", orderDetail.getSvipMaxExchangeList());
                     mallOrder.put("realMeatDeduct", orderDetail.getUseExchangeList());
                     Map<String, Double> escrowDetail = ProductUtil.managerEscrow(orderDetail.getActualMoney(), escrow, orderDetail.getUserBean());
@@ -270,11 +278,11 @@ public class PayActivity extends BaseActivity {
                         public void done(AVException e) {
                             hideDialog();
                             if (e == null) {
+                                showDialog();
+                                paySuccess=true;
                                 Bill.printRetailBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow, orderDetail.getUserBean());
                                 ToastUtil.showShort(MyApplication.getContextObject(), "订单结算完成");
-                                Intent intent = getIntent();
-                                setResult(1, intent);
-                                finish();
+
                             } else {
                                 ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
                             }
@@ -290,7 +298,35 @@ public class PayActivity extends BaseActivity {
     }
 
     private void resetTable() {
-        finish();
+        if (getIntent().getBooleanExtra("isHangUp",false)) {
+            AVQuery<AVObject> query = new AVQuery<>("HangUpOrder");
+            query.getInBackground(getIntent().getStringExtra("hangUpId"), new GetCallback<AVObject>() {
+                @Override
+                public void done(AVObject avObject, AVException e) {
+                    hideDialog();
+                    if (e == null) {
+                        avObject.put("active", 0);
+                        avObject.saveInBackground(new SaveCallback() {
+                            @Override
+                            public void done(AVException e) {
+                                Intent intent = getIntent();
+                                setResult(1, intent);
+                                finish();
+                            }
+                        });
+                    } else {
+                        Intent intent = getIntent();
+                        setResult(1, intent);
+                        finish();
+                    }
+                }
+            });
+        }else{
+            hideDialog();
+            Intent intent = getIntent();
+            setResult(1, intent);
+            finish();
+        }
     }
 
     private void setData() {
@@ -503,5 +539,14 @@ public class PayActivity extends BaseActivity {
     public void onPause() {
         super.onPause();
         EventBus.getDefault().unregister(this);
+    }
+    @Override
+    public void onBackPressed() {
+        if (paySuccess){
+
+        }else{
+             super.onBackPressed();
+        }
+
     }
 }
