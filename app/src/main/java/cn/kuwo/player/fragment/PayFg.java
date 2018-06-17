@@ -260,7 +260,7 @@ public class PayFg extends BaseFragment {
                             jsonReduce.put(orderDetail.getOfflineCouponEvent().getContent(), orderDetail.getOfflineCouponEvent().getMoney());
                             mallOrder.put("useSystemCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOfflineCouponEvent().getId()));
                         }
-                        if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null) {
+                        if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null&&orderDetail.getMyReduceWeight()>0) {
                             jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
                         }
                         if (orderDetail.getActivityMoney() > 0) {

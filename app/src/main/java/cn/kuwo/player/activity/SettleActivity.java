@@ -20,9 +20,11 @@ import android.widget.Toast;
 import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.DeleteCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.FunctionCallback;
+import com.avos.avoscloud.GetCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.bumptech.glide.Glide;
 import com.orhanobut.logger.Logger;
@@ -678,11 +680,10 @@ public class SettleActivity extends BaseActivity {
                                 public void done(Map<String, Object> objectMap, AVException e) {
                                     if (e == null) {
                                         hideDialog();
-                                        Logger.d(objectMap);
                                         userBean = new UserBean(CONST.UserCode.SCANCUSTOMER,
                                                 object.get("objectId").toString(),
                                                 object.get("username").toString(),
-                                                object.get("realName").toString() == null ? object.get("nickName").toString() : object.get("realName").toString(),
+                                                object.get("realName")==null ? object.get("nickName").toString() : object.get("realName").toString(),
                                                 Integer.parseInt(object.get("vip").toString()),
                                                 MyUtils.formatDouble(Double.parseDouble(object.get("credits").toString())),
                                                 MyUtils.formatDouble(Double.parseDouble(object.get("stored").toString())),
@@ -777,5 +778,54 @@ public class SettleActivity extends BaseActivity {
                     }
                 }
             });
+    }
+    private void onLoadUser(){
+//        AVQuery<AVObject> query = new AVQuery<>("_User");
+//        query.getInBackground("", new GetCallback<AVObject>() {
+//            @Override
+//            public void done(AVObject avObject, AVException e) {
+//                if (e==null){
+//                    Logger.d(avObject.getString("username"));
+//                    userBean = new UserBean(CONST.UserCode.SCANCUSTOMER,
+//                            avObject.getObjectId(),
+//                            avObject.getString("username"),
+//                            "",
+//                            1,
+//                           1.0,
+//                            avObject.getDouble("stored"),
+//                            MyUtils.formatDouble(avObject.getDouble("gold") -avObject.getDouble("arrears")),
+//                           avObject.getBoolean("test"),
+//                            avObject.getInt("clerk"),
+//                           0.0,
+//                           "",
+//                           false,
+//                            null,
+//                            false);
+//                    llShowMember.setVisibility(View.VISIBLE);
+//                    if (userBean.getAvatar()!=null&&!userBean.getAvatar().equals("")){
+//                        Glide.with(MyApplication.getContextObject()).load(userBean.getAvatar()).into(userAvatar);
+//                    }
+//                    userTel.setText("用户手机号:" + userBean.getUsername());
+//                    userStored.setText("消费金:" + userBean.getStored());
+//                    userWhitebar.setText("白条:" + userBean.getBalance());
+//                    userMeatweight.setText("牛肉额度:" + userBean.getMeatWeight() + "kg");
+//                    userMeatweight.setText("牛肉额度:" + userBean.getMeatWeight() + "kg");
+//                    hasMeatWeight = userBean.getMeatWeight();
+//                    userId = userBean.getId();
+//                    useMeatId = userBean.getMeatId();
+//                    if (userBean.getSvip()) {
+//                        svipAvatar.setVisibility(View.VISIBLE);
+//                        userType.setText("超牛会员");
+//                        isSvip = true;
+//                    } else {
+//                        svipAvatar.setVisibility(View.GONE);
+//                        userType.setText("普通会员");
+//                        isSvip = false;
+//                    }
+//                    signUser.setText("退出登录");
+//                    setData();
+//                }
+//            }
+//        });
     }
 }

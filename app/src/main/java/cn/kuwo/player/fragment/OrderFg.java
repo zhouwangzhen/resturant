@@ -553,6 +553,9 @@ public class OrderFg extends BaseFragment {
                     tableAVObject.put("customer", 1);
                 }
                 tableAVObject.put("preOrder", preOrders);
+                if (tableAVObject.getDate("startedAt") == null) {
+                    tableAVObject.put("startedAt", new Date());
+                }
                 tableAVObject.saveInBackground(new SaveCallback() {
                     @Override
                     public void done(AVException e) {

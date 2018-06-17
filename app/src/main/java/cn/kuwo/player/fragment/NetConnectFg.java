@@ -26,6 +26,7 @@ import cn.kuwo.player.R;
 import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.print.Pos;
+import cn.kuwo.player.util.AppUtils;
 import cn.kuwo.player.util.SharedHelper;
 
 public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheckedChangeListener, TextWatcher {
@@ -148,7 +149,6 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
         String ip4StringCool = sharedHelper.read("ip4_cool");
 
 
-
         ip1.setText(ip1String);
         ip2.setText(ip2String);
         ip3.setText(ip3String);
@@ -181,7 +181,14 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
                 openBox();
                 break;
             case R.id.search_print_ip:
-                checkAllPrint();
+                try {
+                    if (!AppUtils.isFastDoubleClick()) {
+                        checkAllPrint();
+                    }
+                } catch (Exception e) {
+
+                }
+
                 break;
             case R.id.test_printer_drink:
                 testDrinkPrinter();
@@ -293,32 +300,36 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
     }
 
     private void checkAllPrint() {
-        showDialog();
-        for (int i = 1; i < 250; i++) {
-            final int finalI = i;
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        String url = "192.168.1." + finalI;
-                        Pos pos = null;
-                        pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
-                        pos.initPos();
-                        pos.printText("我的ip地址  " + url);
-                        Logger.d(finalI);
-                        pos.printLine(1);
-                        pos.feedAndCut();
-                        pos.closeIOAndSocket();
-                    } catch (Exception e) {
-                        e.printStackTrace();
+        try {
+            showDialog();
+            for (int i = 1; i < 250; i++) {
+                final int finalI = i;
+                new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            String url = "192.168.1." + finalI;
+                            Pos pos = null;
+                            pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+                            pos.initPos();
+                            pos.printText("我的ip地址  " + url);
+                            Logger.d(finalI);
+                            pos.printLine(1);
+                            pos.feedAndCut();
+                            pos.closeIOAndSocket();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
                     }
 
+                }.start();
+                if (i == 249) {
+                    hideDialog();
                 }
-
-            }.start();
-            if (i == 249) {
-                hideDialog();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }

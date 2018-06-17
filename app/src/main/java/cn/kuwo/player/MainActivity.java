@@ -120,7 +120,26 @@ public class MainActivity extends BaseActivity {
     }
 
     private void test() {
-
+//        AVQuery<AVObject> query = new AVQuery<>("OfflineCommodity");
+//        query.whereEqualTo("type",2);
+//        query.whereEqualTo("store",0);
+//        query.whereStartsWith("name","澳");
+//        query.findInBackground(new FindCallback<AVObject>() {
+//            @Override
+//            public void done(List<AVObject> list, AVException e) {
+//                for (int i=0;i<list.size();i++){
+//                    AVObject avObject = list.get(i);
+//                    avObject.put("combo",0);
+//                    avObject.put("active",0);
+//                    avObject.saveInBackground(new SaveCallback() {
+//                        @Override
+//                        public void done(AVException e) {
+//
+//                        }
+//                    });
+//                }
+//            }
+//        });
     }
 
     /**

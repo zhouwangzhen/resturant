@@ -185,9 +185,9 @@ public class ScanUserFragment extends DialogFragment {
                                     sharedHelper.saveBoolean("cashierLogin", true);
                                     sharedHelper.save("cashierId", object.get("objectId").toString());
                                     sharedHelper.save("mobilePhoneNumber", object.get("username").toString());
-                                    sharedHelper.save("cashierName", (object.get("realName").toString() == null ? object.get("nickName").toString() : object.get("realName").toString()));
+                                    sharedHelper.save("cashierName", (object.get("realName")== null ? object.get("nickName").toString() : object.get("realName").toString()));
                                     TextView waiterName = (TextView) getActivity().findViewById(R.id.waiter_name);
-                                    waiterName.setText("收银员：" + (object.get("realName").toString() == null || object.get("realName").toString().equals("") ? object.get("nickName").toString() : object.get("realName").toString()));
+                                    waiterName.setText("收银员：" + (object.get("realName") == null || object.get("realName").toString().equals("") ? object.get("nickName").toString() : object.get("realName").toString()));
                                     getDialog().dismiss();
                                 }
                             }
@@ -239,7 +239,7 @@ public class ScanUserFragment extends DialogFragment {
                                     sharedHelper.save("mobilePhoneNumber", map.getString("username"));
                                     sharedHelper.save("cashierName", (map.getString("realName") == null || map.get("realName").toString().equals("") ? map.getString("nickName") : map.getString("realName")));
                                     TextView waiterName = (TextView) getActivity().findViewById(R.id.waiter_name);
-                                    waiterName.setText("收银员：" + (map.get("realName").toString() == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString()));
+                                    waiterName.setText("收银员：" + (map.getString("realName") == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString()));
                                     getDialog().dismiss();
                                 } else if (type == 1) {//获取客户信息和剩余可提牛肉数量
                                     Map<String, Object> parameters = new HashMap<String, Object>();
@@ -259,7 +259,7 @@ public class ScanUserFragment extends DialogFragment {
                                                         CONST.UserCode.SCANCUSTOMER,
                                                         map.getObjectId(),
                                                         map.get("username").toString(),
-                                                        map.get("realName").toString() == null || map.get("realName").toString().equals("") ? map.get("realName").toString() : map.get("nickName").toString(),
+                                                        map.get("realName") == null || map.get("realName").toString().equals("") ? map.get("realName").toString() : map.get("nickName").toString(),
                                                         Integer.parseInt(map.get("vip").toString()),
                                                         MyUtils.formatDouble(Double.parseDouble(map.get("credits").toString())),
                                                         MyUtils.formatDouble(Double.parseDouble(map.get("stored").toString())),
@@ -283,7 +283,7 @@ public class ScanUserFragment extends DialogFragment {
 
                                 } else if (type == 2) {//获取用户信息id,username
                                     hideDialog();
-                                    UserBean userBean = new UserBean(CONST.UserCode.SCANUSER, map.getObjectId(), map.get("username").toString(), Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString()), (Boolean) map.get("test"), Integer.parseInt(map.get("clerk").toString()), map.get("realName").toString() == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString());
+                                    UserBean userBean = new UserBean(CONST.UserCode.SCANUSER, map.getObjectId(), map.get("username").toString(), Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString()), (Boolean) map.get("test"), Integer.parseInt(map.get("clerk").toString()), map.get("realName") == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString());
                                     EventBus.getDefault().post(userBean);
                                     getDialog().dismiss();
                                 } else {
@@ -314,9 +314,9 @@ public class ScanUserFragment extends DialogFragment {
                                 sharedHelper.saveBoolean("cashierLogin", true);
                                 sharedHelper.save("cashierId", map.get("objectId").toString());
                                 sharedHelper.save("mobilePhoneNumber", map.get("username").toString());
-                                sharedHelper.save("cashierName", (map.get("realName").toString() == null ? map.get("nickName").toString() : map.get("realName").toString()));
+                                sharedHelper.save("cashierName", (map.get("realName") == null ? map.get("nickName").toString() : map.get("realName").toString()));
                                 TextView waiterName = (TextView) getActivity().findViewById(R.id.waiter_name);
-                                waiterName.setText("收银员：" + (map.get("realName").toString() == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString()));
+                                waiterName.setText("收银员：" + (map.get("realName") == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString()));
                                 getDialog().dismiss();
                             } else if (type == 1) {//获取客户信息和剩余可提牛肉数量
                                 Map<String, Object> parameters = new HashMap<String, Object>();
@@ -336,7 +336,7 @@ public class ScanUserFragment extends DialogFragment {
                                                     CONST.UserCode.SCANCUSTOMER,
                                                     map.get("objectId").toString(),
                                                     map.get("username").toString(),
-                                                    map.get("realName").toString() == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString(),
+                                                    map.get("realName")== null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString(),
                                                     Integer.parseInt(map.get("vip").toString()),
                                                     MyUtils.formatDouble(Double.parseDouble(map.get("credits").toString())),
                                                     MyUtils.formatDouble(Double.parseDouble(map.get("stored").toString())),
@@ -366,7 +366,7 @@ public class ScanUserFragment extends DialogFragment {
                                         Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString()),
                                         (Boolean) map.get("test"),
                                         Integer.parseInt(map.get("clerk").toString()),
-                                        map.get("realName").toString() == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString()
+                                        map.get("realName")== null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString()
                                 );
                                 EventBus.getDefault().post(userBean);
                                 getDialog().dismiss();

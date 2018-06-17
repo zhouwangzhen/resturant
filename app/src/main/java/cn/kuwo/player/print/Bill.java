@@ -1961,9 +1961,11 @@ public class Bill {
                         pos.printWordSpace(2);
                         pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
                         pos.printLine(1);
-                        if (ObjectUtil.getList(format, "comboList").size() > 0) {
-                            for (int j = 0; j < ObjectUtil.getList(format, "comboList").size(); j++) {
-                                pos.printTextNewLine("   " + ObjectUtil.getList(format, "comboList").get(j).toString());
+                        if (ObjectUtil.getList(format, "comboList")!=null) {
+                            if (ObjectUtil.getList(format, "comboList").size() > 0) {
+                                for (int j = 0; j < ObjectUtil.getList(format, "comboList").size(); j++) {
+                                    pos.printTextNewLine("   " + ObjectUtil.getList(format, "comboList").get(j).toString());
+                                }
                             }
                         }
                     }

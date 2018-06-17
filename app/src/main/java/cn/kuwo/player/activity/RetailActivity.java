@@ -148,7 +148,7 @@ public class RetailActivity extends BaseActivity {
                 startActivityForResult(intent, 1);
             }
         });
-//        scanMeatcode.setText("08066145");
+//        scanMeatcode.setText("211001165540011301");
 //        scanMeatcode.setText("214000188800080006");
 //        scanMeatcode.setText("219999911500002306");
         otherGoods.setOnClickListener(new View.OnClickListener() {
@@ -170,8 +170,15 @@ public class RetailActivity extends BaseActivity {
                     case R.id.goods_explode:
                         LoadingGoods(1);
                         break;
+                    case R.id.goods_dish:
+                        LoadingGoods(2);
+                        break;
                     case R.id.goods_wine:
                         LoadingGoods(3);
+                        break;
+                    case R.id.goods_drink:
+                        LoadingGoods(4);
+                        break;
                 }
             }
         });
