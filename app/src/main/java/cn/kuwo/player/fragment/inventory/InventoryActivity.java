@@ -1,10 +1,9 @@
-package cn.kuwo.player.inventory;
+package cn.kuwo.player.fragment.inventory;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 
 import cn.kuwo.player.R;
-import cn.kuwo.player.base.BaseActivity;
 import me.yokeyword.fragmentation.SupportActivity;
 
 /**

@@ -331,7 +331,7 @@ public class StoredFg extends BaseFragment {
                         if (e == null) {
                             if (Integer.parseInt(objectMap.get("clerk").toString()) > 0 || (Boolean) objectMap.get("test")) {
                                 marketId = objectMap.get("objectId").toString();
-                                marketName= objectMap.get("realName").toString() == null ? objectMap.get("nickName").toString() : objectMap.get("realName").toString();
+                                marketName= objectMap.get("realName") == null ? objectMap.get("nickName").toString() : objectMap.get("realName").toString();
                                 toRecharge();
                             } else {
                                 hideDialog();

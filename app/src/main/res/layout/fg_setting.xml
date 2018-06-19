@@ -28,4 +28,40 @@
         android:background="#fff"
         android:textColor="#333"
         android:layout_height="wrap_content" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:layout_marginTop="10dp"
+        android:background="#fff"
+        android:textColor="#333"
+        android:orientation="vertical">
+        <TextView
+            android:text="可随时变换菜品"
+            android:textSize="20sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:paddingLeft="20dp">
+            <TextView
+                android:text=""
+                android:id="@+id/change_commodity_name"
+                android:textSize="20sp"
+                android:textColor="@color/black"
+                android:layout_centerVertical="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:text=""
+                android:textColor="@color/black"
+                android:id="@+id/change_commodity_price"
+                android:textSize="20sp"
+                android:layout_width="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_height="wrap_content" />
+        </RelativeLayout>
+    </LinearLayout>
 </LinearLayout>

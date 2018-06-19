@@ -1,5 +1,6 @@
-package cn.kuwo.player.inventory;
+package cn.kuwo.player.fragment.inventory;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,7 +10,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -17,23 +17,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import com.orhanobut.logger.Logger;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
-import cn.kuwo.player.activity.RetailActivity;
-import cn.kuwo.player.activity.SettleActivity;
-import cn.kuwo.player.adapter.GoodsAdapter;
 import cn.kuwo.player.adapter.InventoryAdapter;
-import cn.kuwo.player.adapter.ScanAdapter;
 import cn.kuwo.player.bean.ProductBean;
-import cn.kuwo.player.bean.RetailBean;
+import cn.kuwo.player.custom.ShowInventoryFragment;
 import cn.kuwo.player.interfaces.MyItemClickListener;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ProductUtil;
@@ -43,7 +38,7 @@ import me.yokeyword.fragmentation.SupportFragment;
 /**
  * Created by lovely on 2018/6/14
  */
-public class MorningFragment extends SupportFragment {
+public class InventoryFragment extends SupportFragment {
     EditText scanMeatcode;
     RecyclerView recycleScan;
     TextView totalMoney;
@@ -51,6 +46,7 @@ public class MorningFragment extends SupportFragment {
     FrameLayout flTotal;
     TextView noInfo;
     TextView title;
+    private static String ARG_PARAM = "param_type";
     private GridLayoutManager gridLayoutManager;
     private LinearLayoutManager linearLayoutManager;
     private InventoryAdapter inventoryAdapter;
@@ -59,9 +55,10 @@ public class MorningFragment extends SupportFragment {
     private ArrayList<Double> weights = new ArrayList<>();
     private ArrayList<String> codes = new ArrayList<>();
     private ArrayList<String> ids = new ArrayList<>();
-    private ArrayList<Integer> numbers=new ArrayList<>();
+    private ArrayList<Integer> numbers = new ArrayList<>();
     private String barcode = "";
     private Double money = 0.0;
+    private int type = 0;
 
     private Handler mHandler = new Handler() {
         @Override
@@ -101,16 +98,21 @@ public class MorningFragment extends SupportFragment {
                 }
             }
         });
-        recycleScan=view.findViewById(R.id.recycle_scan);
-        totalMoney=view.findViewById(R.id.total_money);
-        submitOrder=view.findViewById(R.id.submit_order);
-        flTotal=view.findViewById(R.id.fl_total);
-        noInfo=view.findViewById(R.id.noInfo);
-        title=view.findViewById(R.id.title);
-        scanMeatcode=view.findViewById(R.id.scan_meatcode);
+        recycleScan = view.findViewById(R.id.recycle_scan);
+        totalMoney = view.findViewById(R.id.total_money);
+        submitOrder = view.findViewById(R.id.submit_order);
+        flTotal = view.findViewById(R.id.fl_total);
+        noInfo = view.findViewById(R.id.noInfo);
+        title = view.findViewById(R.id.title);
+        scanMeatcode = view.findViewById(R.id.scan_meatcode);
+        if (type==1){
+            title.setText("晚间库存盘点");
+        }else{
+            title.setText("早间库存盘点");
+        }
         linearLayoutManager = new LinearLayoutManager(MyApplication.getContextObject());
         recycleScan.setLayoutManager(linearLayoutManager);
-        inventoryAdapter = new InventoryAdapter(MyApplication.getContextObject(), commodityList, codes, prices, weights,numbers);
+        inventoryAdapter = new InventoryAdapter(MyApplication.getContextObject(), commodityList, codes, prices, weights, numbers);
         recycleScan.setAdapter(inventoryAdapter);
         inventoryAdapter.setOnItemClickListener(new MyItemClickListener() {
             @Override
@@ -152,10 +154,15 @@ public class MorningFragment extends SupportFragment {
         submitOrder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                HashMap<String, Object> totalCommoditys = ProductUtil.calMergeCommodity(ids, numbers, weights);
+                ShowInventoryFragment showInventoryFragment = new ShowInventoryFragment(type,totalCommoditys);
+                showInventoryFragment.setTargetFragment(InventoryFragment.this, 1);
+                showInventoryFragment.show(getFragmentManager(), "showinventory");
             }
         });
 
     }
+
     private void addProduct(String barcode) {
         ProductBean productBean = MyUtils.getProductBean(barcode).get(0);
         commodityList.add(productBean);
@@ -172,6 +179,7 @@ public class MorningFragment extends SupportFragment {
             flTotal.setVisibility(View.VISIBLE);
         }
     }
+
     private void deleteData(int postion) {
         codes.remove(postion);
         prices.remove(postion);
@@ -195,7 +203,31 @@ public class MorningFragment extends SupportFragment {
         return R.layout.fg_inventory_morning;
     }
 
-    public static MorningFragment newInstance() {
-        return new MorningFragment();
+    public static InventoryFragment newInstance(int type) {
+        InventoryFragment inventoryFragment = new InventoryFragment();
+        Bundle bundle = new Bundle();
+        bundle.putInt(ARG_PARAM, type);
+        inventoryFragment.setArguments(bundle);
+        return inventoryFragment;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == 1) {
+            pop();
+        }
+    }
+
+    @Override
+    protected void onNewBundle(Bundle args) {
+        super.onNewBundle(args);
+        type=args.getInt("type",0);
+        ToastUtil.showLong(MyApplication.getContextObject(),type+"");
+    }
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        type=getArguments().getInt(ARG_PARAM);
+        Logger.d(type);
     }
 }

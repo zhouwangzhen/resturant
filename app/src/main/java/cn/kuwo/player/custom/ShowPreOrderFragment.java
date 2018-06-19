@@ -67,7 +67,6 @@ public class ShowPreOrderFragment extends DialogFragment {
                 return ObjectUtil.getInt(format, "cookSerial") - ObjectUtil.getInt(format1, "cookSerial");
             }
         });
-        Logger.d(preOrders);
         this.preOrders = preOrders;
         this.tableAVObject = tableAVObject;
     }
@@ -100,20 +99,6 @@ public class ShowPreOrderFragment extends DialogFragment {
             public void onClick(View v) {
                 if (tableAVObject!=null) {
                     showDialog();
-//                    List order = tableAVObject.getList("order");
-//                    List<Object> orderList = new ArrayList<>();
-//                    orderList.addAll(order);
-//                    for (int i = 0; i < preOrders.size(); i++) {
-//                        orderList.add(preOrders.get(i));
-//                    }
-//                    tableAVObject.put("order", orderList);
-//                    tableAVObject.put("preOrder", new List[0]);
-//                    if (tableAVObject.getDate("startedAt") == null) {
-//                        tableAVObject.put("startedAt", new Date());
-//                    }
-//                    if (tableAVObject.getInt("customer") == 0) {
-//                        tableAVObject.put("customer", 1);
-//                    }
                     TableApi.addOrder(tableAVObject,preOrders).saveInBackground(new SaveCallback() {
                         @Override
                         public void done(AVException e) {

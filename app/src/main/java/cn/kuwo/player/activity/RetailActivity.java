@@ -143,7 +143,7 @@ public class RetailActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(RetailActivity.this, SettleActivity.class);
-                RetailBean retailBean = new RetailBean(ids, codes, prices, weights,names);
+                RetailBean retailBean = new RetailBean(ids, codes, prices, weights, names);
                 intent.putExtra("retailBean", retailBean);
                 startActivityForResult(intent, 1);
             }
@@ -178,6 +178,9 @@ public class RetailActivity extends BaseActivity {
                         break;
                     case R.id.goods_drink:
                         LoadingGoods(4);
+                        break;
+                    case R.id.goods_no_code:
+                        LoadingGoods(5);
                         break;
                 }
             }

@@ -177,6 +177,16 @@
                         android:text="饮料"
                         android:textColor="#000000"
                         android:textSize="22sp" />
+                    <RadioButton
+                        android:id="@+id/goods_no_code"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:checked="true"
+                        android:padding="6dp"
+                        android:text="没有编码的商品"
+                        android:textColor="#000000"
+                        android:textSize="22sp" />
                 </cn.kuwo.player.custom.FlowRadioGroup>
 
                 <android.support.v7.widget.RecyclerView

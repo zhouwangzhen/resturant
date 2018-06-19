@@ -199,4 +199,8 @@ public class MyUtils {
         }
         return formatDouble(totalPrice);
     }
+    public static boolean isDoubleOrFloat(String str) {
+        Pattern pattern = Pattern.compile("^[-\\+]?[.\\d]*$");
+        return pattern.matcher(str).matches();
+    }
 }

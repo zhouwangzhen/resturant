@@ -27,8 +27,6 @@ import com.avos.avoscloud.AVUser;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.LogInCallback;
-import com.avos.avoscloud.SaveCallback;
-import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 
 import org.greenrobot.eventbus.EventBus;
@@ -60,7 +58,7 @@ import cn.kuwo.player.fragment.SettingFg;
 import cn.kuwo.player.fragment.StoredFg;
 import cn.kuwo.player.fragment.SvipFg;
 import cn.kuwo.player.fragment.TableFg;
-import cn.kuwo.player.inventory.InventoryActivity;
+import cn.kuwo.player.fragment.inventory.InventoryActivity;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.receiver.NetWorkStateReceiver;
 import cn.kuwo.player.util.AppUtils;

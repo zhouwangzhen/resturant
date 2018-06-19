@@ -8,6 +8,9 @@ import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -665,7 +668,7 @@ public class ProductUtil {
     }
 
     public static Double calCommodityWeight(String barcode) {
-        if (barcode.length()!= 18) {
+        if (barcode.length() != 18) {
             List<ProductBean> productBean = getProductBean(barcode);
             if (productBean.size() > 0) {
                 return productBean.get(0).getWeight();
@@ -677,6 +680,7 @@ public class ProductUtil {
             return new Double(Integer.parseInt(barcode.substring(12, 17))) / 1000;
         }
     }
+
     /**
      * 获取价格
      */
@@ -688,6 +692,7 @@ public class ProductUtil {
             return 0.0;
         }
     }
+
     public static List<ProductBean> getProductBean(String barcode) {
         RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
         List<ProductBean> productBeen = new ArrayList<ProductBean>();
@@ -697,7 +702,7 @@ public class ProductUtil {
             productBeen = mRealmHleper.queryProductByBarcode(barcode.substring(2, 7));
         } else if (barcode.length() == 5) {
             productBeen = mRealmHleper.queryProductByBarcode(barcode);
-        }else {
+        } else {
             productBeen = mRealmHleper.queryProductByBarcode(barcode);
         }
         return productBeen;
@@ -719,7 +724,7 @@ public class ProductUtil {
                 finalPrice = showprice;
             }
             return MyUtils.formatDouble(finalPrice);
-        } else if (barcode.length() == 13||barcode.length()==8) {
+        } else if (barcode.length() == 13 || barcode.length() == 8) {
             return mRealmHleper.queryProductByBarcode(barcode).get(0).getPrice();
         } else {
             return 0.0;
@@ -772,8 +777,8 @@ public class ProductUtil {
             Logger.d(format);
             Logger.d(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 3);
             Logger.d(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 4);
-            Logger.d(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 3||MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 4);
-            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 3&&MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 4) {
+            Logger.d(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 3 || MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 4);
+            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 3 && MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 4) {
                 ++number;
                 Logger.d(number);
             }
@@ -785,7 +790,7 @@ public class ProductUtil {
         int number = 0;
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 3||MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 4) {
+            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 3 || MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 4) {
                 ++number;
             }
         }
@@ -918,5 +923,72 @@ public class ProductUtil {
             }
         }
         return MyUtils.formatDouble(forzenMoney);
+    }
+
+    public static HashMap<String, Object> calMergeCommodity(ArrayList<String> ids, ArrayList<Integer> numbers, ArrayList<Double> weights) {
+        HashMap<String, Object> map = new HashMap<>();
+        for (int i = 0; i < ids.size(); i++) {
+            ProductBean productById = MyUtils.getProductById(ids.get(i));
+            if (productById != null) {
+                if (map.containsKey(ids.get(i))) {
+                    HashMap<String, Object> hashMap = (HashMap<String, Object>) map.get(ids.get(i));
+                    hashMap.put("number", ObjectUtil.getInt(hashMap, "number") + numbers.get(i));
+                    hashMap.put("weight", MyUtils.formatDouble(ObjectUtil.getDouble(hashMap, "weight")* numbers.get(i) + weights.get(i)));
+                } else {
+                    HashMap<String, Object> singleMap = new HashMap<>();
+                    singleMap.put("id", ids.get(i));
+                    singleMap.put("number", numbers.get(i));
+                    singleMap.put("weight", MyUtils.formatDouble(weights.get(i)* numbers.get(i)));
+                    singleMap.put("name", productById.getName());
+                    map.put(ids.get(i), singleMap);
+                }
+                Logger.d(map);
+            }
+        }
+        return map;
+    }
+
+    public static HashMap<String, Double> calOrderDifference(Map<String, Object> preInventorys, Map<String, Object> behindInventorys) {
+        Logger.d(preInventorys.size());
+        Logger.d(behindInventorys.size());
+        Iterator iter = preInventorys.entrySet().iterator();
+        Iterator iters = behindInventorys.entrySet().iterator();
+        ArrayList<Object> ids = new ArrayList<>();
+        ArrayList<Object> addIds = new ArrayList<>();
+        HashMap<String, Double> preDifference = new HashMap<>();
+        while (iter.hasNext()) {
+            Map.Entry entry = (Map.Entry) iter.next();
+            ids.add(entry.getKey().toString());
+
+        }
+        while (iters.hasNext()) {
+            Map.Entry entry1 = (Map.Entry) iters.next();
+            if (!ids.contains(entry1.getKey().toString())) {
+                addIds.add(entry1.getKey().toString());
+            }
+        }
+        for (int i = 0; i < ids.size(); i++) {
+            try {
+                JSONObject preJson = new JSONObject(preInventorys.get(ids.get(i)).toString());
+                JSONObject behindJson = new JSONObject(behindInventorys.get(ids.get(i)).toString());
+                if (preJson.getDouble("weight") != behindJson.getDouble("weight")) {
+                    preDifference.put(preJson.getString("name"), MyUtils.formatDouble(behindJson.getDouble("weight") - preJson.getDouble("weight")));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+        }
+        for (int i = 0; i < addIds.size(); i++) {
+            try {
+                JSONObject behindJson = new JSONObject(behindInventorys.get(addIds.get(i)).toString());
+                preDifference.put(behindJson.getString("name"), MyUtils.formatDouble(behindJson.getDouble("weight")));
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+       return preDifference;
     }
 }

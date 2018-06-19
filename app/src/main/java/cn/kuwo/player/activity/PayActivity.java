@@ -229,7 +229,7 @@ public class PayActivity extends BaseActivity {
                     }
                     if (getIntent().getBooleanExtra("isHangUp",false)){
                         mallOrder.put("hangUp",true);
-                        mallOrder.put("message", orderDetail.getAvObject().getString("remark"));
+                        mallOrder.put("message", getIntent().getStringExtra("remark"));
                         mallOrder.put("type", 4);
 
                     }

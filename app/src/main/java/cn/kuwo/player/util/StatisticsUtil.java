@@ -189,7 +189,6 @@ public class StatisticsUtil {
                     if (weights.containsKey(name)) {
                         weights.put(name, MyUtils.formatDouble(weights.get(name) + ObjectUtil.getDouble(format, "weight")));
                     } else {
-                        Logger.d(format);
                         weights.put(name, MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")));
                     }
                 }

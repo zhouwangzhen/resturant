@@ -950,7 +950,9 @@ public class Bill {
                     pos.printLocation(0);
                     pos.printText("桌号:" + finalTableNumber);
                     pos.printLine(1);
-                    pos.printText("人数:" + tableAVObject.getInt("customer"));
+                    Logger.d(tableAVObject.getString("customer"));
+                    Logger.d(tableAVObject.getInt("customer"));
+                    pos.printText("人数:" + (tableAVObject.getInt("customer")!=0?tableAVObject.getInt("customer"):1));
                     pos.printLine(1);
                     if (tableAVObject.getDate("startedAt") != null) {
                         pos.printTextNewLine("开单时间:" + MyUtils.dateFormat(tableAVObject.getDate("startedAt")));
@@ -1051,7 +1053,7 @@ public class Bill {
                         pos.printTextNewLine("------------------------------------------------");
                         pos.printLine(1);
                         pos.printLocation(1);
-                        pos.printText("超牛牛肉充足抵扣详情");
+                        pos.printText("超牛会员牛肉额度充足时可抵扣详情");
                         pos.printLine();
                         pos.printLocation(0);
                         pos.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
@@ -1097,7 +1099,7 @@ public class Bill {
                     pos1.printLocation(0);
                     pos1.printText("桌号:" + finalTableNumber);
                     pos1.printLine(1);
-                    pos1.printText("人数:" + tableAVObject.getInt("customer"));
+                    pos1.printText("人数:" + (tableAVObject.getInt("customer")!=0?tableAVObject.getInt("customer"):1));
                     pos1.printLine(1);
                     if (tableAVObject.getDate("startedAt") != null) {
                         pos1.printTextNewLine("开单时间:" + MyUtils.dateFormat(tableAVObject.getDate("startedAt")));
@@ -1197,7 +1199,7 @@ public class Bill {
                         pos1.printTextNewLine("------------------------------------------------");
                         pos1.printLine(1);
                         pos1.printLocation(1);
-                        pos1.printText("超牛牛肉充足抵扣详情");
+                        pos1.printText("超牛会员牛肉额度充足时可抵扣详情");
                         pos1.printLine();
                         pos1.printLocation(0);
                         pos1.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
@@ -1591,7 +1593,7 @@ public class Bill {
                         pos.printTextNewLine("------------------------------------------------");
                         pos.printLine(1);
                         pos.printLocation(1);
-                        pos.printText("超牛牛肉充足抵扣详情");
+                        pos.printText("超牛会员牛肉额度充足时可抵扣详情");
                         pos.printLine();
                         pos.printLocation(0);
                         pos.printFourColumn("品名", "重量", "  抵扣重量", "抵扣金额");

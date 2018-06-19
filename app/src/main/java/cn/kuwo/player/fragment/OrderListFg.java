@@ -185,8 +185,8 @@ public class OrderListFg extends BaseFragment {
         if (orderTypes.containsKey(1)) {
             stateRetail.setText(orderTypes.get(1) + "笔");
         }
-        if (orderTypes.containsKey(2)) {
-            stateRecharge.setText(orderTypes.get(2) + "笔");
+        if (orderTypes.containsKey(2)||rechargeOrders.size()>0) {
+            stateRecharge.setText((orderTypes.containsKey(2)?orderTypes.get(2):0)+rechargeOrders.size() + "笔");
         }
         if (orderTypes.containsKey(3)) {
             stateHangup.setText(orderTypes.get(3) + "笔");
@@ -398,6 +398,8 @@ public class OrderListFg extends BaseFragment {
                 });
             } else if (avObject.getClassName().equals("MallGoldLog")) {
                 holder.order_state_img.setBackgroundResource(R.drawable.order_recharge);
+                holder.order_table_number.setText("");
+                holder.order_paysum.setText("");
                 holder.order_date.setText("充值时间:" + DateUtil.formatDate(avObject.getDate("createdAt")));
                 holder.order_memberstyle.setText("会员用户:" + avObject.getAVObject("user").getString("username"));
                 holder.order_detail.setText("消费金充值" + RechargeUtil.findRealMoney(avObject.getDouble("change")) + "元");

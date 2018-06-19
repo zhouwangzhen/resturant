@@ -99,7 +99,6 @@ public class RealmHelper {
             ProductBean productBean=mRealm.where(ProductBean.class).equalTo("objectId",id).findFirst();
             return mRealm.copyFromRealm(productBean);
         }catch (Exception e){
-            com.orhanobut.logger.Logger.d(id);
             e.printStackTrace();
         }
         return null;

@@ -341,7 +341,7 @@ public class SettleActivity extends BaseActivity {
             mySvipReduceMoney.setText("-0.0");
         }
         blackfiveMoney = ProductUtil.calBlackFiveReduce(cbUseSvip.isChecked(), useExchangeList, ProductUtil.calExchangeMeatList(orders), orders);
-        if (blackfiveMoney > 0) {
+        if (blackfiveMoney > 0&&userBean!=null) {
             llBlackFive.setVisibility(View.VISIBLE);
             blackFiveMoney.setText("-" + blackfiveMoney);
         } else {

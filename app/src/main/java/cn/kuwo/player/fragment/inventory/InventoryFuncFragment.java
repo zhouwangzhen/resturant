@@ -1,15 +1,13 @@
-package cn.kuwo.player.inventory;
+package cn.kuwo.player.fragment.inventory;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.SupportActivity;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 
 import cn.kuwo.player.R;
@@ -42,10 +40,23 @@ public class InventoryFuncFragment extends SupportFragment {
         view.findViewById(R.id.func_morining).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                start(MorningFragment.newInstance());
+                InventoryFragment inventoryFragment = InventoryFragment.newInstance(0);
+                start(inventoryFragment);
             }
         });
-
+        view.findViewById(R.id.func_night).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                InventoryFragment inventoryFragment = InventoryFragment.newInstance(1);
+                start(inventoryFragment);
+            }
+        });
+        view.findViewById(R.id.func_total).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                start(InventoryRecordFragment.newInstance());
+            }
+        });
     }
 
     public int getLayoutId() {
