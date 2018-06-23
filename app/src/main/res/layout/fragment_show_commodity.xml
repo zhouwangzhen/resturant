@@ -50,53 +50,6 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <RelativeLayout
-                android:id="@+id/rl_choose_machine"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/rl_red_border"
-                android:padding="8dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:text="是否需要加工:" />
-
-                <Switch
-                    android:id="@+id/switch_mach"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_centerVertical="true" />
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/rl_machine_style"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/rl_red_border"
-                android:padding="8dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:text="做法:" />
-
-                <TextView
-                    android:id="@+id/machine_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_centerVertical="true" />
-            </RelativeLayout>
-
             <LinearLayout
                 android:id="@+id/ll_change_number"
                 android:layout_width="match_parent"
@@ -171,23 +124,6 @@
                     android:orientation="vertical" />
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="30dp"
-                    android:text="赠送菜品:" />
-
-                <TextView
-                    android:id="@+id/give_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="无" />
-            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/ll_choose_serial"

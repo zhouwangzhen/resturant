@@ -123,6 +123,12 @@ public class PayFg extends BaseFragment {
     TextView rateReduceMoney;
     @BindView(R.id.ll_rate_reduce)
     LinearLayout llRateReduce;
+    @BindView(R.id.ll_store_reduce)
+    LinearLayout llStoreReduce;
+    @BindView(R.id.ll_full_reduce)
+    LinearLayout llFullReduce;
+    @BindView(R.id.store_reduce_rate)
+    TextView storeReduceRate;
 
     private Activity mActivity;
     private OrderDetail orderDetail;
@@ -147,7 +153,7 @@ public class PayFg extends BaseFragment {
 
     @Override
     public void initData() {
-        context=MyApplication.getContextObject();
+        context = MyApplication.getContextObject();
         setData();
         setPayment();
     }
@@ -213,7 +219,6 @@ public class PayFg extends BaseFragment {
         parameters.put("commodityids", ids);
         parameters.put("paysum", orderDetail.getActualMoney());
         parameters.put("sum", orderDetail.getTotalMoney());
-        Logger.d(parameters);
         AVCloud.callFunctionInBackground("offlineMallOrder", parameters, new FunctionCallback<Map<String, Map<String, Object>>>() {
             @Override
             public void done(Map<String, Map<String, Object>> map, AVException e) {
@@ -221,6 +226,7 @@ public class PayFg extends BaseFragment {
                     orderId = map.get("order").get("objectId").toString();
                     AVObject mallOrder = AVObject.createWithoutData("MallOrder", orderId);
                     mallOrder.put("cashier", AVObject.createWithoutData("_User", new SharedHelper(getContext()).read("cashierId")));
+                    mallOrder.put("market", AVObject.createWithoutData("_User", new SharedHelper(getContext()).read("cashierId")));
                     mallOrder.put("orderStatus", AVObject.createWithoutData("MallOrderStatus", CONST.OrderState.ORDER_STATUS_FINSIH));
                     mallOrder.put("escrow", escrow);
                     mallOrder.put("startedAt", orderDetail.getAvObject().getDate("startedAt"));
@@ -234,7 +240,7 @@ public class PayFg extends BaseFragment {
                     mallOrder.put("commodityDetail", orderDetail.getFinalOrders());
                     mallOrder.put("maxMeatDeduct", orderDetail.getSvipMaxExchangeList());
                     mallOrder.put("realMeatDeduct", orderDetail.getUseExchangeList());
-                    if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null&&orderDetail.getMyReduceMoney()>0) {
+                    if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null && orderDetail.getMyReduceMoney() > 0) {
                         mallOrder.put("meatWeights", ProductUtil.listToList(orderDetail.getUseExchangeList()));
                         mallOrder.put("meatDetail", ProductUtil.listToObject(orderDetail.getUseExchangeList()));
                         mallOrder.put("useMeat", AVObject.createWithoutData("Meat", orderDetail.getUseMeatId()));
@@ -260,11 +266,11 @@ public class PayFg extends BaseFragment {
                             jsonReduce.put(orderDetail.getOfflineCouponEvent().getContent(), orderDetail.getOfflineCouponEvent().getMoney());
                             mallOrder.put("useSystemCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOfflineCouponEvent().getId()));
                         }
-                        if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null&&orderDetail.getMyReduceWeight()>0) {
+                        if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null && orderDetail.getMyReduceWeight() > 0) {
                             jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
                         }
                         if (orderDetail.getActivityMoney() > 0) {
-                            jsonReduce.put("线下店打折优惠", orderDetail.getActivityMoney());
+                            jsonReduce.put("开业" + MyUtils.getDayRate() + "折优惠", orderDetail.getActivityMoney());
                         }
                         if (orderDetail.getFullReduceMoney() > 0) {
                             jsonReduce.put("满减优惠", orderDetail.getFullReduceMoney());
@@ -402,6 +408,18 @@ public class PayFg extends BaseFragment {
         storeReduceMoney.setText("-" + orderDetail.getActivityMoney());
         totalMoney.setText("￥" + orderDetail.getActualMoney());
         fullreduceMoney.setText("-" + orderDetail.getFullReduceMoney());
+        if (orderDetail.getFullReduceMoney() > 0) {
+            llFullReduce.setVisibility(View.VISIBLE);
+        } else {
+            llFullReduce.setVisibility(View.GONE);
+        }
+        if (orderDetail.getActivityMoney() > 0) {
+            llStoreReduce.setVisibility(View.VISIBLE);
+            storeReduceRate.setText("开业" + MyUtils.getDayRate() + "折优惠");
+        } else {
+            llStoreReduce.setVisibility(View.GONE);
+        }
+
         if (orderDetail.getOfflineCouponEvent() != null) {
             tvOfflineContent.setText(orderDetail.getOfflineCouponEvent().getContent());
             tvOfflineMoeny.setText("-" + orderDetail.getOfflineCouponEvent().getMoney());
@@ -460,7 +478,7 @@ public class PayFg extends BaseFragment {
         }
         try {
             AVFile avatar = (AVFile) user.get("avatar");
-            if (avatar!=null){
+            if (avatar != null) {
                 Glide.with(MyApplication.getContextObject()).load(avatar.getUrl()).into(userAvatar);
             }
         } catch (Exception e) {

@@ -11,8 +11,11 @@ import java.util.List;
 
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.bean.ProductBean;
+import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
+import cn.kuwo.player.util.ProductUtil;
+import cn.kuwo.player.util.QueryUtil;
 import cn.kuwo.player.util.SharedHelper;
 
 public class TableApi {
@@ -65,7 +68,7 @@ public class TableApi {
             HashMap<String, Object> commodity,
             String commodityNumber,
             String comment,
-            int position){
+            int position) {
         HashMap<String, Object> hashMap = new HashMap<>();
         String commodityId = ObjectUtil.getString(commodity, "id");
         ProductBean productBean = MyUtils.getProductById(commodityId);
@@ -77,12 +80,19 @@ public class TableApi {
         hashMap.put("comboList", ObjectUtil.getList(commodity, "comboList"));
         hashMap.put("presenter", ObjectUtil.getString(commodity, "presenter"));
         hashMap.put("operator", new SharedHelper(MyApplication.getContextObject()).read("cashierName"));
-        hashMap.put("weight",MyUtils.formatDouble(productBean.getWeight()*refundNumber));
-        hashMap.put("price",MyUtils.formatDouble(productBean.getPrice()*refundNumber));
+        if (ObjectUtil.getString(commodity, "barcode").length() == 18) {
+            hashMap.put("weight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(ObjectUtil.getString(commodity, "barcode")) * refundNumber));
+            hashMap.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(ObjectUtil.getString(commodity, "barcode")) * refundNumber));
+        } else {
+            hashMap.put("weight", MyUtils.formatDouble(productBean.getWeight() * refundNumber));
+            hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * refundNumber));
+        }
+
+
         List refundOrders = tableAVObject.getList("refundOrder");
         refundOrders.add(hashMap);
         List orders = tableAVObject.getList("order");
-        if (refundNumber - ObjectUtil.getDouble(commodity, "number")==0.0) {
+        if (refundNumber - ObjectUtil.getDouble(commodity, "number") == 0.0) {
             orders.remove(position);
         } else {
             commodity.put("number", ObjectUtil.getDouble(commodity, "number") - refundNumber >= 0 ? ObjectUtil.getDouble(commodity, "number") - refundNumber : 0);
@@ -90,6 +100,19 @@ public class TableApi {
         }
         tableAVObject.put("order", orders);
         tableAVObject.put("refundOrder", refundOrders);
+        List alreadyOrders = tableAVObject.getList("order");
+            for (Object o : alreadyOrders) {
+                HashMap<String, Object> map = (HashMap<String, Object>) o;
+                if (ObjectUtil.getString(map, "id").equals(CONST.MACHINEID)) {
+                    if (ObjectUtil.getDouble(map, "number")<=refundNumber){
+                        alreadyOrders.remove(map);
+                    }else{
+                        map.put("number", ObjectUtil.getDouble(map, "number") -refundNumber);
+                        map.put("price", MyUtils.formatDouble((ObjectUtil.getDouble(map, "number") -refundNumber)*30));
+                    }
+
+                }
+            }
         return tableAVObject;
     }
 }

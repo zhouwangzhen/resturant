@@ -116,7 +116,10 @@ public class RealmHelper {
         RealmResults<RuleBean> ruleBean = mRealm.where(RuleBean.class).findAll();
         return mRealm.copyFromRealm(ruleBean);
     }
-
+    public List<ProductBean> queryCookStyle() {
+        RealmResults<ProductBean> ruleBean = mRealm.where(ProductBean.class).equalTo("type",10).findAll();
+        return mRealm.copyFromRealm(ruleBean);
+    }
     public Realm getRealm() {
         return mRealm;
     }
@@ -148,4 +151,8 @@ public class RealmHelper {
         return mRealm.copyFromRealm(productBeen);
     }
 
+    public List<ProductBean> queryAdditionals() {
+        RealmResults<ProductBean> ruleBean = mRealm.where(ProductBean.class).equalTo("type",11).findAll();
+        return mRealm.copyFromRealm(ruleBean);
+    }
 }

@@ -79,6 +79,7 @@ import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
+import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
 
 import static android.app.Activity.RESULT_OK;
@@ -86,6 +87,7 @@ import static android.app.Activity.RESULT_OK;
 public class SettleFg extends BaseFragment {
     private static String tableId = "param_key";
     private static boolean isHangUp = false;
+    private static String remark = "";
     @BindView(R.id.user_avatar)
     QMUIRadiusImageView userAvatar;
     @BindView(R.id.svip_avatar)
@@ -165,6 +167,8 @@ public class SettleFg extends BaseFragment {
     LinearLayout llStoreReduce;
     @BindView(R.id.ll_full_reduce)
     LinearLayout llFullReduce;
+    @BindView(R.id.store_reduce_rate)
+    TextView storeReduceRate;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private int REQUEST_CODE_SCAN = 111;
     private int REQUEST_FUNC = 100;
@@ -271,7 +275,7 @@ public class SettleFg extends BaseFragment {
                     }
 
                 } else {
-                    ToastUtil.showShort(getContext(), "获取订单信息错误" + e.getMessage());
+                    hideDialog();
                 }
 
             }
@@ -279,6 +283,7 @@ public class SettleFg extends BaseFragment {
         cbUseSvip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                deleteoddMoney = 0.0;
                 refreshList();
             }
         });
@@ -386,6 +391,7 @@ public class SettleFg extends BaseFragment {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        Double noDiscountMoney = ProductUtil.calNoDiscountMoney(tableAVObject.getList("order"));
         orders = ProductUtil.calOtherOder(orders, otherTableOrders);
         if (orders.size() != tableAVObject.getList("order").size()) {
             String tableContent = "当前桌号:" + tableAVObject.getString("tableNumber");
@@ -454,15 +460,19 @@ public class SettleFg extends BaseFragment {
             tvOfflineContent.setText(offlineCouponEvent.getContent());
         }
         if (cbUseSvip.isChecked()) {
-            activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - myMeatReduceMoney - offlineCouponMoney - onlineCouponMoney) * (1 - MyUtils.getDayRate()));
-            if (activityReduceMoney < 0) activityReduceMoney = 0.0;
+            if (tableAVObject.getAVObject("user") != null) {
+                activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - myMeatReduceMoney - offlineCouponMoney - onlineCouponMoney-noDiscountMoney) * (1 - MyUtils.getDayRate()));
+                if (activityReduceMoney < 0) activityReduceMoney = 0.0;
+            }
             actualTotalMoneny = originTotalMoneny - offlineCouponMoney - onlineCouponMoney - activityReduceMoney - myMeatReduceMoney;
             if (actualTotalMoneny < 0) actualTotalMoneny = 0.0;
             totalMoney.setText("￥" + actualTotalMoneny + "元");
             storeReduceMoney.setText("-" + activityReduceMoney);
         } else {
-            activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - offlineCouponMoney - onlineCouponMoney) * (1 - MyUtils.getDayRate()));
-            if (activityReduceMoney < 0) activityReduceMoney = 0.0;
+            if (tableAVObject.getAVObject("user") != null) {
+                activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - offlineCouponMoney - onlineCouponMoney-noDiscountMoney) * (1 - MyUtils.getDayRate()));
+                if (activityReduceMoney < 0) activityReduceMoney = 0.0;
+            }
             actualTotalMoneny = originTotalMoneny - offlineCouponMoney - onlineCouponMoney - activityReduceMoney;
             if (actualTotalMoneny < 0) actualTotalMoneny = 0.0;
             totalMoney.setText("￥" + actualTotalMoneny + "元");
@@ -492,6 +502,7 @@ public class SettleFg extends BaseFragment {
             deleteOddMoney.setText("0");
         }
         if (activityReduceMoney > 0) {
+            storeReduceRate.setText("开业" + MyUtils.getDayRate() + "折优惠");
             llStoreReduce.setVisibility(View.VISIBLE);
         } else {
             llStoreReduce.setVisibility(View.GONE);
@@ -599,10 +610,15 @@ public class SettleFg extends BaseFragment {
      */
     private void chooseScanType() {
         if (CameraProvider.hasCamera()) {
-            if (MyUtils.getCameraPermission(getContext())) {
-                Intent intent = new Intent(getActivity(), CaptureActivity.class);
-                intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
-                startActivityForResult(intent, REQUEST_CODE_SCAN);
+            if (SharedHelper.readBoolean("useGun")){
+                ScanUserFragment scanUserFragment = new ScanUserFragment(1);
+                scanUserFragment.show(getFragmentManager(), "scanuser");
+            }else{
+                if (MyUtils.getCameraPermission(getContext())) {
+                    Intent intent = new Intent(getActivity(), CaptureActivity.class);
+                    intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
+                    startActivityForResult(intent, REQUEST_CODE_SCAN);
+                }
             }
         } else {
             ScanUserFragment scanUserFragment = new ScanUserFragment(1);
@@ -635,7 +651,7 @@ public class SettleFg extends BaseFragment {
                                         llShowMember.setVisibility(View.VISIBLE);
                                         Double whiteBarBalance = MyUtils.formatDouble(Double.parseDouble(object.get("gold").toString()) - Double.parseDouble(object.get("arrears").toString()));
                                         Double storedBalance = MyUtils.formatDouble(Double.parseDouble(object.get("stored").toString()));
-                                        if (object.get("avatarurl") != null&&!object.get("avatarurl").equals("")) {
+                                        if (object.get("avatarurl") != null && !object.get("avatarurl").equals("")) {
                                             Glide.with(MyApplication.getContextObject()).load(object.get("avatarurl").toString()).into(userAvatar);
                                         }
                                         userTel.setText("用户手机号:" + object.get("username").toString());
@@ -728,7 +744,7 @@ public class SettleFg extends BaseFragment {
     public void UserMessgae(UserBean userBean) {
         if (userBean.getCallbackCode() == CONST.UserCode.SCANCUSTOMER) {
             llShowMember.setVisibility(View.VISIBLE);
-            if (userBean.getAvatar()!=null&&!userBean.getAvatar().equals("")){
+            if (userBean.getAvatar() != null && !userBean.getAvatar().equals("")) {
                 Glide.with(MyApplication.getContextObject()).load(userBean.getAvatar()).into(userAvatar);
             }
             userTel.setText("用户手机号:" + userBean.getUsername());
@@ -801,7 +817,7 @@ public class SettleFg extends BaseFragment {
             reduceMap.put(onlineCouponEvent.getContent(), onlineCouponMoney);
         }
         if (activityReduceMoney > 0) {
-            reduceMap.put("开业打折优惠", activityReduceMoney);
+            reduceMap.put("开业" + MyUtils.getDayRate() + "折优惠", activityReduceMoney);
         }
         if (fullReduceMoney > 0) {
             reduceMap.put("满减优惠", fullReduceMoney);

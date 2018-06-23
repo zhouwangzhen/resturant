@@ -79,11 +79,6 @@ public class CommodityFg extends BaseFragment {
     @Override
     public void initData() {
         mRealmHleper = new RealmHelper(MyApplication.getContextObject());
-        emptyView.show(true);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MyApplication.getContextObject(), LinearLayout.VERTICAL, false);
-        offinelist.setLayoutManager(linearLayoutManager);
-        offineAdapter = new OffineAdapter(MyApplication.getContextObject(), mRealmHleper.queryAllProduct(), mRealmHleper.queryAllType(), getActivity().getFragmentManager());
-        offinelist.setAdapter(offineAdapter);
         List<RuleBean> ruleBeans = mRealmHleper.queryAllRule();
         if (ruleBeans.size() > 0) {
             RuleBean ruleBean = ruleBeans.get(0);
@@ -93,7 +88,14 @@ public class CommodityFg extends BaseFragment {
             }
             ruleContent.setText(ruleInfo);
         }
-        emptyView.show(false);
+        final List<ProductBean> productBeans = mRealmHleper.queryAllProduct();
+        final List<TypeBean> typeBeans = mRealmHleper.queryAllType();
+        showDialog();
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MyApplication.getContextObject(), LinearLayout.VERTICAL, false);
+        offinelist.setLayoutManager(linearLayoutManager);
+        offineAdapter = new OffineAdapter(MyApplication.getContextObject(), productBeans, typeBeans, getActivity().getFragmentManager());
+        offinelist.setAdapter(offineAdapter);
+        hideDialog();
 
     }
 
@@ -142,7 +144,7 @@ public class CommodityFg extends BaseFragment {
                     offinelist.setAdapter(offineAdapter);
                     emptyView.show(false);
                     hideDialog();
-                }else{
+                } else {
                     hideDialog();
                 }
             }

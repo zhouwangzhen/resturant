@@ -60,6 +60,9 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             HashMap<String, Object> format = ObjectUtil.format(preOrders.get(preOrders.size() - position - 1));
             ProductBean preProductBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             String contnet = preProductBean.getName();
+            if (!ObjectUtil.getString(format,"cookStyle").equals("")){
+                contnet+="(做法:"+ObjectUtil.getString(format,"cookStyle")+")";
+            }
             if (format.containsKey("comboList") && ObjectUtil.getList(format, "comboList").size() > 0) {
                 List<String> comboList = ObjectUtil.getList(format, "comboList");
                 for (int j = 0; j < comboList.size(); j++) {

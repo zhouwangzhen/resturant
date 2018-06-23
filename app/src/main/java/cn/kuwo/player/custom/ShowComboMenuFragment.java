@@ -17,17 +17,21 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVObject;
 import com.orhanobut.logger.Logger;
+import com.qmuiteam.qmui.widget.dialog.QMUIBottomSheet;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import org.greenrobot.eventbus.EventBus;
@@ -46,12 +50,18 @@ import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
+import cn.kuwo.player.util.RealmHelper;
+import cn.kuwo.player.util.ToastUtil;
 
 public class ShowComboMenuFragment extends DialogFragment implements View.OnClickListener {
     private List<List<String>> comboMenu;
     private QMUITipDialog tipDialog;
     private LinearLayout llRoot, llComment;
+    private RelativeLayout rlChooseMachine;
     private View view;
+    private Switch switchMachine;
+    private TextView machineText;
+    private RelativeLayout rlMachineStyle;
     private TextView title, price, close, addbt, subbt, tvNumber, giveName, comboDetail;
     private LinearLayout llHasCombo, llChooseCombo, llChooseSerial;
     private ScrollView llRootPage;
@@ -67,12 +77,17 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
     private int orderIndex = -1;
     private Boolean isEdit = false;
     private Boolean isComobo = true;
+    private Boolean isWeight = false;
+    private String barcode = null;
+    private String cookStyle = "";
+    private int orginNumber=0;
 
     @SuppressLint("ValidFragment")
-    public ShowComboMenuFragment(Context context, ProductBean productBean, Boolean isEdit) {
+    public ShowComboMenuFragment(Context context, ProductBean productBean, Boolean isEdit, String barcode) {
         this.comboMenu = ProductUtil.getComboList(productBean.getComboMenu());
         this.context = context;
         this.productBean = productBean;
+        this.barcode = barcode;
         this.isEdit = isEdit;
         if (productBean.getComboMenu().length() > 0 && productBean.getComboMenu() != null) {
             isComobo = true;
@@ -82,7 +97,9 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         for (int i = 0; i < comboMenu.size(); i++) {
             chooseTypes.add(0);
         }
-
+        if (barcode.length() == 18) {
+            isWeight = true;
+        }
     }
 
     @SuppressLint("ValidFragment")
@@ -94,6 +111,11 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         this.isEdit = isEdit;
         this.order = order;
         this.orderIndex = orderIndex;
+        HashMap<String, Object> format = ObjectUtil.format(order);
+        barcode = ObjectUtil.getString(format, "barcode");
+        if (barcode.length() == 18) {
+            isWeight = true;
+        }
     }
 
     @Nullable
@@ -118,6 +140,25 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 cookSerial = radioSerial.indexOfChild(group.findViewById(checkedId)) + 1;
+            }
+        });
+        switchMachine.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    showMachineStyle();
+                    rlMachineStyle.setVisibility(View.VISIBLE);
+                } else {
+                    cookStyle = "";
+                    machineText.setText(cookStyle);
+                    rlMachineStyle.setVisibility(View.GONE);
+                }
+            }
+        });
+        rlMachineStyle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showMachineStyle();
             }
         });
     }
@@ -163,52 +204,11 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
     }
 
     private void initData() {
-        tipDialog = new QMUITipDialog.Builder(getActivity())
-                .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .setTipWord("加载中")
-                .create();
-        title.setText(productBean.getSerial() + "  " + productBean.getName());
-        for (int i = 0; i < productBean.getComments().size(); i++) {
-            Button button = new Button(context);
-            button.setText(productBean.getComments().get(i).toString());
-            final int finalI = i;
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (editRemark.getText().toString().trim().length() == 0) {
-                        editRemark.setText(productBean.getComments().get(finalI).toString());
-                    } else {
-                        editRemark.setText(editRemark.getText().toString() + "+" + productBean.getComments().get(finalI).toString());
-                    }
-
-                }
-            });
-            llComment.addView(button);
-        }
-
-    }
-
-    private void findView() {
-        title = view.findViewById(R.id.title);
-        price = view.findViewById(R.id.price);
-        close = view.findViewById(R.id.close);
-        giveName = view.findViewById(R.id.give_name);
-        radioSerial = view.findViewById(R.id.radio_serial);
-        llRoot = view.findViewById(R.id.ll_root);
-        llComment = view.findViewById(R.id.ll_comment);
-        tvNumber = view.findViewById(R.id.tv_number);
-        comboDetail = view.findViewById(R.id.combo_detail);
-        llRootPage = view.findViewById(R.id.ll_root_page);
-        llHasCombo = view.findViewById(R.id.ll_has_combo);
-        llChooseSerial = view.findViewById(R.id.ll_choose_serial);
-        llChooseCombo = view.findViewById(R.id.ll_choose_combo);
-        editRemark = view.findViewById(R.id.edit_remark);
-        subbt = view.findViewById(R.id.subbt);
-        addbt = view.findViewById(R.id.addbt);
-        btnEnsure = view.findViewById(R.id.btn_ensure);
+        title.setFocusable(true);
         if (isEdit) {
             HashMap<String, Object> format = ObjectUtil.format(order);
             int cookSerial = ObjectUtil.getInt(format, "cookSerial");
+            orginNumber=ObjectUtil.getDouble(format, "number").intValue();
             if (cookSerial == 1) radioSerial.check(R.id.serial_1);
             if (cookSerial == 2) radioSerial.check(R.id.serial_2);
             if (cookSerial == 3) radioSerial.check(R.id.serial_3);
@@ -217,17 +217,27 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         }
         if (order != null && isEdit) {
             HashMap<String, Object> format = ObjectUtil.format(order);
+            cookStyle=ObjectUtil.getString(format,"cookStyle");
+            machineText.setText(cookStyle);
+            if (cookStyle.length()>0){
+                switchMachine.setChecked(true);
+                rlMachineStyle.setVisibility(View.VISIBLE);
+            }
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getType()==3||productBean.getType()==4){
+            if (productBean.getType() == 3 || productBean.getType() == 4) {
                 radioSerial.setVisibility(View.GONE);
             }
             Double number = ObjectUtil.getDouble(format, "number");
             commodityNumber = number;
-            price.setText("￥" + MyUtils.formatDouble(number * productBean.getPrice()));
+            if (isWeight) {
+                price.setText("￥" + MyUtils.formatDouble(ProductUtil.calCommodityMoney(barcode) * number));
+            } else {
+                price.setText("￥" + productBean.getPrice());
+            }
             editRemark.setText(ObjectUtil.getString(format, "comment"));
             tvNumber.setText(commodityNumber + "");
             List<String> comboList = ObjectUtil.getList(format, "comboList");
-            if (comboMenu.size()>0&&format.containsKey("comboList") && comboList != null && comboList.size() > 0) {
+            if (comboMenu.size() > 0 && format.containsKey("comboList") && comboList != null && comboList.size() > 0) {
                 isComobo = true;
                 llHasCombo.setVisibility(View.VISIBLE);
                 llChooseCombo.setVisibility(View.VISIBLE);
@@ -249,7 +259,14 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                 }
             }
         } else {
-            price.setText("￥" + productBean.getPrice());
+            if (isWeight) {
+                rlChooseMachine.setVisibility(View.VISIBLE);
+                price.setText("￥" + ProductUtil.calCommodityMoney(barcode));
+            } else {
+                price.setText("￥" + productBean.getPrice());
+            }
+
+
         }
         if (productBean.getGivecode().length() > 0 && MyUtils.getProductById(productBean.getGivecode()) != null) {
             try {
@@ -297,8 +314,69 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         } else {
             llChooseSerial.setVisibility(View.GONE);
         }
+        if (isWeight) {
+            rlChooseMachine.setVisibility(View.VISIBLE);
+        }
+        tipDialog = new QMUITipDialog.Builder(getActivity())
+                .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+                .setTipWord("加载中")
+                .create();
+        String titleContent = "";
+        if (productBean.getSerial() != null) {
+            titleContent += productBean.getSerial();
+        }
+        titleContent += productBean.getName();
+        if (isWeight) {
+            titleContent += "(" + ProductUtil.calCommodityWeight(barcode);
+            if (ProductUtil.calCommodityWeight(barcode) > 20) {
+                titleContent += "ml)";
+            } else {
+                titleContent += "kg)";
+            }
+        }
+        title.setText(titleContent);
+        for (int i = 0; i < productBean.getComments().size(); i++) {
+            Button button = new Button(context);
+            button.setText(productBean.getComments().get(i).toString());
+            final int finalI = i;
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (editRemark.getText().toString().trim().length() == 0) {
+                        editRemark.setText(productBean.getComments().get(finalI).toString());
+                    } else {
+                        editRemark.setText(editRemark.getText().toString() + "+" + productBean.getComments().get(finalI).toString());
+                    }
 
+                }
+            });
+            llComment.addView(button);
+        }
 
+    }
+
+    private void findView() {
+        title = view.findViewById(R.id.title);
+        price = view.findViewById(R.id.price);
+        close = view.findViewById(R.id.close);
+        giveName = view.findViewById(R.id.give_name);
+        radioSerial = view.findViewById(R.id.radio_serial);
+        llRoot = view.findViewById(R.id.ll_root);
+        llComment = view.findViewById(R.id.ll_comment);
+        tvNumber = view.findViewById(R.id.tv_number);
+        comboDetail = view.findViewById(R.id.combo_detail);
+        llRootPage = view.findViewById(R.id.ll_root_page);
+        llHasCombo = view.findViewById(R.id.ll_has_combo);
+        llChooseSerial = view.findViewById(R.id.ll_choose_serial);
+        llChooseCombo = view.findViewById(R.id.ll_choose_combo);
+        editRemark = view.findViewById(R.id.edit_remark);
+        switchMachine = view.findViewById(R.id.switch_mach);
+        subbt = view.findViewById(R.id.subbt);
+        addbt = view.findViewById(R.id.addbt);
+        btnEnsure = view.findViewById(R.id.btn_ensure);
+        rlMachineStyle = view.findViewById(R.id.rl_machine_style);
+        rlChooseMachine = view.findViewById(R.id.rl_choose_machine);
+        machineText = view.findViewById(R.id.machine_text);
     }
 
 
@@ -332,22 +410,30 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_ensure:
-                List<String> chooseIds = new ArrayList<>();
-                if (comboMenu.size() > 0 && comboMenu != null) {
-                    for (int i = 0; i < chooseTypes.size(); i++) {
-                        chooseIds.add(comboMenu.get(i).get(chooseTypes.get(i)));
+                if (switchMachine.isChecked() && cookStyle.length() == 0) {
+                    ToastUtil.showLong(MyApplication.getContextObject(), "请选择烹饪做法");
+                } else {
+                    List<String> chooseIds = new ArrayList<>();
+                    if (comboMenu.size() > 0 && comboMenu != null) {
+                        for (int i = 0; i < chooseTypes.size(); i++) {
+                            chooseIds.add(comboMenu.get(i).get(chooseTypes.get(i)));
+                        }
                     }
+                    EventBus.getDefault().post(new ComboEvent(
+                            productBean,
+                            chooseIds,
+                            cookSerial,
+                            editRemark.getText().toString(),
+                            commodityNumber,
+                            isEdit,
+                            orderIndex,
+                            barcode,
+                            cookStyle,
+                            orginNumber)
+                    );
+                    getDialog().dismiss();
                 }
-                EventBus.getDefault().post(new ComboEvent(
-                        productBean,
-                        chooseIds,
-                        cookSerial,
-                        editRemark.getText().toString(),
-                        commodityNumber,
-                        isEdit,
-                        orderIndex)
-                );
-                getDialog().dismiss();
+                break;
             case R.id.close:
                 getDialog().dismiss();
                 break;
@@ -362,11 +448,19 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                     if (Double.parseDouble(tvNumber.getText().toString().trim()) >= 2) {
                         tvNumber.setText(Double.parseDouble(tvNumber.getText().toString().trim()) - 1.0 + "");
                         commodityNumber = Double.parseDouble(tvNumber.getText().toString().trim());
-                        price.setText("￥" + MyUtils.formatDouble(commodityNumber * productBean.getPrice()));
+                        if (isWeight) {
+                            price.setText("￥" + MyUtils.formatDouble(ProductUtil.calCommodityMoney(barcode) * commodityNumber));
+                        } else {
+                            price.setText("￥" + MyUtils.formatDouble(commodityNumber * productBean.getPrice()));
+                        }
                     }
                 }
                 if (commodityNumber >= 1) {
-                    btnEnsure.setText("添加");
+                    if (isEdit) {
+                        btnEnsure.setText("修改");
+                    } else {
+                        btnEnsure.setText("添加");
+                    }
                     btnEnsure.setBackgroundColor(getResources().getColor(R.color.material_green));
                 } else {
                     btnEnsure.setText("删除");
@@ -377,12 +471,41 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
             case R.id.addbt:
                 tvNumber.setText(Double.parseDouble(tvNumber.getText().toString().trim()) + 1.0 + "");
                 commodityNumber = Double.parseDouble(tvNumber.getText().toString().trim());
-                price.setText("￥" + MyUtils.formatDouble(commodityNumber * productBean.getPrice()));
+                if (isWeight) {
+                    price.setText("￥" + MyUtils.formatDouble(ProductUtil.calCommodityMoney(barcode) * commodityNumber));
+                } else {
+                    price.setText("￥" + MyUtils.formatDouble(commodityNumber * productBean.getPrice()));
+                }
                 if (commodityNumber >= 1) {
-                    btnEnsure.setText("添加");
+                    if (isEdit) {
+                        btnEnsure.setText("修改");
+                    } else {
+                        btnEnsure.setText("添加");
+                    }
+
                     btnEnsure.setBackgroundColor(getResources().getColor(R.color.material_green));
                 }
                 break;
         }
+    }
+
+    private void showMachineStyle() {
+        QMUIBottomSheet.BottomListSheetBuilder bottomListSheetBuilder = new QMUIBottomSheet.BottomListSheetBuilder(getActivity());
+        RealmHelper realmHelper = new RealmHelper(MyApplication.getContextObject());
+        final List<ProductBean> productBeans = realmHelper.queryCookStyle();
+        for (int i = 0; i < productBeans.size(); i++) {
+            bottomListSheetBuilder.addItem(productBeans.get(i).getName());
+        }
+        bottomListSheetBuilder.setTitle("选择烹饪做法");
+        bottomListSheetBuilder.setOnSheetItemClickListener(new QMUIBottomSheet.BottomListSheetBuilder.OnSheetItemClickListener() {
+            @Override
+            public void onClick(QMUIBottomSheet dialog, View itemView, int position, String tag) {
+                cookStyle = productBeans.get(position).getName();
+                machineText.setText(cookStyle);
+                dialog.dismiss();
+            }
+        })
+                .build()
+                .show();
     }
 }

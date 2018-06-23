@@ -19,6 +19,7 @@ import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.FunctionCallback;
 import com.avos.avoscloud.GetCallback;
 import com.avos.avoscloud.SaveCallback;
@@ -122,6 +123,8 @@ public class PayActivity extends BaseActivity {
     LinearLayout llFullReduce;
     @BindView(R.id.ll_store_reduce)
     LinearLayout llStoreReduce;
+    @BindView(R.id.store_reduce_rate)
+    TextView storeReduceRate;
     private OrderDetail orderDetail;
     private List<Integer> paymentTypes = new ArrayList<>();
     private JSONObject jsonReduce;
@@ -136,7 +139,8 @@ public class PayActivity extends BaseActivity {
 
     private Double whiteBarBalance;
     private Double storedBalance;
-    private Boolean paySuccess=false;
+    private Boolean paySuccess = false;
+
     @Override
     protected int getContentViewId() {
         return R.layout.activity_pay;
@@ -221,14 +225,14 @@ public class PayActivity extends BaseActivity {
                     mallOrder.put("store", 1);
                     mallOrder.put("outside", true);
                     mallOrder.put("commodityDetail", orderDetail.getOrders());
-                    if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null&&orderDetail.getMyReduceMoney()>0) {
+                    if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null && orderDetail.getMyReduceMoney() > 0) {
                         mallOrder.put("meatWeights", ProductUtil.listToList(orderDetail.getUseExchangeList()));
                         mallOrder.put("meatDetail", ProductUtil.listToObject(orderDetail.getUseExchangeList()));
                         mallOrder.put("useMeat", AVObject.createWithoutData("Meat", orderDetail.getUseMeatId()));
 
                     }
-                    if (getIntent().getBooleanExtra("isHangUp",false)){
-                        mallOrder.put("hangUp",true);
+                    if (getIntent().getBooleanExtra("isHangUp", false)) {
+                        mallOrder.put("hangUp", true);
                         mallOrder.put("message", getIntent().getStringExtra("remark"));
                         mallOrder.put("type", 4);
 
@@ -240,7 +244,7 @@ public class PayActivity extends BaseActivity {
                     mallOrder.put("type", 1);
                     jsonReduce = new JSONObject();
                     try {
-                        if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null&&orderDetail.getMyReduceMoney()>0) {
+                        if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null && orderDetail.getMyReduceMoney() > 0) {
                             jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
                         }
                         if (orderDetail.getBlackfiveMoney() > 0) {
@@ -256,7 +260,7 @@ public class PayActivity extends BaseActivity {
                         }
 
                         if (orderDetail.getActivityMoney() > 0) {
-                            jsonReduce.put("线下店打折优惠", orderDetail.getActivityMoney());
+                            jsonReduce.put("开业" + MyUtils.getDayRate() + "折优惠", orderDetail.getActivityMoney());
                         }
                         if (orderDetail.getFullReduceMoney() > 0) {
                             jsonReduce.put("满减优惠", orderDetail.getFullReduceMoney());
@@ -272,14 +276,14 @@ public class PayActivity extends BaseActivity {
                     } catch (JSONException e1) {
                         e1.printStackTrace();
                     }
-
+                    checkExplode();
                     mallOrder.saveInBackground(new SaveCallback() {
                         @Override
                         public void done(AVException e) {
                             hideDialog();
                             if (e == null) {
                                 showDialog();
-                                paySuccess=true;
+                                paySuccess = true;
                                 Bill.printRetailBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow, orderDetail.getUserBean());
                                 ToastUtil.showShort(MyApplication.getContextObject(), "订单结算完成");
 
@@ -297,8 +301,35 @@ public class PayActivity extends BaseActivity {
         });
     }
 
+    private void checkExplode() {
+        if (!SharedHelper.readBoolean("test")) {
+            final int explodeNumber = ProductUtil.calExplodeNumbers(orderDetail.getOrders());
+            if (ProductUtil.calExplodeNumbers(orderDetail.getOrders()) > 0) {
+                final AVQuery<AVObject> query = new AVQuery<>("OffineControl");
+                query.whereEqualTo("store", 1);
+                query.findInBackground(new FindCallback<AVObject>() {
+                    @Override
+                    public void done(List<AVObject> list, AVException e) {
+                        if (e == null) {
+                            AVObject avObject = list.get(0);
+                            avObject.put("number", avObject.getInt("number") + explodeNumber);
+                            avObject.saveInBackground(new SaveCallback() {
+                                @Override
+                                public void done(AVException e) {
+                                    if (e != null) {
+                                        checkExplode();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+    }
+
     private void resetTable() {
-        if (getIntent().getBooleanExtra("isHangUp",false)) {
+        if (getIntent().getBooleanExtra("isHangUp", false)) {
             AVQuery<AVObject> query = new AVQuery<>("HangUpOrder");
             query.getInBackground(getIntent().getStringExtra("hangUpId"), new GetCallback<AVObject>() {
                 @Override
@@ -321,7 +352,7 @@ public class PayActivity extends BaseActivity {
                     }
                 }
             });
-        }else{
+        } else {
             hideDialog();
             Intent intent = getIntent();
             setResult(1, intent);
@@ -344,9 +375,10 @@ public class PayActivity extends BaseActivity {
         } else {
             llFullReduce.setVisibility(View.GONE);
         }
-        if (orderDetail.getActivityMoney()>0){
+        if (orderDetail.getActivityMoney() > 0) {
             llStoreReduce.setVisibility(View.VISIBLE);
-        }else{
+            storeReduceRate.setText("开业" + MyUtils.getDayRate() + "折优惠");
+        } else {
             llStoreReduce.setVisibility(View.GONE);
         }
         if (orderDetail.getOfflineCouponEvent() != null) {
@@ -540,12 +572,13 @@ public class PayActivity extends BaseActivity {
         super.onPause();
         EventBus.getDefault().unregister(this);
     }
+
     @Override
     public void onBackPressed() {
-        if (paySuccess){
+        if (paySuccess) {
 
-        }else{
-             super.onBackPressed();
+        } else {
+            super.onBackPressed();
         }
 
     }

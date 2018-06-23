@@ -23,6 +23,7 @@ import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.interfaces.MyItemClickListener;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
+import cn.kuwo.player.util.ProductUtil;
 
 public class ShowGoodAdapter extends RecyclerView.Adapter<ShowGoodAdapter.MyViewHolder>  {
     private Context mContext;
@@ -53,6 +54,9 @@ public class ShowGoodAdapter extends RecyclerView.Adapter<ShowGoodAdapter.MyView
         HashMap<String, Object> format = ObjectUtil.format(finalOrders.get(finalOrders.size() - position - 1));
         ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
         String contnet = productBean.getName();
+        if (!ObjectUtil.getString(format,"cookStyle").equals("")){
+            contnet+="(做法:"+ObjectUtil.getString(format,"cookStyle")+")";
+        }
         try {
             if (format.containsKey("comboList") && ObjectUtil.getList(format, "comboList").size() > 0) {
                 List<String> comboList = ObjectUtil.getList(format, "comboList");
@@ -85,7 +89,12 @@ public class ShowGoodAdapter extends RecyclerView.Adapter<ShowGoodAdapter.MyView
             }
         }
         holder.tvWeight.setText(weightContent);
-        holder.tvNumber.setText("￥"+productBean.getPrice()+"*"+ObjectUtil.getDouble(format, "number")+"份");
+        if (ObjectUtil.getString(format,"barcode").length()==18){
+            holder.tvNumber.setText("￥"+ ProductUtil.calCommodityMoney(ObjectUtil.getString(format,"barcode"))+"*"+ObjectUtil.getDouble(format, "number")+"份");
+        }else{
+            holder.tvNumber.setText("￥"+productBean.getPrice()+"*"+ObjectUtil.getDouble(format, "number")+"份");
+        }
+
     }
 
     @Override

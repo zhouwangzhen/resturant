@@ -20,6 +20,9 @@ import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,11 +30,12 @@ import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FindCallback;
-import com.avos.avoscloud.GetCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import com.yzq.zxinglibrary.android.CaptureActivity;
+import com.yzq.zxinglibrary.common.Constant;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -50,8 +54,11 @@ import cn.kuwo.player.BuildConfig;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.base.BaseFragment;
+import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.util.CONST;
+import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.MyUtils;
+import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
 
 public class SettingFg extends BaseFragment {
@@ -65,11 +72,15 @@ public class SettingFg extends BaseFragment {
     @BindView(R.id.change_commodity_price)
     TextView changeCommodityPrice;
     Unbinder unbinder1;
+    @BindView(R.id.cb_carema)
+    CheckBox cbCarema;
+    @BindView(R.id.rl_carema_choose)
+    RelativeLayout rlCaremaChoose;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private Activity mActivity;
     private String mParam;
     private Context context;
-    private AVObject CommodityAVObject=null;
+    private AVObject CommodityAVObject = null;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -86,6 +97,30 @@ public class SettingFg extends BaseFragment {
     public void initData() {
         context = MyApplication.getContextObject();
         findChangeCommodity();
+        setChooseCarema();
+    }
+
+    private void setChooseCarema() {
+        if (CameraProvider.hasCamera()) {
+            rlCaremaChoose.setVisibility(View.VISIBLE);
+            if (SharedHelper.readBoolean("useGun")){
+                cbCarema.setChecked(true);
+            }else{
+                cbCarema.setChecked(false);
+            }
+        } else {
+            rlCaremaChoose.setVisibility(View.GONE);
+        }
+        cbCarema.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked){
+                    SharedHelper.saveBoolean("useGun",true);
+                }else{
+                    SharedHelper.saveBoolean("useGun",false);
+                }
+            }
+        });
     }
 
     private void findChangeCommodity() {
@@ -98,9 +133,9 @@ public class SettingFg extends BaseFragment {
                 hideDialog();
                 if (e == null) {
                     if (list.size() > 0) {
-                        CommodityAVObject=list.get(0);
+                        CommodityAVObject = list.get(0);
                         changeCommodityName.setText(CommodityAVObject.getString("name"));
-                        changeCommodityPrice.setText(CommodityAVObject.getDouble("price")+"");
+                        changeCommodityPrice.setText(CommodityAVObject.getDouble("price") + "");
                         setListener();
                     }
                 } else {
@@ -132,18 +167,18 @@ public class SettingFg extends BaseFragment {
                                 final String text = builder.getEditText().getText().toString();
                                 if (text != null && text.length() > 0) {
                                     dialog.dismiss();
-                                    if (CommodityAVObject!=null){
+                                    if (CommodityAVObject != null) {
                                         showDialog();
-                                        CommodityAVObject.put("name",text);
+                                        CommodityAVObject.put("name", text);
                                         CommodityAVObject.saveInBackground(new SaveCallback() {
                                             @Override
                                             public void done(AVException e) {
                                                 hideDialog();
-                                                if (e==null){
-                                                    ToastUtil.showLong(MyApplication.getContextObject(),"修改成功");
+                                                if (e == null) {
+                                                    ToastUtil.showLong(MyApplication.getContextObject(), "修改成功");
                                                     changeCommodityName.setText(text);
-                                                }else{
-                                                    ToastUtil.showLong(MyApplication.getContextObject(),e.getMessage());
+                                                } else {
+                                                    ToastUtil.showLong(MyApplication.getContextObject(), e.getMessage());
                                                 }
                                             }
                                         });
@@ -175,21 +210,21 @@ public class SettingFg extends BaseFragment {
                             @Override
                             public void onClick(QMUIDialog dialog, int index) {
                                 final String text = builder.getEditText().getText().toString();
-                                if (text != null && text.length() > 0&&MyUtils.isDoubleOrFloat(text)&&Double.parseDouble(text)>0) {
+                                if (text != null && text.length() > 0 && MyUtils.isDoubleOrFloat(text) && Double.parseDouble(text) > 0) {
                                     dialog.dismiss();
-                                    if (CommodityAVObject!=null){
+                                    if (CommodityAVObject != null) {
                                         showDialog();
-                                        CommodityAVObject.put("price",Double.parseDouble(text));
-                                        CommodityAVObject.put("actualprice",Double.parseDouble(text));
+                                        CommodityAVObject.put("price", Double.parseDouble(text));
+                                        CommodityAVObject.put("actualprice", Double.parseDouble(text));
                                         CommodityAVObject.saveInBackground(new SaveCallback() {
                                             @Override
                                             public void done(AVException e) {
                                                 hideDialog();
-                                                if (e==null){
-                                                    ToastUtil.showLong(MyApplication.getContextObject(),"修改成功");
+                                                if (e == null) {
+                                                    ToastUtil.showLong(MyApplication.getContextObject(), "修改成功");
                                                     changeCommodityPrice.setText(text);
-                                                }else{
-                                                    ToastUtil.showLong(MyApplication.getContextObject(),e.getMessage());
+                                                } else {
+                                                    ToastUtil.showLong(MyApplication.getContextObject(), e.getMessage());
                                                 }
                                             }
                                         });
@@ -377,7 +412,8 @@ public class SettingFg extends BaseFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
+            savedInstanceState) {
         // TODO: inflate a fragment view
         View rootView = super.onCreateView(inflater, container, savedInstanceState);
         unbinder1 = ButterKnife.bind(this, rootView);

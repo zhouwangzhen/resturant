@@ -213,7 +213,7 @@ public class SvipFg extends BaseFragment {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_scan_user:
-                if (CameraProvider.hasCamera()) {
+                if (CameraProvider.hasCamera()&&!SharedHelper.readBoolean("useGun")) {
                     if (MyUtils.getCameraPermission(MyApplication.getContextObject())) {
                         Intent intent = new Intent(getActivity(), CaptureActivity.class);
                         intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
@@ -531,7 +531,7 @@ public class SvipFg extends BaseFragment {
                         @Override
                         public void onClick(QMUIDialog dialog, int index) {
                             dialog.dismiss();
-                            if (CameraProvider.hasCamera()) {
+                            if (CameraProvider.hasCamera()&&!SharedHelper.readBoolean("useGun")) {
                                 if (MyUtils.getCameraPermission(MyApplication.getContextObject())) {
                                     Intent intent = new Intent(getActivity(), CaptureActivity.class);
                                     intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
@@ -558,7 +558,7 @@ public class SvipFg extends BaseFragment {
                         @Override
                         public void onClick(QMUIDialog dialog, int index) {
                             dialog.dismiss();
-                            if (CameraProvider.hasCamera()) {
+                            if (CameraProvider.hasCamera()&&!SharedHelper.readBoolean("useGun")) {
                                 if (MyUtils.getCameraPermission(MyApplication.getContextObject())) {
                                     Intent intent = new Intent(getActivity(), CaptureActivity.class);
                                     intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());

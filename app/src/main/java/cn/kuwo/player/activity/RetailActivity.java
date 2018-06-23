@@ -9,6 +9,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
@@ -32,6 +33,7 @@ import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RetailBean;
 import cn.kuwo.player.custom.FlowRadioGroup;
 import cn.kuwo.player.interfaces.MyItemClickListener;
+import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.ToastUtil;
@@ -139,6 +141,9 @@ public class RetailActivity extends BaseActivity {
                 }
             }
         });
+        if (CameraProvider.hasCamera()){
+            scanMeatcode.setInputType(InputType.TYPE_NULL);
+        }
         submitOrder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -224,6 +229,7 @@ public class RetailActivity extends BaseActivity {
             noInfo.setVisibility(View.GONE);
             flTotal.setVisibility(View.VISIBLE);
         }
+        recycleScan.scrollBy(0,100*codes.size());
     }
 
     private void deleteData(int postion) {

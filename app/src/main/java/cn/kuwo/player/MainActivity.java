@@ -1,12 +1,16 @@
 package cn.kuwo.player;
 
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.drawable.Drawable;
+import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVLiveQuery;
 import com.avos.avoscloud.AVLiveQueryEventHandler;
@@ -26,7 +31,9 @@ import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.AVUser;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
+import com.avos.avoscloud.FunctionCallback;
 import com.avos.avoscloud.LogInCallback;
+import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 
 import org.greenrobot.eventbus.EventBus;
@@ -35,6 +42,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -49,6 +57,7 @@ import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.custom.ShowNoNetFragment;
 import cn.kuwo.player.event.ClearEvent;
 import cn.kuwo.player.event.PrintEvent;
+import cn.kuwo.player.event.RefundEvent;
 import cn.kuwo.player.event.SuccessEvent;
 import cn.kuwo.player.fragment.CommodityFg;
 import cn.kuwo.player.fragment.NetConnectFg;
@@ -117,27 +126,30 @@ public class MainActivity extends BaseActivity {
         test();
     }
 
+    private void checkUsbDevice() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        registerReceiver(mUsbStateChangeReceiver, filter);
+
+
+
+    }
+    private BroadcastReceiver mUsbStateChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())){
+                ToastUtil.showLong(MyApplication.getContextObject(),"扫描枪连接成功");
+                SharedHelper.saveBoolean("useGun",true);
+            }
+            if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(intent.getAction())){
+                ToastUtil.showLong(MyApplication.getContextObject(),"扫描枪断开连接");
+                SharedHelper.saveBoolean("useGun",false);
+            }
+        }
+    };
     private void test() {
-//        AVQuery<AVObject> query = new AVQuery<>("OfflineCommodity");
-//        query.whereEqualTo("type",2);
-//        query.whereEqualTo("store",0);
-//        query.whereStartsWith("name","澳");
-//        query.findInBackground(new FindCallback<AVObject>() {
-//            @Override
-//            public void done(List<AVObject> list, AVException e) {
-//                for (int i=0;i<list.size();i++){
-//                    AVObject avObject = list.get(i);
-//                    avObject.put("combo",0);
-//                    avObject.put("active",0);
-//                    avObject.saveInBackground(new SaveCallback() {
-//                        @Override
-//                        public void done(AVException e) {
-//
-//                        }
-//                    });
-//                }
-//            }
-//        });
+
     }
 
     /**
@@ -156,7 +168,7 @@ public class MainActivity extends BaseActivity {
         }
         SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
         if (sharedHelper.readBoolean("cashierLogin")) {
-            waiterName.setText("收银人员:"+sharedHelper.read("cashierName"));
+            waiterName.setText("收银人员:" + sharedHelper.read("cashierName"));
         } else {
             sharedHelper.saveBoolean("cashierLogin", false);
             ScanUserFragment scanUserFragment = new ScanUserFragment(0);
@@ -225,13 +237,12 @@ public class MainActivity extends BaseActivity {
         ft.replace(R.id.fragment_content, tableFg, "table").commitAllowingStateLoss();
     }
 
-    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored,R.id.menu_inventory})
+    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored, R.id.menu_inventory})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.ll_table:
                 if (!AppUtils.isFastDoubleClick()) {
                     switchFragment("table");
-//                    fetchTable();
                 }
                 break;
             case R.id.menu_commodity:
@@ -495,6 +506,7 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onResume() {
         super.onResume();
+        checkUsbDevice();
         EventBus.getDefault().register(this);
         if (netWorkStateReceiver == null) {
             netWorkStateReceiver = new NetWorkStateReceiver();
@@ -543,6 +555,24 @@ public class MainActivity extends BaseActivity {
                 }
             })
                     .setTitle("提示").setNegativeButton("放弃打印小票").setPositiveButton("重新尝试打印").show();
+        }
+
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(final RefundEvent event) {
+        if (event.getCode() <= -1) {
+            new CommomDialog(this, R.style.dialog, "退菜小票机打印失败", new CommomDialog.OnCloseListener() {
+                @Override
+                public void onClick(Dialog dialog, boolean confirm) {
+                    if (confirm) {
+
+                        dialog.dismiss();
+                    }
+
+                }
+            })
+                    .setTitle("提示").setNegativeButton("人工通知").setPositiveButton("人工通知").show();
         }
 
     }

@@ -119,7 +119,7 @@
             android:background="@drawable/radio_group_selector"
             android:textColor="@drawable/color_radiobutton"
             android:button="@null"
-            android:text="有异味" />
+            android:text="菜品材料不足" />
     </RadioGroup>
     <View
         android:layout_width="match_parent"

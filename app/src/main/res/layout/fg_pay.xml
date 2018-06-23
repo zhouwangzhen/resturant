@@ -321,12 +321,15 @@
                             </LinearLayout>
 
                             <LinearLayout
+                                android:id="@+id/ll_store_reduce"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="20dp"
+                                android:visibility="gone"
                                 android:gravity="center_vertical">
 
                                 <TextView
+                                    android:id="@+id/store_reduce_rate"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="开业优惠"
@@ -352,9 +355,11 @@
                             </LinearLayout>
 
                             <LinearLayout
+                                android:id="@+id/ll_full_reduce"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="20dp"
+                                android:visibility="gone"
                                 android:gravity="center_vertical">
 
                                 <TextView

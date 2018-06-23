@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
@@ -20,18 +19,14 @@ import android.widget.Toast;
 import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
-import com.avos.avoscloud.AVQuery;
-import com.avos.avoscloud.DeleteCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.FunctionCallback;
-import com.avos.avoscloud.GetCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.bumptech.glide.Glide;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.yzq.zxinglibrary.android.CaptureActivity;
 import com.yzq.zxinglibrary.common.Constant;
 
@@ -54,7 +49,6 @@ import cn.kuwo.player.R;
 import cn.kuwo.player.adapter.ShowRetailAdapter;
 import cn.kuwo.player.api.CouponApi;
 import cn.kuwo.player.api.HangUpApi;
-import cn.kuwo.player.api.TableApi;
 import cn.kuwo.player.base.BaseActivity;
 import cn.kuwo.player.bean.FuncBean;
 import cn.kuwo.player.bean.RateBean;
@@ -68,13 +62,13 @@ import cn.kuwo.player.custom.ShowReduceListFragment;
 import cn.kuwo.player.custom.ShowWholeSaleFragment;
 import cn.kuwo.player.event.CouponEvent;
 import cn.kuwo.player.event.OrderDetail;
-import cn.kuwo.player.fragment.TableFg;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
+import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
 
 public class SettleActivity extends BaseActivity {
@@ -158,6 +152,8 @@ public class SettleActivity extends BaseActivity {
     TextView blackFiveMoney;
     @BindView(R.id.ll_black_five)
     LinearLayout llBlackFive;
+    @BindView(R.id.store_reduce_rate)
+    TextView storeReduceRate;
     private Context context;
     private RetailBean retailBean;
     private LinearLayoutManager linearLayoutManager;
@@ -204,7 +200,7 @@ public class SettleActivity extends BaseActivity {
     @Override
     public void initData() {
         context = this;
-        isHangUp = getIntent().getBooleanExtra("isHangUp",false);
+        isHangUp = getIntent().getBooleanExtra("isHangUp", false);
         retailBean = (RetailBean) getIntent().getSerializableExtra("retailBean");
         linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         recycleScanGood.setLayoutManager(linearLayoutManager);
@@ -298,6 +294,7 @@ public class SettleActivity extends BaseActivity {
         fullReduceMoney = 0.0;
         totalNumber.setText(orders.size() + "");
         originTotalMoneny = MyUtils.totalPrice(retailBean.getPrices());
+        Double noDiscountMoney = ProductUtil.calNoDiscountMoney(orders);
         orginPrice.setText(originTotalMoneny + "");
         if (userId.length() > 0) {
             cbUseSvip.setVisibility(View.VISIBLE);
@@ -341,7 +338,7 @@ public class SettleActivity extends BaseActivity {
             mySvipReduceMoney.setText("-0.0");
         }
         blackfiveMoney = ProductUtil.calBlackFiveReduce(cbUseSvip.isChecked(), useExchangeList, ProductUtil.calExchangeMeatList(orders), orders);
-        if (blackfiveMoney > 0&&userBean!=null) {
+        if (blackfiveMoney > 0 && userBean != null) {
             llBlackFive.setVisibility(View.VISIBLE);
             blackFiveMoney.setText("-" + blackfiveMoney);
         } else {
@@ -356,19 +353,23 @@ public class SettleActivity extends BaseActivity {
         }
         if (offlineCouponEvent != null) {
             offlineCouponMoney = offlineCouponEvent.getMoney();
-            Logger.d(offlineCouponMoney);
             tvOfflineMoeny.setText("-" + offlineCouponMoney);
             tvOfflineContent.setText(offlineCouponEvent.getContent());
         }
         if (cbUseSvip.isChecked()) {
-            activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - myMeatReduceMoney - blackfiveMoney - offlineCouponMoney - onlineCouponMoney) * (1 - MyUtils.getDayRate()));
+            if (userBean != null) {
+                activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - myMeatReduceMoney - blackfiveMoney - offlineCouponMoney - onlineCouponMoney - noDiscountMoney) * (1 - MyUtils.getDayRate()));
+
+            }
             if (activityReduceMoney < 0) activityReduceMoney = 0.0;
             actualTotalMoneny = originTotalMoneny - offlineCouponMoney - blackfiveMoney - onlineCouponMoney - activityReduceMoney - myMeatReduceMoney;
             if (actualTotalMoneny < 0) actualTotalMoneny = 0.0;
             totalMoney.setText("￥" + actualTotalMoneny + "元");
             storeReduceMoney.setText("-" + activityReduceMoney);
         } else {
-            activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - offlineCouponMoney - blackfiveMoney - onlineCouponMoney) * (1 - MyUtils.getDayRate()));
+            if (userBean != null) {
+                activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - offlineCouponMoney - blackfiveMoney - onlineCouponMoney - noDiscountMoney) * (1 - MyUtils.getDayRate()));
+            }
             if (activityReduceMoney < 0) activityReduceMoney = 0.0;
             actualTotalMoneny = originTotalMoneny - offlineCouponMoney - blackfiveMoney - onlineCouponMoney - activityReduceMoney;
             if (actualTotalMoneny < 0) actualTotalMoneny = 0.0;
@@ -381,6 +382,12 @@ public class SettleActivity extends BaseActivity {
         } else {
             llDeleteOdd.setVisibility(View.GONE);
             deleteOddMoney.setText("0");
+        }
+        if (activityReduceMoney > 0) {
+            storeReduceRate.setText("开业" + MyUtils.getDayRate() + "折优惠");
+            llStoreReduce.setVisibility(View.VISIBLE);
+        } else {
+            llStoreReduce.setVisibility(View.GONE);
         }
         fullReduceMoney = MyUtils.formatDouble(ProductUtil.calFullReduceMoney(actualTotalMoneny) > actualTotalMoneny ? actualTotalMoneny : ProductUtil.calFullReduceMoney(actualTotalMoneny));
         fullreduceMoney.setText("-" + fullReduceMoney);
@@ -421,6 +428,7 @@ public class SettleActivity extends BaseActivity {
                         @Override
                         public void onClick(Dialog dialog, boolean confirm) {
                             if (confirm) {
+                                userBean = null;
                                 dialog.dismiss();
                                 userId = "";
                                 avUser = null;
@@ -440,12 +448,12 @@ public class SettleActivity extends BaseActivity {
                 OrderDetail orderDetail = new OrderDetail(null, hasMeatWeight, originTotalMoneny,
                         actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
                         onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), userBean, orders, fullReduceMoney,
-                        deleteoddMoney, orderRate, ratereduceMoney,blackfiveMoney);
+                        deleteoddMoney, orderRate, ratereduceMoney, blackfiveMoney);
                 bundle.putSerializable("table", (Serializable) orderDetail);
-                if (isHangUp){
-                    bundle.putString("remark",getIntent().getStringExtra("remark"));
-                    bundle.putString("hangUpId",getIntent().getStringExtra("hangUpId"));
-                    bundle.putBoolean("isHangUp",getIntent().getBooleanExtra("isHangUp",false));
+                if (isHangUp) {
+                    bundle.putString("remark", getIntent().getStringExtra("remark"));
+                    bundle.putString("hangUpId", getIntent().getStringExtra("hangUpId"));
+                    bundle.putBoolean("isHangUp", getIntent().getBooleanExtra("isHangUp", false));
                 }
                 intent.putExtras(bundle);
                 startActivityForResult(intent, 1);
@@ -467,11 +475,17 @@ public class SettleActivity extends BaseActivity {
 
     private void chooseScanType() {
         if (CameraProvider.hasCamera()) {
-            if (MyUtils.getCameraPermission(getApplicationContext())) {
-                Intent intent = new Intent(getApplicationContext(), CaptureActivity.class);
-                intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
-                startActivityForResult(intent, REQUEST_CODE_SCAN);
+            if (SharedHelper.readBoolean("useGun")){
+                ScanUserFragment scanUserFragment = new ScanUserFragment(1);
+                scanUserFragment.show(getSupportFragmentManager(), "scanuser");
+            }else{
+                if (MyUtils.getCameraPermission(getApplicationContext())) {
+                    Intent intent = new Intent(getApplicationContext(), CaptureActivity.class);
+                    intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
+                    startActivityForResult(intent, REQUEST_CODE_SCAN);
+                }
             }
+
         } else {
             ScanUserFragment scanUserFragment = new ScanUserFragment(1);
             scanUserFragment.show(getSupportFragmentManager(), "scanuser");
@@ -495,7 +509,7 @@ public class SettleActivity extends BaseActivity {
         if (bean.getCallbackCode() == CONST.UserCode.SCANCUSTOMER) {
             userBean = bean;
             llShowMember.setVisibility(View.VISIBLE);
-            if (userBean.getAvatar()!=null&&!userBean.getAvatar().equals("")){
+            if (userBean.getAvatar() != null && !userBean.getAvatar().equals("")) {
                 Glide.with(MyApplication.getContextObject()).load(userBean.getAvatar()).into(userAvatar);
             }
             userTel.setText("用户手机号:" + userBean.getUsername());
@@ -548,6 +562,7 @@ public class SettleActivity extends BaseActivity {
         }
 
     }
+
     private void hangUp() {
         final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(this);
         builder.setTitle("提示")
@@ -576,12 +591,13 @@ public class SettleActivity extends BaseActivity {
 
 
     }
+
     private void printPreOrder() {
         LinkedHashMap<String, Double> reduceMap = new LinkedHashMap<>();
         if (meatReduceMoney > 0 && cbUseSvip.isChecked()) {
             reduceMap.put("牛肉抵扣金额", meatReduceMoney);
         }
-        if (blackfiveMoney>0){
+        if (blackfiveMoney > 0) {
             reduceMap.put("周五冻肉半价优惠", blackfiveMoney);
         }
         if (offlineCouponMoney > 0) {
@@ -591,7 +607,7 @@ public class SettleActivity extends BaseActivity {
             reduceMap.put(onlineCouponEvent.getContent(), onlineCouponMoney);
         }
         if (activityReduceMoney > 0) {
-            reduceMap.put("开业打折优惠", activityReduceMoney);
+            reduceMap.put("开业" + MyUtils.getDayRate() + "折优惠", activityReduceMoney);
         }
         if (fullReduceMoney > 0) {
             reduceMap.put("满减优惠", fullReduceMoney);
@@ -604,7 +620,7 @@ public class SettleActivity extends BaseActivity {
             reduceMap.put("抹零", deleteoddMoney);
         }
 
-        Bill.printPreOrderRest(MyApplication.getContextObject(), originTotalMoneny, actualTotalMoneny, reduceMap, useExchangeList, ProductUtil.calExchangeMeatList(orders), orders);
+        Bill.printPreOrderRest(MyApplication.getContextObject(), originTotalMoneny, actualTotalMoneny, reduceMap, useExchangeList, ProductUtil.calExchangeMeatList(orders), orders,getIntent().getStringExtra("remark"));
     }
 
     private void deleteOdd() {
@@ -683,7 +699,7 @@ public class SettleActivity extends BaseActivity {
                                         userBean = new UserBean(CONST.UserCode.SCANCUSTOMER,
                                                 object.get("objectId").toString(),
                                                 object.get("username").toString(),
-                                                object.get("realName")==null ? object.get("nickName").toString() : object.get("realName").toString(),
+                                                object.get("realName") == null ? object.get("nickName").toString() : object.get("realName").toString(),
                                                 Integer.parseInt(object.get("vip").toString()),
                                                 MyUtils.formatDouble(Double.parseDouble(object.get("credits").toString())),
                                                 MyUtils.formatDouble(Double.parseDouble(object.get("stored").toString())),
@@ -696,7 +712,7 @@ public class SettleActivity extends BaseActivity {
                                                 object.get("avatarurl").toString(),
                                                 (Boolean) objectMap.get("alreadySVIP"));
                                         llShowMember.setVisibility(View.VISIBLE);
-                                        if (userBean.getAvatar()!=null&&!userBean.getAvatar().equals("")){
+                                        if (userBean.getAvatar() != null && !userBean.getAvatar().equals("")) {
                                             Glide.with(MyApplication.getContextObject()).load(userBean.getAvatar()).into(userAvatar);
                                         }
                                         userTel.setText("用户手机号:" + userBean.getUsername());
@@ -762,24 +778,26 @@ public class SettleActivity extends BaseActivity {
         // TODO: add setContentView(...) invocation
         ButterKnife.bind(this);
     }
+
     private void HangUpOrder(String content) {
         showDialog();
-            final AVObject hangUpOrder = HangUpApi.saveHangUpOrderByRest(retailBean,content);
-            hangUpOrder.saveInBackground(new SaveCallback() {
-                @Override
-                public void done(AVException e) {
-                    if (e == null) {
-                        ToastUtil.showLong(context,"挂单成功");
-                        setResult(1,getIntent());
-                        finish();
-                    } else {
-                        hideDialog();
-                        ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage() + "订单信息错误");
-                    }
+        final AVObject hangUpOrder = HangUpApi.saveHangUpOrderByRest(retailBean, content);
+        hangUpOrder.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(AVException e) {
+                if (e == null) {
+                    ToastUtil.showLong(context, "挂单成功");
+                    setResult(1, getIntent());
+                    finish();
+                } else {
+                    hideDialog();
+                    ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage() + "订单信息错误");
                 }
-            });
+            }
+        });
     }
-    private void onLoadUser(){
+
+    private void onLoadUser() {
 //        AVQuery<AVObject> query = new AVQuery<>("_User");
 //        query.getInBackground("", new GetCallback<AVObject>() {
 //            @Override

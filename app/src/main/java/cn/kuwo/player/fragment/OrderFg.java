@@ -66,6 +66,7 @@ import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.custom.RefundFragment;
+import cn.kuwo.player.custom.ScanCommodityFragment;
 import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.custom.ShowComboMenuFragment;
 import cn.kuwo.player.custom.ShowPreOrderFragment;
@@ -80,6 +81,7 @@ import cn.kuwo.player.util.DataUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
+import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
 
 import static android.app.Activity.RESULT_OK;
@@ -193,9 +195,9 @@ public class OrderFg extends BaseFragment {
     }
 
     private void setView() {
-        if (tableAVObject!=null&&tableAVObject.getDate("startedAt")!=null&&tableAVObject.getList("order").size()==0&&tableAVObject.getList("preOrder").size()==0){
+        if (tableAVObject != null && tableAVObject.getDate("startedAt") != null && tableAVObject.getList("order").size() == 0 && tableAVObject.getList("preOrder").size() == 0) {
             btnToClear.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             btnToClear.setVisibility(View.GONE);
         }
     }
@@ -255,7 +257,7 @@ public class OrderFg extends BaseFragment {
                         if (tableAVObject.getDate("startedAt") == null) {
                             tableAVObject.put("startedAt", new Date());
                         }
-                        tableAVObject.put("preOrder",preOrders);
+                        tableAVObject.put("preOrder", preOrders);
                         tableAVObject.saveInBackground(new SaveCallback() {
                             @Override
                             public void done(AVException e) {
@@ -384,7 +386,7 @@ public class OrderFg extends BaseFragment {
         orders = tableAVObject.getList("order");
         preOrders = tableAVObject.getList("preOrder");
         initializePreOrders = tableAVObject.getList("preOrder");
-        if (orders.size() > 0 || preOrders.size() > 0||tableAVObject.getList("refundOrder").size()>0) {
+        if (orders.size() > 0 || preOrders.size() > 0 || tableAVObject.getList("refundOrder").size() > 0) {
             initializeNumner = preOrders.size();//标记是否有添加新产品
             refreshList();
         }
@@ -407,7 +409,7 @@ public class OrderFg extends BaseFragment {
                         editMemberAmount.setText("");
                         ProductBean productBean = productBeans.get(0);
                         if (!ProductUtil.checkIsGive(productBean.getType()) || (ProductUtil.checkIsGive(productBean.getType()) && tableAVObject.getAVObject("user") != null)) {
-                            ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(MyApplication.getContextObject(), productBean, false);
+                            ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(MyApplication.getContextObject(), productBean, false, productBean.getCode());
                             showComboMenuFragment.show(getActivity().getFragmentManager(), "showcomboMenu");
                         } else {
                             ToastUtil.showShort(MyApplication.getContextObject(), "登录会员后选取");
@@ -446,7 +448,7 @@ public class OrderFg extends BaseFragment {
         scanGoodAdapter.setOnItemLongClickListene(new MyItemLongClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                if (position + 1 > preOrders.size()&&position<preOrders.size()+orders.size()) {
+                if (position + 1 > preOrders.size() && position < preOrders.size() + orders.size()) {
                     if (view.getId() == R.id.ll_item) {
                         RefundFragment refundFragment = new RefundFragment(tableAVObject, orders, orders.size() + preOrders.size() - position - 1);
                         refundFragment.show(getActivity().getSupportFragmentManager(), "refund");
@@ -493,15 +495,19 @@ public class OrderFg extends BaseFragment {
                                     editMemberAmount.setText("");
                                 }
                             }
+//                            if (keyType.equals("point")) {
+//                                try {
+//
+//                                    if (editText.length() > 0) {
+//                                        editMemberAmount.setText(editText.substring(0, editText.length() - 1));
+//                                    }
+//                                } catch (Exception e) {
+//                                    editMemberAmount.setText("");
+//                                }
+//                            }
                             if (keyType.equals("point")) {
-                                try {
-
-                                    if (editText.length() > 0) {
-                                        editMemberAmount.setText(editText.substring(0, editText.length() - 1));
-                                    }
-                                } catch (Exception e) {
-                                    editMemberAmount.setText("");
-                                }
+                                ScanCommodityFragment scanCommodityFragment = new ScanCommodityFragment();
+                                scanCommodityFragment.show(getFragmentManager(), "scancommodity");
                             }
                         }
                     });
@@ -535,12 +541,8 @@ public class OrderFg extends BaseFragment {
                     public void done(AVObject table, AVException e) {
                         if (e == null) {
                             if (table.getInt("customer") > 0) {
-//                                table.put("customer", 0);
                                 table.put("order", orders);
-                                table.put("preOrder",preOrders);
-//                                table.put("refundOrder", new List[0]);
-//                                table.put("startedAt", null);
-//                                table.put("user", null);
+                                table.put("preOrder", preOrders);
                                 table.saveInBackground(new SaveCallback() {
                                     @Override
                                     public void done(AVException e) {
@@ -760,61 +762,61 @@ public class OrderFg extends BaseFragment {
                     }
                     break;
                 case R.id.btn_to_clear:
-                        if (tableAVObject!=null&&orders.size()==0&&preOrders.size()==0) {
-                            new QMUIDialog.MessageDialogBuilder(getActivity())
-                                    .setTitle("温馨提示")
-                                    .setMessage("是否要清空此桌？")
-                                    .addAction("取消", new QMUIDialogAction.ActionListener() {
-                                        @Override
-                                        public void onClick(QMUIDialog dialog, int index) {
-                                            dialog.dismiss();
-                                        }
-                                    })
-                                    .addAction("确定", new QMUIDialogAction.ActionListener() {
-                                        @Override
-                                        public void onClick(QMUIDialog dialog, int index) {
-                                            dialog.dismiss();
-                                            if (tableAVObject != null) {
-                                                showDialog();
-                                                AVQuery<AVObject> query = new AVQuery<>("Table");
-                                                query.getInBackground(tableId, new GetCallback<AVObject>() {
-                                                    @Override
-                                                    public void done(AVObject table, AVException e) {
-                                                        if (e == null) {
-                                                            hideDialog();
-                                                            table.put("customer", 0);
-                                                            table.put("order", new List[0]);
-                                                            table.put("preOrder", new List[0]);
-                                                            table.put("refundOrder", new List[0]);
-                                                            table.put("startedAt", null);
-                                                            table.put("user", null);
-                                                            table.saveInBackground(new SaveCallback() {
-                                                                @Override
-                                                                public void done(AVException e) {
-                                                                    if (e == null) {
-                                                                        EventBus.getDefault().post(new ClearEvent(1));
-                                                                        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                                                                        ft.replace(R.id.fragment_content, TableFg.newInstance("")).commit();
-                                                                    } else {
-                                                                        Logger.d(e.getMessage());
-                                                                    }
-
+                    if (tableAVObject != null && orders.size() == 0 && preOrders.size() == 0) {
+                        new QMUIDialog.MessageDialogBuilder(getActivity())
+                                .setTitle("温馨提示")
+                                .setMessage("是否要清空此桌？")
+                                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .addAction("确定", new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        dialog.dismiss();
+                                        if (tableAVObject != null) {
+                                            showDialog();
+                                            AVQuery<AVObject> query = new AVQuery<>("Table");
+                                            query.getInBackground(tableId, new GetCallback<AVObject>() {
+                                                @Override
+                                                public void done(AVObject table, AVException e) {
+                                                    if (e == null) {
+                                                        hideDialog();
+                                                        table.put("customer", 0);
+                                                        table.put("order", new List[0]);
+                                                        table.put("preOrder", new List[0]);
+                                                        table.put("refundOrder", new List[0]);
+                                                        table.put("startedAt", null);
+                                                        table.put("user", null);
+                                                        table.saveInBackground(new SaveCallback() {
+                                                            @Override
+                                                            public void done(AVException e) {
+                                                                if (e == null) {
+                                                                    EventBus.getDefault().post(new ClearEvent(1));
+                                                                    FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                                                                    ft.replace(R.id.fragment_content, TableFg.newInstance("")).commit();
+                                                                } else {
+                                                                    Logger.d(e.getMessage());
                                                                 }
-                                                            });
-                                                        } else {
-                                                            hideDialog();
-                                                            ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙");
-                                                            EventBus.getDefault().post(new ClearEvent(1));
-                                                        }
+
+                                                            }
+                                                        });
+                                                    } else {
+                                                        hideDialog();
+                                                        ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙");
+                                                        EventBus.getDefault().post(new ClearEvent(1));
                                                     }
-                                                });
-                                            } else {
-                                                hideDialog();
-                                            }
+                                                }
+                                            });
+                                        } else {
+                                            hideDialog();
                                         }
-                                    })
-                                    .create(mCurrentDialogStyle).show();
-                        }
+                                    }
+                                })
+                                .create(mCurrentDialogStyle).show();
+                    }
                     break;
             }
         } catch (Exception e) {
@@ -824,10 +826,15 @@ public class OrderFg extends BaseFragment {
 
     private void chooseScanType() {
         if (CameraProvider.hasCamera()) {
-            if (MyUtils.getCameraPermission(getContext())) {
-                Intent intent = new Intent(getActivity(), CaptureActivity.class);
-                intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
-                startActivityForResult(intent, REQUEST_CODE_SCAN);
+            if (SharedHelper.readBoolean("useGun")) {
+                ScanUserFragment scanUserFragment = new ScanUserFragment(1);
+                scanUserFragment.show(getFragmentManager(), "scanuser");
+            } else {
+                if (MyUtils.getCameraPermission(getContext())) {
+                    Intent intent = new Intent(getActivity(), CaptureActivity.class);
+                    intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
+                    startActivityForResult(intent, REQUEST_CODE_SCAN);
+                }
             }
         } else {
             ScanUserFragment scanUserFragment = new ScanUserFragment(1);
@@ -922,6 +929,7 @@ public class OrderFg extends BaseFragment {
                         isSvip,
                         userId,
                         mode));
+                DataUtil.additionalCharge(preOrders, event, mode, false,event.getOriginNumber());
             } else {
                 DataUtil.updateIndexOder(
                         event,
@@ -931,10 +939,11 @@ public class OrderFg extends BaseFragment {
                         userId,
                         mode
                 );
-                if (tableAVObject!=null&&tableAVObject.getDate("startedAt")==null){
-                    tableAVObject.put("startedAt",new Date());
-                    if (tableAVObject.getInt("customer")==0){
-                        tableAVObject.put("customer",1);
+                DataUtil.additionalCharge(preOrders, event, mode, true,event.getOriginNumber());
+                if (tableAVObject != null && tableAVObject.getDate("startedAt") == null) {
+                    tableAVObject.put("startedAt", new Date());
+                    if (tableAVObject.getInt("customer") == 0) {
+                        tableAVObject.put("customer", 1);
                     }
                     tableAVObject.saveInBackground(new SaveCallback() {
                         @Override

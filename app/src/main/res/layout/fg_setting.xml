@@ -64,4 +64,24 @@
                 android:layout_height="wrap_content" />
         </RelativeLayout>
     </LinearLayout>
+    <RelativeLayout
+        android:id="@+id/rl_carema_choose"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:layout_marginTop="10dp"
+        android:background="#fff"
+        android:textColor="#333">
+        <TextView
+            android:text="使用扫码枪作为默认扫描工具"
+            android:layout_centerVertical="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <CheckBox
+            android:id="@+id/cb_carema"
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+    </RelativeLayout>
 </LinearLayout>

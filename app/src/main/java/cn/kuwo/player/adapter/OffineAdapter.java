@@ -27,6 +27,7 @@ import cn.kuwo.player.bean.TypeBean;
 import cn.kuwo.player.custom.ShowComboMenuFragment;
 import cn.kuwo.player.interfaces.MyItemClickListener;
 import cn.kuwo.player.util.AppUtils;
+import cn.kuwo.player.util.CalViewGroupUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
@@ -68,17 +69,18 @@ public class OffineAdapter extends RecyclerView.Adapter<OffineAdapter.MyViewHold
         holder.title.setText(typeBeans.get(position).getName() + "·" + productBeans.size());
         CommodityAdapter commodityAdapter = new CommodityAdapter(productBeans);
         holder.gvTable.setAdapter(commodityAdapter);
-        ViewGroup.LayoutParams layoutParams = holder.gvTable.getLayoutParams();
-        int screenDensity = (int) AppUtils.getScreenDensity(MyApplication.getContextObject());
-        layoutParams.height = 330 * ((productBeans.size() + 1) / 2) * screenDensity / 2;
-        holder.gvTable.setLayoutParams(layoutParams);
+        CalViewGroupUtil.calGridViewWidthAndHeigh(2,holder.gvTable);
     }
 
     @Override
     public int getItemCount() {
         return typeBeans.size();
     }
+    @Override
+    public int getItemViewType(int position) {
 
+        return position;
+    }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         TextView title;
@@ -137,9 +139,9 @@ public class OffineAdapter extends RecyclerView.Adapter<OffineAdapter.MyViewHold
 
             }
             holder.price.setText("￥" + productBean.getPrice());
-            if (productBean.getUrl()!=null&&!productBean.getUrl().equals("")){
-                Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.ImageAvatar);
-            }
+//            if (productBean.getUrl()!=null&&!productBean.getUrl().equals("")){
+//                Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.ImageAvatar);
+//            }
             holder.llCommodityItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
