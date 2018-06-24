@@ -70,7 +70,11 @@ import cn.kuwo.player.fragment.TableFg;
 import cn.kuwo.player.fragment.inventory.InventoryActivity;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.receiver.NetWorkStateReceiver;
+import cn.kuwo.player.receiver.USBBroadcastReceiver;
 import cn.kuwo.player.util.AppUtils;
+import cn.kuwo.player.util.CameraProvider;
+import cn.kuwo.player.util.ErrorUtil;
+import cn.kuwo.player.util.ImageUtil;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.RealmUtil;
@@ -108,7 +112,6 @@ public class MainActivity extends BaseActivity {
     @BindView(R.id.waiter_name)
     TextView waiterName;
     private AVQuery<AVObject> table;
-    private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     NetWorkStateReceiver netWorkStateReceiver;
     ShowNoNetFragment showNoNetFragment = null;
 
@@ -126,31 +129,7 @@ public class MainActivity extends BaseActivity {
         test();
     }
 
-    private void checkUsbDevice() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        registerReceiver(mUsbStateChangeReceiver, filter);
 
-
-
-    }
-    private BroadcastReceiver mUsbStateChangeReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())){
-                ToastUtil.showLong(MyApplication.getContextObject(),"扫描枪连接成功");
-                SharedHelper.saveBoolean("useGun",true);
-            }
-            if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(intent.getAction())){
-                ToastUtil.showLong(MyApplication.getContextObject(),"扫描枪断开连接");
-                SharedHelper.saveBoolean("useGun",false);
-            }
-        }
-    };
-    private void test() {
-
-    }
 
     /**
      * 系统账号登录
@@ -314,28 +293,13 @@ public class MainActivity extends BaseActivity {
      * 重置状态
      */
     private void resetState() {
-        Drawable left;
-        left = getResources().getDrawable(R.drawable.icon_menu_nor);
-        left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
-        menuCommodity.setCompoundDrawables(left, null, null, null);
-        left = getResources().getDrawable(R.drawable.icon_table_nor);
-        left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
-        menuTable.setCompoundDrawables(left, null, null, null);
-        left = getResources().getDrawable(R.drawable.icon_print_nor);
-        left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
-        menuPrint.setCompoundDrawables(left, null, null, null);
-        left = getResources().getDrawable(R.drawable.icon_update_nor);
-        left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
-        menuUpdate.setCompoundDrawables(left, null, null, null);
-        left = getResources().getDrawable(R.drawable.icon_svip_nor);
-        left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
-        menuSvip.setCompoundDrawables(left, null, null, null);
-        left = getResources().getDrawable(R.drawable.icon_order_nor);
-        left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
-        menuOrder.setCompoundDrawables(left, null, null, null);
-        left = getResources().getDrawable(R.drawable.icon_recharge);
-        left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
-        menuStored.setCompoundDrawables(left, null, null, null);
+        ImageUtil.setDrawableLeft(this,R.drawable.icon_menu_nor,menuCommodity);
+        ImageUtil.setDrawableLeft(this,R.drawable.icon_table_nor,menuTable);
+        ImageUtil.setDrawableLeft(this,R.drawable.icon_print_nor,menuPrint);
+        ImageUtil.setDrawableLeft(this,R.drawable.icon_update_nor,menuUpdate);
+        ImageUtil.setDrawableLeft(this,R.drawable.icon_svip_nor,menuSvip);
+        ImageUtil.setDrawableLeft(this,R.drawable.icon_order_nor,menuOrder);
+        ImageUtil.setDrawableLeft(this,R.drawable.icon_recharge,menuStored);
         menuCommodity.setTextColor(getResources().getColor(R.color.purple));
         menuTable.setTextColor(getResources().getColor(R.color.purple));
         menuPrint.setTextColor(getResources().getColor(R.color.purple));
@@ -377,10 +341,11 @@ public class MainActivity extends BaseActivity {
                             }
                         });
                     } catch (Exception e1) {
-                        ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
+                        ErrorUtil.NETERROR();
                     }
                 } else {
-                    ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
+                    ErrorUtil.NETERROR();
+
                 }
             }
         });
@@ -566,7 +531,6 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onClick(Dialog dialog, boolean confirm) {
                     if (confirm) {
-
                         dialog.dismiss();
                     }
 
@@ -596,5 +560,17 @@ public class MainActivity extends BaseActivity {
         } else {
             hideDialog();
         }
+    }
+    private void checkUsbDevice() {
+        if (CameraProvider.hasCamera()) {
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+            filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+            registerReceiver(new USBBroadcastReceiver(), filter);
+        }
+
+
+    }
+    private void test() {
     }
 }
