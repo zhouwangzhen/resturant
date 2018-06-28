@@ -22,415 +22,530 @@
         android:layout_marginTop="6dp"
         android:background="#000" />
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/group"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="收银台打印机IP"
-            android:textColor="#333"
-            android:textSize="20sp" />
+        android:layout_height="match_parent"
+        android:scrollbars="none">
 
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <EditText
-                android:id="@+id/ip_1"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:text="192"
-                android:inputType="number"
-                android:maxLength="3" />
-
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text=" . "
-                android:textSize="30sp" />
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <EditText
-                android:id="@+id/ip_2"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:text="168"
-                android:inputType="number"
-                android:maxLength="3" />
+                <TextView
+                    android:id="@+id/group"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="收银台打印机IP"
+                    android:textColor="#333"
+                    android:textSize="20sp" />
 
-            <TextView
-                android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right">
+
+                    <EditText
+                        android:id="@+id/ip_1"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:text="192" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_2"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:text="168" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_3"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="1"
+                        android:text="1" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_4"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text=" . "
-                android:textSize="30sp" />
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <EditText
-                android:id="@+id/ip_3"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:text="1"
-                android:inputType="number"
-                android:maxLength="1" />
+                <TextView
+                    android:id="@+id/group_kitchen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="厨房打印机IP"
+                    android:textColor="#333"
+                    android:textSize="20sp" />
 
-            <TextView
-                android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right">
+
+                    <EditText
+                        android:id="@+id/ip_1_kitchen"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:text="192" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_2_kitchen"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:text="168" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_3_kitchen"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="1"
+                        android:text="1" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_4_kitchen"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text=" . "
-                android:textSize="30sp" />
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <EditText
-                android:id="@+id/ip_4"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:maxLength="3" />
+                <TextView
+                    android:id="@+id/group_drink"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="水吧台打印机IP"
+                    android:textColor="#333"
+                    android:textSize="20sp" />
 
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right">
+
+                    <EditText
+                        android:id="@+id/ip_1_drink"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:text="192" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_2_drink"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:text="168" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_3_drink"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="1"
+                        android:text="1" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_4_drink"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/group_cool"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="冷菜间打印机IP"
+                    android:textColor="#333"
+                    android:textSize="20sp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right">
+
+                    <EditText
+                        android:id="@+id/ip_1_cool"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:text="192" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_2_cool"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:text="168" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_3_cool"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="1"
+                        android:text="1" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_4_cool"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/group_show"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="展示柜打印机IP"
+                    android:textColor="#333"
+                    android:textSize="20sp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right">
+
+                    <EditText
+                        android:id="@+id/ip_1_show"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:text="192" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_2_show"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:text="168" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_3_show"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="1"
+                        android:text="1" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" . "
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/ip_4_show"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:maxLength="3" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <RelativeLayout
+                android:id="@+id/test_printer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:drawableRight="@drawable/right_arrow"
+                    android:text="测试打印机是否连接"
+                    android:textSize="20sp" />
+
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/test_printer_kitchen"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:drawableRight="@drawable/right_arrow"
+                    android:text="测试厨房打印机是否连接"
+                    android:textSize="20sp" />
+
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/test_printer_drink"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:drawableRight="@drawable/right_arrow"
+                    android:text="测试水吧台打印机是否连接"
+                    android:textSize="20sp" />
+
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/test_printer_cool"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:drawableRight="@drawable/right_arrow"
+                    android:text="测试冷菜间打印机是否连接"
+                    android:textSize="20sp" />
+
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/test_printer_show"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:drawableRight="@drawable/right_arrow"
+                    android:text="测试展示柜打印机是否连接"
+                    android:textSize="20sp" />
+
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp">
+
+                <TextView
+                    android:id="@+id/opem_cash_box"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:drawableRight="@drawable/right_arrow"
+                    android:text="打开钱箱"
+                    android:textSize="20sp" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp">
+
+                <TextView
+                    android:id="@+id/search_print_ip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:drawableRight="@drawable/right_arrow"
+                    android:text="搜索打印机ip地址"
+                    android:textSize="20sp" />
+            </RelativeLayout>
         </LinearLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/group_kitchen"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="厨房打印机IP"
-            android:textColor="#333"
-            android:textSize="20sp" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right">
-
-            <EditText
-                android:id="@+id/ip_1_kitchen"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:text="192"
-                android:inputType="number"
-                android:maxLength="3" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" . "
-                android:textSize="30sp" />
-
-            <EditText
-                android:id="@+id/ip_2_kitchen"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:text="168"
-                android:inputType="number"
-                android:maxLength="3" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" . "
-                android:textSize="30sp" />
-
-            <EditText
-                android:id="@+id/ip_3_kitchen"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:text="1"
-                android:maxLength="1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" . "
-                android:textSize="30sp" />
-
-            <EditText
-                android:id="@+id/ip_4_kitchen"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:maxLength="3" />
-
-        </LinearLayout>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/group_drink"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="水吧台打印机IP"
-            android:textColor="#333"
-            android:textSize="20sp" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right">
-
-            <EditText
-                android:id="@+id/ip_1_drink"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:text="192"
-                android:inputType="number"
-                android:maxLength="3" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" . "
-                android:textSize="30sp" />
-
-            <EditText
-                android:id="@+id/ip_2_drink"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:text="168"
-                android:maxLength="3" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" . "
-                android:textSize="30sp" />
-
-            <EditText
-                android:id="@+id/ip_3_drink"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:text="1"
-                android:maxLength="1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" . "
-                android:textSize="30sp" />
-
-            <EditText
-                android:id="@+id/ip_4_drink"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:maxLength="3" />
-
-        </LinearLayout>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/group_cool"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="冷菜间打印机IP"
-            android:textColor="#333"
-            android:textSize="20sp" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="right">
-
-            <EditText
-                android:id="@+id/ip_1_cool"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:text="192"
-                android:maxLength="3" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" . "
-                android:textSize="30sp" />
-
-            <EditText
-                android:id="@+id/ip_2_cool"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:text="168"
-                android:maxLength="3" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" . "
-                android:textSize="30sp" />
-
-            <EditText
-                android:id="@+id/ip_3_cool"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:text="1"
-                android:maxLength="1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" . "
-                android:textSize="30sp" />
-
-            <EditText
-                android:id="@+id/ip_4_cool"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:inputType="number"
-                android:maxLength="3" />
-
-        </LinearLayout>
-    </LinearLayout>
-    <RelativeLayout
-        android:id="@+id/test_printer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:drawableRight="@drawable/right_arrow"
-            android:text="测试打印机是否连接"
-            android:textSize="20sp" />
-
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/test_printer_kitchen"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:drawableRight="@drawable/right_arrow"
-            android:text="测试厨房打印机是否连接"
-            android:textSize="20sp" />
-
-
-    </RelativeLayout>
-    <RelativeLayout
-        android:id="@+id/test_printer_drink"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:drawableRight="@drawable/right_arrow"
-            android:text="测试水吧台打印机是否连接"
-            android:textSize="20sp" />
-
-
-    </RelativeLayout>
-    <RelativeLayout
-        android:id="@+id/test_printer_cool"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:drawableRight="@drawable/right_arrow"
-            android:text="测试冷菜间打印机是否连接"
-            android:textSize="20sp" />
-
-
-    </RelativeLayout>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp">
-
-        <TextView
-            android:id="@+id/opem_cash_box"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:drawableRight="@drawable/right_arrow"
-            android:text="打开钱箱"
-            android:textSize="20sp" />
-    </RelativeLayout>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp">
-
-        <TextView
-            android:id="@+id/search_print_ip"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:drawableRight="@drawable/right_arrow"
-            android:text="搜索打印机ip地址"
-            android:textSize="20sp" />
-    </RelativeLayout>
+    </ScrollView>
 </LinearLayout>

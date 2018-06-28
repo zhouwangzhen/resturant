@@ -36,6 +36,7 @@ public class RealmUtil {
             productBean.setScale(avObject.getDouble("scale"));
             productBean.setRemainMoney(avObject.getDouble("remainMoney"));
             productBean.setActive(avObject.getInt("active"));
+            productBean.setNb(avObject.getDouble("nb"));
             productBean.setComboMenu(avObject.getString("comboMenu") == null ? "" : MyUtils.replaceBlank(avObject.getString("comboMenu").trim().replace(" ", "")));
             RealmList<String> commentsList = new RealmList<>();
             for (int k = 0; k < avObject.getList("comments").size(); k++) {

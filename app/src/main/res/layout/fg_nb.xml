@@ -10,7 +10,7 @@
         android:layout_height="60dp"
         android:background="@color/blue"
         android:gravity="center"
-        android:text="消费金充值"
+        android:text="牛币充值"
         android:textColor="@color/white" />
 
     <LinearLayout
@@ -63,7 +63,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="白条：" />
-
+            <TextView
+                android:id="@+id/user_nb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="牛币：" />
             <TextView
                 android:id="@+id/tv_meatweight"
                 android:layout_width="match_parent"
@@ -104,6 +108,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="充值金额:"
+                android:layout_centerVertical="true"
                 android:textColor="@color/black" />
 
             <TextView
@@ -111,16 +116,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
-                android:text="500元"
+                android:layout_centerVertical="true"
+                android:text="500个牛币"
                 android:textColor="@color/black" />
-            <TextView
-                android:id="@+id/recharge_content"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:text="充值500送50"
-                android:layout_marginTop="40dp"
-                android:textColor="@color/red" />
         </RelativeLayout>
     </android.support.v7.widget.CardView>
     <android.support.v7.widget.CardView
@@ -195,7 +193,7 @@
             android:id="@+id/btn_refrsh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
+            android:layout_alignParentLeft="true"
             android:layout_alignParentBottom="true"
             android:text="刷新"/>
         <Button

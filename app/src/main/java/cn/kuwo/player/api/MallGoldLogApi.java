@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 import cn.kuwo.player.util.CONST;
+import cn.kuwo.player.util.DateUtil;
 
 public class MallGoldLogApi {
     public static AVQuery<AVObject> finalAllMallGold(Date date){
@@ -29,10 +30,10 @@ public class MallGoldLogApi {
                 mallGoldLog.whereNotContainedIn("user",testUsers);
                 mallGoldLog.whereNotContainedIn("cashier",testUsers);
             }
-            mallGoldLog.whereGreaterThan("createdAt", date);
+            mallGoldLog.whereGreaterThan("createdAt", new Date(DateUtil.getZeroTimeStamp(date)));
             mallGoldLog.include("cashier");
             mallGoldLog.include("user");
-            mallGoldLog.whereLessThan("createdAt", nextDate);
+            mallGoldLog.whereLessThan("createdAt", new Date(DateUtil.getLasterTimeStamp(date)));
             return mallGoldLog;
         }catch (Exception e){
             e.printStackTrace();

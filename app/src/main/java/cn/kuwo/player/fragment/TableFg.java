@@ -122,7 +122,6 @@ public class TableFg extends BaseFragment {
                         e1.printStackTrace();
                         Logger.d(e1.getMessage());
                     }
-
                     hideDialog();
                 } else {
                     hideDialog();
@@ -144,9 +143,6 @@ public class TableFg extends BaseFragment {
         avLiveQuery.subscribeInBackground(new AVLiveQuerySubscribeCallback() {
             @Override
             public void done(AVException e) {
-                if (e != null) {
-                    Logger.d(e.getMessage());
-                }
             }
         });
     }
@@ -155,6 +151,7 @@ public class TableFg extends BaseFragment {
         rgChooseTableStyle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
+                showDialog();
                 switch (checkedId) {
                     case R.id.radio_big_table:
                         chooseBigTable = true;
@@ -242,7 +239,7 @@ public class TableFg extends BaseFragment {
                 holder.tablePeople.setText(avObject.getInt("customer") + "人");
                 try {
                     holder.tableDate.setText(DateUtil.formatDate(avObject.getDate("startedAt")));
-                    holder.tableTime.setText(DateUtil.TimeInterval(avObject.getDate("startedAt")));
+                    holder.tableTime.setText("牛币价格￥"+ProductUtil.calNbTotalMoney(avObject.getList("order")));
                 } catch (Exception e) {
                     ToastUtil.showShort(MyApplication.getContextObject(), "获取时间错误");
                 }

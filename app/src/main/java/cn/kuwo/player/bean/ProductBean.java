@@ -28,6 +28,7 @@ public class ProductBean extends RealmObject implements Serializable {
     private int active;//是否显示
     private RealmList<String> comments;//备注提示
     private int giveRule;
+    private Double nb;//牛币
 
     public String getCode() {
         return code;
@@ -197,6 +198,14 @@ public class ProductBean extends RealmObject implements Serializable {
         this.giveRule = giveRule;
     }
 
+    public Double getNb() {
+        return nb;
+    }
+
+    public void setNb(Double nb) {
+        this.nb = nb;
+    }
+
     @Override
     public String toString() {
         return "ProductBean{" +
@@ -221,6 +230,7 @@ public class ProductBean extends RealmObject implements Serializable {
                 ", active=" + active +
                 ", comments=" + comments +
                 ", giveRule=" + giveRule +
+                ", nb=" + nb +
                 '}';
     }
 }

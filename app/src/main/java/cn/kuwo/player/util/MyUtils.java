@@ -211,4 +211,8 @@ public class MyUtils {
         character = character.replaceAll("[^(0-9\\u4e00-\\u9fa5)]", "");
         return character;
     }
+    public static boolean isNumber(String str) {
+        Pattern pattern = Pattern.compile("^[0-9]*$");
+        return pattern.matcher(str).matches();
+    }
 }

@@ -237,8 +237,6 @@ public class PayActivity extends BaseActivity {
                         mallOrder.put("type", 4);
 
                     }
-                    mallOrder.put("maxMeatDeduct", orderDetail.getSvipMaxExchangeList());
-                    mallOrder.put("realMeatDeduct", orderDetail.getUseExchangeList());
                     Map<String, Double> escrowDetail = ProductUtil.managerEscrow(orderDetail.getActualMoney(), escrow, orderDetail.getUserBean());
                     mallOrder.put("escrowDetail", escrowDetail);
                     mallOrder.put("type", 1);
@@ -266,7 +264,7 @@ public class PayActivity extends BaseActivity {
                             jsonReduce.put("满减优惠", orderDetail.getFullReduceMoney());
                         }
                         if (orderDetail.getRate() != 100) {
-                            String content = "整单" + orderDetail.getRate() + "折优惠";
+                            String content = orderDetail.getRateContent() + orderDetail.getRate() + "折优惠";
                             jsonReduce.put(content, orderDetail.getRateReduceMoney());
                         }
                         if (orderDetail.getDeleteoddMoney() > 0) {
@@ -403,7 +401,7 @@ public class PayActivity extends BaseActivity {
         }
         if (orderDetail.getRate() != 100) {
             llRateReduce.setVisibility(View.VISIBLE);
-            rateReduceContent.setText("整单" + MyUtils.formatDouble((double) orderDetail.getRate() / 10) + "折优惠");
+            rateReduceContent.setText(orderDetail.getRateContent() + MyUtils.formatDouble((double) orderDetail.getRate() / 10) + "折优惠");
             rateReduceMoney.setText("-" + orderDetail.getRateReduceMoney());
 
         } else {

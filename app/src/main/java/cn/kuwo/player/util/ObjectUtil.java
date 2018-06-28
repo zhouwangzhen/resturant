@@ -105,6 +105,13 @@ public class ObjectUtil {
             params.put("price", MyUtils.formatDouble(prices.get(i)));
             params.put("weight", MyUtils.formatDouble(weights.get(i)));
             params.put("number", 1);
+            if (productBean.getType()==6||productBean.getType()==7){
+                params.put("nb", MyUtils.formatDouble(prices.get(i)*CONST.NB.MEATDiSCOUNT));
+            }else if(productBean.getType()==9){
+                params.put("nb", MyUtils.formatDouble(prices.get(i)));
+            }else{
+                params.put("nb", MyUtils.formatDouble(prices.get(i)*CONST.NB.OTHERDISCOUNT));
+            }
             orders.add(params);
         }
         return orders;

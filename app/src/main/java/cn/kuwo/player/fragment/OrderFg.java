@@ -115,6 +115,10 @@ public class OrderFg extends BaseFragment {
     @BindView(R.id.btn_to_clear)
     Button btnToClear;
     Unbinder unbinder1;
+    @BindView(R.id.user_nb)
+    TextView userNb;
+    @BindView(R.id.nb_money)
+    TextView nbMoney;
     private int REQUEST_CODE_SCAN = 111;
     private static String ARG_PARAM = "param_table_id";
     private static String ARG_PARAM1 = "param_save_data";
@@ -366,7 +370,6 @@ public class OrderFg extends BaseFragment {
         avLiveQuery.setEventHandler(new AVLiveQueryEventHandler() {
             @Override
             public void onObjectUpdated(AVObject avObject, List<String> updateKeyList) {
-//                Logger.d("updateKeyList:" + updateKeyList);
                 QueryTable();
             }
         });
@@ -458,6 +461,7 @@ public class OrderFg extends BaseFragment {
         });
         totalMoney.setText("￥" + ProductUtil.calculateTotalMoney(orders, preOrders) + "元");
         minMoney.setText("￥" + ProductUtil.calculateMinMoney(orders, preOrders) + "元");
+        nbMoney.setText(ProductUtil.calNbTotalMoney(orders)+"牛币");
         totalNumber.setText(preOrders.size() + orders.size() + "");
     }
 
@@ -495,16 +499,6 @@ public class OrderFg extends BaseFragment {
                                     editMemberAmount.setText("");
                                 }
                             }
-//                            if (keyType.equals("point")) {
-//                                try {
-//
-//                                    if (editText.length() > 0) {
-//                                        editMemberAmount.setText(editText.substring(0, editText.length() - 1));
-//                                    }
-//                                } catch (Exception e) {
-//                                    editMemberAmount.setText("");
-//                                }
-//                            }
                             if (keyType.equals("point")) {
                                 ScanCommodityFragment scanCommodityFragment = new ScanCommodityFragment();
                                 scanCommodityFragment.show(getFragmentManager(), "scancommodity");
@@ -879,6 +873,7 @@ public class OrderFg extends BaseFragment {
                                             if (tableAVObject.get("startedAt") == null) {
                                                 tableAVObject.put("startedAt", new Date());
                                             }
+                                            tableAVObject.put("preOrder", preOrders);
                                             tableAVObject.saveInBackground(new SaveCallback() {
                                                 @Override
                                                 public void done(AVException e) {
@@ -929,7 +924,9 @@ public class OrderFg extends BaseFragment {
                         isSvip,
                         userId,
                         mode));
-                DataUtil.additionalCharge(preOrders, event, mode, false,event.getOriginNumber());
+//                DataUtil.additionalCharge(preOrders, event, mode, false,event.getOriginNumber());
+                setView();
+                refreshList();
             } else {
                 DataUtil.updateIndexOder(
                         event,
@@ -939,7 +936,7 @@ public class OrderFg extends BaseFragment {
                         userId,
                         mode
                 );
-                DataUtil.additionalCharge(preOrders, event, mode, true,event.getOriginNumber());
+//                DataUtil.additionalCharge(preOrders, event, mode, true,event.getOriginNumber());
                 if (tableAVObject != null && tableAVObject.getDate("startedAt") == null) {
                     tableAVObject.put("startedAt", new Date());
                     if (tableAVObject.getInt("customer") == 0) {
@@ -952,9 +949,10 @@ public class OrderFg extends BaseFragment {
                         }
                     });
                 }
+                setView();
+                refreshList();
             }
-            setView();
-            refreshList();
+
         }
     }
 

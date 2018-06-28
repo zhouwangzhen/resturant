@@ -34,6 +34,8 @@ import com.yzq.zxinglibrary.android.CaptureActivity;
 import com.yzq.zxinglibrary.common.Constant;
 
 import org.greenrobot.eventbus.EventBus;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -42,11 +44,18 @@ import java.util.Map;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.bean.UserBean;
+import cn.kuwo.player.util.ApiManager;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
+import cn.kuwo.player.util.DataUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.SharedHelper;
+import cn.kuwo.player.util.T;
 import cn.kuwo.player.util.ToastUtil;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -110,6 +119,8 @@ public class ScanUserFragment extends DialogFragment {
                 .create();
         if (!CameraProvider.hasCamera() && type == 1) {
             title.setText("扫描全民养牛会员码或刷会员卡登录");
+        }else if(type==2){
+            title.setText("操作员工扫描员工自己的条码");
         }
 
     }
@@ -193,7 +204,7 @@ public class ScanUserFragment extends DialogFragment {
                             }
                         } else {
                             hideDialog();
-                            ToastUtil.showShort(getContext(), e.getMessage());
+                            ToastUtil.showLong(getContext(), e.getMessage()+"网络连接失败请重试");
                         }
                     }
                 });
@@ -246,34 +257,62 @@ public class ScanUserFragment extends DialogFragment {
                                     parameters.put("userID", map.getObjectId());
                                     AVCloud.callFunctionInBackground("svip", parameters, new FunctionCallback<Map<String, Object>>() {
                                         @Override
-                                        public void done(Map<String, Object> objectMap, AVException e) {
+                                        public void done(final Map<String, Object> objectMap, AVException e) {
                                             if (e == null) {
-                                                hideDialog();
-                                                String avatar=null;
-                                                try {
-                                                    avatar = map.get("avatarurl") != null && !map.get("avatarurl").equals("") ? map.get("avatarurl").toString() : null;
-                                                } catch (Exception e1) {
-                                                    e1.printStackTrace();
-                                                }
-                                                UserBean userBean = new UserBean(
-                                                        CONST.UserCode.SCANCUSTOMER,
-                                                        map.getObjectId(),
-                                                        map.get("username").toString(),
-                                                        map.get("realName") == null || map.get("realName").toString().equals("") ? map.get("realName").toString() : map.get("nickName").toString(),
-                                                        Integer.parseInt(map.get("vip").toString()),
-                                                        MyUtils.formatDouble(Double.parseDouble(map.get("credits").toString())),
-                                                        MyUtils.formatDouble(Double.parseDouble(map.get("stored").toString())),
-                                                        MyUtils.formatDouble(Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString())),
-                                                        (Boolean) map.get("test"),
-                                                        Integer.parseInt(map.get("clerk").toString()),
-                                                        MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
-                                                        objectMap.get("meatId").toString().length() > 0 ? objectMap.get("meatId").toString() : "",
-                                                        (Boolean) objectMap.get("svip"),
-                                                        avatar,
-                                                        (Boolean) objectMap.get("alreadySVIP")
-                                                );
-                                                EventBus.getDefault().post(userBean);
-                                                getDialog().dismiss();
+                                                Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().QueryofflineRecharge(map.getObjectId());
+                                                responseBodyCall.enqueue(new Callback<ResponseBody>() {
+                                                    @Override
+                                                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                                        if (response.code()==200||response.code()==201){
+                                                            Double nb=0.0;
+                                                            hideDialog();
+
+                                                            try {
+                                                                String responseText = DataUtil.JSONTokener(response.body().string());
+                                                                JSONObject jsonObject = new JSONObject(responseText);
+                                                                nb = jsonObject.getDouble("amount");
+                                                            } catch (Exception e1) {
+                                                                e1.printStackTrace();
+                                                            }
+                                                            String avatar=null;
+                                                            try {
+                                                                avatar = map.get("avatarurl") != null && !map.get("avatarurl").equals("") ? map.get("avatarurl").toString() : null;
+                                                            } catch (Exception e1) {
+                                                                e1.printStackTrace();
+                                                            }
+                                                            UserBean userBean = new UserBean(
+                                                                    CONST.UserCode.SCANCUSTOMER,
+                                                                    map.getObjectId(),
+                                                                    map.get("username").toString(),
+                                                                    map.get("realName") == null || map.get("realName").toString().equals("") ? map.get("realName").toString() : map.get("nickName").toString(),
+                                                                    Integer.parseInt(map.get("vip").toString()),
+                                                                    MyUtils.formatDouble(Double.parseDouble(map.get("credits").toString())),
+                                                                    MyUtils.formatDouble(Double.parseDouble(map.get("stored").toString())),
+                                                                    MyUtils.formatDouble(Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString())),
+                                                                    (Boolean) map.get("test"),
+                                                                    Integer.parseInt(map.get("clerk").toString()),
+                                                                    MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
+                                                                    objectMap.get("meatId").toString().length() > 0 ? objectMap.get("meatId").toString() : "",
+                                                                    (Boolean) objectMap.get("svip"),
+                                                                    avatar,
+                                                                    (Boolean) objectMap.get("alreadySVIP"),
+                                                                    nb
+                                                            );
+                                                            EventBus.getDefault().post(userBean);
+                                                            getDialog().dismiss();
+                                                        }else{
+                                                            hideDialog();
+                                                            T.show(response);
+                                                        }
+                                                    }
+
+                                                    @Override
+                                                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                                        hideDialog();
+                                                        ToastUtil.showShort(getContext(), t.getMessage());
+                                                    }
+                                                });
+
                                             } else {
                                                 hideDialog();
                                                 ToastUtil.showShort(MyApplication.getContextObject(), "获取用户信息错误");
@@ -323,34 +362,60 @@ public class ScanUserFragment extends DialogFragment {
                                 parameters.put("userID", map.get("objectId").toString());
                                 AVCloud.callFunctionInBackground("svip", parameters, new FunctionCallback<Map<String, Object>>() {
                                     @Override
-                                    public void done(Map<String, Object> objectMap, AVException e) {
+                                    public void done(final Map<String, Object> objectMap, AVException e) {
                                         if (e == null) {
-                                            hideDialog();
-                                            String avatar = null;
-                                            try {
-                                                avatar = map.get("avatarurl") != null && !map.get("avatarurl").equals("") ? map.get("avatarurl").toString() : null;
-                                            } catch (Exception e1) {
-                                                e1.printStackTrace();
-                                            }
-                                            UserBean userBean = new UserBean(
-                                                    CONST.UserCode.SCANCUSTOMER,
-                                                    map.get("objectId").toString(),
-                                                    map.get("username").toString(),
-                                                    map.get("realName")== null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString(),
-                                                    Integer.parseInt(map.get("vip").toString()),
-                                                    MyUtils.formatDouble(Double.parseDouble(map.get("credits").toString())),
-                                                    MyUtils.formatDouble(Double.parseDouble(map.get("stored").toString())),
-                                                    MyUtils.formatDouble(Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString())),
-                                                    (Boolean) map.get("test"),
-                                                    Integer.parseInt(map.get("clerk").toString()),
-                                                    MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
-                                                    objectMap.get("meatId").toString().length() > 0 ? objectMap.get("meatId").toString() : "",
-                                                    (Boolean) objectMap.get("svip"),
-                                                    avatar,
-                                                    (Boolean) objectMap.get("alreadySVIP")
-                                            );
-                                            EventBus.getDefault().post(userBean);
-                                            getDialog().dismiss();
+                                            Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().QueryofflineRecharge( map.get("objectId").toString());
+                                            responseBodyCall.enqueue(new Callback<ResponseBody>() {
+                                                @Override
+                                                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                                    hideDialog();
+                                                    if (response.code()==200||response.code()==201) {
+                                                        Double nb=0.0;
+                                                        try {
+                                                            String responseText = DataUtil.JSONTokener(response.body().string());
+                                                            JSONObject jsonObject = new JSONObject(responseText);
+                                                            nb = jsonObject.getDouble("amount");
+                                                        } catch (Exception e1) {
+                                                            e1.printStackTrace();
+                                                        }
+                                                        String avatar=null;
+                                                        try {
+                                                            avatar = map.get("avatarurl") != null && !map.get("avatarurl").equals("") ? map.get("avatarurl").toString() : null;
+                                                        } catch (Exception e1) {
+                                                            e1.printStackTrace();
+                                                        }
+                                                        UserBean userBean = new UserBean(
+                                                                CONST.UserCode.SCANCUSTOMER,
+                                                                map.get("objectId").toString(),
+                                                                map.get("username").toString(),
+                                                                map.get("realName") == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString(),
+                                                                Integer.parseInt(map.get("vip").toString()),
+                                                                MyUtils.formatDouble(Double.parseDouble(map.get("credits").toString())),
+                                                                MyUtils.formatDouble(Double.parseDouble(map.get("stored").toString())),
+                                                                MyUtils.formatDouble(Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString())),
+                                                                (Boolean) map.get("test"),
+                                                                Integer.parseInt(map.get("clerk").toString()),
+                                                                MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
+                                                                objectMap.get("meatId").toString().length() > 0 ? objectMap.get("meatId").toString() : "",
+                                                                (Boolean) objectMap.get("svip"),
+                                                                avatar,
+                                                                (Boolean) objectMap.get("alreadySVIP"),
+                                                                nb
+                                                        );
+                                                        EventBus.getDefault().post(userBean);
+                                                        getDialog().dismiss();
+                                                    }else{
+                                                        hideDialog();
+                                                        T.show(response);
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void onFailure(Call<ResponseBody> call, Throwable t) {
+
+                                                }
+                                            });
+
                                         } else {
                                             hideDialog();
                                             ToastUtil.showShort(MyApplication.getContextObject(), "获取用户信息错误");

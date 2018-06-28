@@ -37,6 +37,7 @@ public class DataUtil {
             hashMap.put("weight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(event.getBarcode()) * event.getCommodityNumber()));
             if (mode == 0) {
                 hashMap.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()));
+                hashMap.put("nb",MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()*CONST.NB.MEATDiSCOUNT));
             } else {
                 hashMap.put("price", 0);
             }
@@ -44,9 +45,11 @@ public class DataUtil {
             hashMap.put("weight", MyUtils.formatDouble(productBean.getWeight() * event.getCommodityNumber()));
             if (mode == 0) {
                 hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
+                hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()));
             } else {
                 hashMap.put("price", 0);
             }
+
         }
         hashMap.put("cookStyle", event.getCookStyle());
         hashMap.put("barcode", event.getBarcode());
@@ -74,7 +77,9 @@ public class DataUtil {
                                        Boolean isSvip,
                                        String userId,
                                        int mode) {
+        Logger.d(event.getOrderIndex());
         if (event.getOrderIndex() != -1) {
+            Logger.d(event);
             if (event.getCommodityNumber() > 0) {
                 String commodityId = event.getProductBean().getObjectId();
                 ProductBean productBean = MyUtils.getProductById(commodityId);
@@ -88,6 +93,7 @@ public class DataUtil {
                     format.put("weight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(event.getBarcode()) * event.getCommodityNumber()));
                     if (mode == 0) {
                         format.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()));
+                        format.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()*CONST.NB.MEATDiSCOUNT));
                     } else {
                         format.put("price", 0);
                     }
@@ -95,6 +101,7 @@ public class DataUtil {
                     format.put("weight", MyUtils.formatDouble(productBean.getWeight() * event.getCommodityNumber()));
                     if (mode == 0) {
                         format.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
+                        format.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()));
                     } else {
                         format.put("price", 0);
                     }
@@ -109,6 +116,7 @@ public class DataUtil {
                 }
                 format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
                 format.put("cookSerial", event.getCookSerial());
+                format.put("cookStyle", event.getCookStyle());
             } else {
                 preOrders.remove(event.getOrderIndex());
             }
@@ -210,5 +218,12 @@ public class DataUtil {
                     }
             }
         }
+    }
+    public static String JSONTokener(String str_json) {
+        // consume an optional byte order mark (BOM) if it exists
+        if (str_json != null && str_json.startsWith("\ufeff")) {
+            str_json = str_json.substring(1);
+        }
+        return str_json;
     }
 }

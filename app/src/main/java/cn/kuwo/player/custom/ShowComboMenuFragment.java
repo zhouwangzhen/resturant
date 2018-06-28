@@ -80,7 +80,7 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
     private Boolean isWeight = false;
     private String barcode = null;
     private String cookStyle = "";
-    private int orginNumber=0;
+    private int orginNumber = 0;
 
     @SuppressLint("ValidFragment")
     public ShowComboMenuFragment(Context context, ProductBean productBean, Boolean isEdit, String barcode) {
@@ -97,6 +97,7 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         for (int i = 0; i < comboMenu.size(); i++) {
             chooseTypes.add(0);
         }
+
         if (barcode.length() == 18) {
             isWeight = true;
         }
@@ -105,13 +106,35 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
     @SuppressLint("ValidFragment")
     public ShowComboMenuFragment(Context context, ProductBean productBean, Boolean isEdit, Object order, int orderIndex) {
         this.comboMenu = ProductUtil.getComboList(productBean.getComboMenu());
-        this.isComobo = false;
+        if (productBean.getComboMenu().length() > 0 && productBean.getComboMenu() != null) {
+            isComobo = true;
+        } else {
+            isComobo = false;
+        }
         this.context = context;
         this.productBean = productBean;
         this.isEdit = isEdit;
         this.order = order;
         this.orderIndex = orderIndex;
         HashMap<String, Object> format = ObjectUtil.format(order);
+        if (!isEdit) {
+            for (int i = 0; i < comboMenu.size(); i++) {
+                chooseTypes.add(0);
+            }
+        }else{
+            List<String> comboList = ObjectUtil.getList(format, "comboList");
+            String content = "";
+            chooseTypes.removeAll(chooseTypes);
+            for (int i = 0; i < comboList.size(); i++) {
+                int index = comboMenu.get(i).indexOf(comboList.get(i)) == -1 ? 0 : comboMenu.get(i).indexOf(comboList.get(i));
+                if (i > 0) {
+                    content += "+" + comboList.get(i);
+                } else {
+                    content += comboList.get(i);
+                }
+                chooseTypes.add(index);
+            }
+        }
         barcode = ObjectUtil.getString(format, "barcode");
         if (barcode.length() == 18) {
             isWeight = true;
@@ -146,7 +169,9 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    showMachineStyle();
+                    cookStyle = "需加工";
+                    machineText.setText(cookStyle);
+//                    showMachineStyle();
                     rlMachineStyle.setVisibility(View.VISIBLE);
                 } else {
                     cookStyle = "";
@@ -155,12 +180,12 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                 }
             }
         });
-        rlMachineStyle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showMachineStyle();
-            }
-        });
+//        rlMachineStyle.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                showMachineStyle();
+//            }
+//        });
     }
 
     private void setCombo() {
@@ -186,6 +211,7 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                     @Override
                     public void onCheckedChanged(RadioGroup group, int checkedId) {
                         chooseTypes.set(finalI, group.indexOfChild(group.findViewById(checkedId)));
+                        Logger.d(chooseTypes);
                         String detail = "";
                         for (int k = 0; k < chooseTypes.size(); k++) {
                             detail += (k == 0 ? "" : "+") + comboMenu.get(k).get(chooseTypes.get(k));
@@ -208,7 +234,7 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         if (isEdit) {
             HashMap<String, Object> format = ObjectUtil.format(order);
             int cookSerial = ObjectUtil.getInt(format, "cookSerial");
-            orginNumber=ObjectUtil.getDouble(format, "number").intValue();
+            orginNumber = ObjectUtil.getDouble(format, "number").intValue();
             if (cookSerial == 1) radioSerial.check(R.id.serial_1);
             if (cookSerial == 2) radioSerial.check(R.id.serial_2);
             if (cookSerial == 3) radioSerial.check(R.id.serial_3);
@@ -217,9 +243,9 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         }
         if (order != null && isEdit) {
             HashMap<String, Object> format = ObjectUtil.format(order);
-            cookStyle=ObjectUtil.getString(format,"cookStyle");
+            cookStyle = ObjectUtil.getString(format, "cookStyle");
             machineText.setText(cookStyle);
-            if (cookStyle.length()>0){
+            if (cookStyle.length() > 0) {
                 switchMachine.setChecked(true);
                 rlMachineStyle.setVisibility(View.VISIBLE);
             }
@@ -242,6 +268,7 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                 llHasCombo.setVisibility(View.VISIBLE);
                 llChooseCombo.setVisibility(View.VISIBLE);
                 String content = "";
+                chooseTypes.removeAll(chooseTypes);
                 for (int i = 0; i < comboList.size(); i++) {
                     int index = comboMenu.get(i).indexOf(comboList.get(i)) == -1 ? 0 : comboMenu.get(i).indexOf(comboList.get(i));
                     if (i > 0) {
@@ -254,6 +281,7 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                 comboDetail.setText(content);
             } else {
                 isComobo = false;
+                chooseTypes.removeAll(chooseTypes);
                 for (int i = 0; i < comboMenu.size(); i++) {
                     chooseTypes.add(0);
                 }
@@ -294,15 +322,6 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                 llChooseCombo.setVisibility(View.VISIBLE);
             } else {
                 llChooseCombo.setVisibility(View.GONE);
-                String content = "";
-                for (int i = 0; i < comboMenu.size(); i++) {
-                    if (i > 0) {
-                        content += "+" + comboMenu.get(chooseTypes.get(i));
-                    } else {
-                        content += comboMenu.get(chooseTypes.get(i));
-                    }
-                }
-                comboDetail.setText(content);
             }
 
         } else {
@@ -317,10 +336,19 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
         if (isWeight) {
             rlChooseMachine.setVisibility(View.VISIBLE);
         }
+        setDialog();//设置弹窗初始化
+        setTitle();//设置商品标题
+        setComment();//设置备注选项
+    }
+
+    private void setDialog() {
         tipDialog = new QMUITipDialog.Builder(getActivity())
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
                 .setTipWord("加载中")
                 .create();
+    }
+
+    private void setTitle() {
         String titleContent = "";
         if (productBean.getSerial() != null) {
             titleContent += productBean.getSerial();
@@ -335,6 +363,9 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
             }
         }
         title.setText(titleContent);
+    }
+
+    private void setComment() {
         for (int i = 0; i < productBean.getComments().size(); i++) {
             Button button = new Button(context);
             button.setText(productBean.getComments().get(i).toString());

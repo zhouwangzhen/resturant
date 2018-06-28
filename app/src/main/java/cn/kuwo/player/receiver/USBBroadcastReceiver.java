@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.hardware.usb.UsbManager;
 import android.widget.Toast;
 
+import java.util.logging.Logger;
+
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;

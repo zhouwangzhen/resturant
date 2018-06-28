@@ -1,8 +1,6 @@
 package cn.kuwo.player;
 
 import android.app.Dialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.drawable.Drawable;
@@ -10,30 +8,20 @@ import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVLiveQuery;
 import com.avos.avoscloud.AVLiveQueryEventHandler;
 import com.avos.avoscloud.AVLiveQuerySubscribeCallback;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
-import com.avos.avoscloud.AVUser;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
-import com.avos.avoscloud.FunctionCallback;
-import com.avos.avoscloud.LogInCallback;
-import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 
 import org.greenrobot.eventbus.EventBus;
@@ -42,7 +30,6 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -60,8 +47,8 @@ import cn.kuwo.player.event.PrintEvent;
 import cn.kuwo.player.event.RefundEvent;
 import cn.kuwo.player.event.SuccessEvent;
 import cn.kuwo.player.fragment.CommodityFg;
+import cn.kuwo.player.fragment.NbFg;
 import cn.kuwo.player.fragment.NetConnectFg;
-import cn.kuwo.player.fragment.OrderFg;
 import cn.kuwo.player.fragment.OrderListFg;
 import cn.kuwo.player.fragment.SettingFg;
 import cn.kuwo.player.fragment.StoredFg;
@@ -75,7 +62,7 @@ import cn.kuwo.player.util.AppUtils;
 import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.ErrorUtil;
 import cn.kuwo.player.util.ImageUtil;
-import cn.kuwo.player.util.ProductUtil;
+import cn.kuwo.player.util.LoginUtil;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.RealmUtil;
 import cn.kuwo.player.util.SharedHelper;
@@ -86,6 +73,12 @@ public class MainActivity extends BaseActivity {
     TextView menuStored;
     @BindView(R.id.menu_inventory)
     TextView menuInventory;
+    @BindView(R.id.ll_table)
+    LinearLayout llTable;
+    @BindView(R.id.menu_nb)
+    TextView menuNb;
+    @BindView(R.id.fragment_content)
+    FrameLayout fragmentContent;
     private int REQUEST_CODE_SCAN = 111;
     @BindView(R.id.menu_retail)
     TextView menuRetail;
@@ -123,40 +116,28 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void initData() {
-        LoginSystemUser();
-        checkLocalStorageSame();
+        LoginUtil.checkSystemLogin();
+        checkCashierLogin();
+        checkLocalStorageCommodity();
         setListener();
         test();
     }
 
 
-
     /**
      * 系统账号登录
      */
-    private void LoginSystemUser() {
-        if (AVUser.getCurrentUser() == null) {
-            AVUser.logInInBackground("13888888888", "123456789", new LogInCallback<AVUser>() {
-                @Override
-                public void done(AVUser avUser, AVException e) {
-                    if (e != null) {
-                        showShortToast(e.getMessage());
-                    }
-                }
-            });
-        }
-        SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
-        if (sharedHelper.readBoolean("cashierLogin")) {
-            waiterName.setText("收银人员:" + sharedHelper.read("cashierName"));
+    private void checkCashierLogin() {
+        if (SharedHelper.readBoolean("cashierLogin")) {
+            waiterName.setText("收银人员:" + SharedHelper.read("cashierName"));
         } else {
-            sharedHelper.saveBoolean("cashierLogin", false);
-            ScanUserFragment scanUserFragment = new ScanUserFragment(0);
-            scanUserFragment.show(getSupportFragmentManager(), "scanuser");
+            SharedHelper.saveBoolean("cashierLogin", false);
+            new ScanUserFragment(0).show(getSupportFragmentManager(), "scanuser");
         }
     }
 
 
-    private void checkLocalStorageSame() {
+    private void checkLocalStorageCommodity() {
         final RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
         if (mRealmHleper.queryAllProduct().size() == 0) {
             loadCommodity();
@@ -216,7 +197,7 @@ public class MainActivity extends BaseActivity {
         ft.replace(R.id.fragment_content, tableFg, "table").commitAllowingStateLoss();
     }
 
-    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored, R.id.menu_inventory})
+    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored, R.id.menu_inventory,R.id.menu_nb})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.ll_table:
@@ -246,6 +227,9 @@ public class MainActivity extends BaseActivity {
                 break;
             case R.id.menu_inventory:
                 startActivity(new Intent(MainActivity.this, InventoryActivity.class));
+                break;
+            case R.id.menu_nb:
+                switchFragment("nb");
                 break;
         }
     }
@@ -285,6 +269,10 @@ public class MainActivity extends BaseActivity {
             setSelectState(menuStored, R.drawable.icon_recharge_nor);
             StoredFg storedFg = StoredFg.newInstance("");
             ft.replace(R.id.fragment_content, storedFg, "stored").commit();
+        } else if (tag == "nb") {
+            setSelectState(menuNb, R.drawable.icon_recharge_nor);
+            NbFg nbFg = NbFg.newInstance("");
+            ft.replace(R.id.fragment_content, nbFg, "nb").commit();
         }
 
     }
@@ -293,13 +281,14 @@ public class MainActivity extends BaseActivity {
      * 重置状态
      */
     private void resetState() {
-        ImageUtil.setDrawableLeft(this,R.drawable.icon_menu_nor,menuCommodity);
-        ImageUtil.setDrawableLeft(this,R.drawable.icon_table_nor,menuTable);
-        ImageUtil.setDrawableLeft(this,R.drawable.icon_print_nor,menuPrint);
-        ImageUtil.setDrawableLeft(this,R.drawable.icon_update_nor,menuUpdate);
-        ImageUtil.setDrawableLeft(this,R.drawable.icon_svip_nor,menuSvip);
-        ImageUtil.setDrawableLeft(this,R.drawable.icon_order_nor,menuOrder);
-        ImageUtil.setDrawableLeft(this,R.drawable.icon_recharge,menuStored);
+        ImageUtil.setDrawableLeft(this, R.drawable.icon_menu_nor, menuCommodity);
+        ImageUtil.setDrawableLeft(this, R.drawable.icon_table_nor, menuTable);
+        ImageUtil.setDrawableLeft(this, R.drawable.icon_print_nor, menuPrint);
+        ImageUtil.setDrawableLeft(this, R.drawable.icon_update_nor, menuUpdate);
+        ImageUtil.setDrawableLeft(this, R.drawable.icon_svip_nor, menuSvip);
+        ImageUtil.setDrawableLeft(this, R.drawable.icon_order_nor, menuOrder);
+        ImageUtil.setDrawableLeft(this, R.drawable.icon_recharge, menuStored);
+        ImageUtil.setDrawableLeft(this, R.drawable.icon_recharge, menuNb);
         menuCommodity.setTextColor(getResources().getColor(R.color.purple));
         menuTable.setTextColor(getResources().getColor(R.color.purple));
         menuPrint.setTextColor(getResources().getColor(R.color.purple));
@@ -308,6 +297,7 @@ public class MainActivity extends BaseActivity {
         menuSvip.setTextColor(getResources().getColor(R.color.purple));
         menuOrder.setTextColor(getResources().getColor(R.color.purple));
         menuStored.setTextColor(getResources().getColor(R.color.purple));
+        menuNb.setTextColor(getResources().getColor(R.color.purple));
     }
 
     private void setSelectState(TextView view, int resourceId) {
@@ -325,25 +315,7 @@ public class MainActivity extends BaseActivity {
         table.findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(List<AVObject> list, AVException e) {
-                if (e == null) {
-                    try {
-                        tables = list;
-                        TableAdapter tableAdapter = new TableAdapter();
-                        gvTable.setAdapter(tableAdapter);
-                        gvTable.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                                if (!AppUtils.isFastDoubleClick()) {
-                                    ft = getSupportFragmentManager().beginTransaction();
-                                    OrderFg orderFg = OrderFg.newInstance(tables.get(position).getObjectId(), true);
-                                    ft.replace(R.id.fragment_content, orderFg, "order").commit();
-                                }
-                            }
-                        });
-                    } catch (Exception e1) {
-                        ErrorUtil.NETERROR();
-                    }
-                } else {
+                if (e != null) {
                     ErrorUtil.NETERROR();
 
                 }
@@ -383,63 +355,6 @@ public class MainActivity extends BaseActivity {
         ButterKnife.bind(this);
     }
 
-    public class TableAdapter extends BaseAdapter {
-        @Override
-        public int getCount() {
-            return tables.size();
-        }
-
-        @Override
-        public Object getItem(int i) {
-            return i;
-        }
-
-        @Override
-        public long getItemId(int i) {
-            return i;
-        }
-
-        @Override
-        public View getView(final int i, View view, ViewGroup parent) {
-            ViewHolder holder;
-            if (view == null) {
-                view = LayoutInflater.from(MyApplication.getContextObject()).inflate(R.layout.adapter_table_left, parent, false);
-                holder = new ViewHolder();
-                holder.tableNumber = view.findViewById(R.id.table_number);
-                holder.tableCommodity = view.findViewById(R.id.table_commodity);
-                holder.tablePrice = view.findViewById(R.id.table_price);
-                holder.tableSvipPrice = view.findViewById(R.id.table_svip_price);
-                holder.tablePeople = view.findViewById(R.id.table_people);
-                holder.rlTableDetail = view.findViewById(R.id.rl_table_detail);
-                holder.llTable = view.findViewById(R.id.ll_table);
-                view.setTag(holder);
-            } else {
-                holder = (ViewHolder) view.getTag();
-            }
-            AVObject avObject = tables.get(i);
-            holder.tableNumber.setText(avObject.getString("tableNumber") + "号桌");
-            if (avObject.getInt("customer") != 0) {
-                holder.tablePrice.setText("￥" + ProductUtil.calculateTotalMoney(avObject));
-                holder.tableSvipPrice.setText("超牛价钱￥" + ProductUtil.calculateMinMoney(avObject));
-                holder.tableCommodity.setText(avObject.getList("order").size() + avObject.getList("preOrder").size() + "道菜品");
-                holder.tablePeople.setText(avObject.getInt("customer") + "人");
-                holder.rlTableDetail.setVisibility(View.VISIBLE);
-                holder.tableSvipPrice.setVisibility(View.VISIBLE);
-            } else {
-                holder.tablePeople.setText("空闲");
-                holder.rlTableDetail.setVisibility(View.GONE);
-                holder.tableSvipPrice.setVisibility(View.GONE);
-            }
-            return view;
-        }
-
-        private class ViewHolder {
-            TextView tableNumber, tableCommodity, tablePrice, tableSvipPrice, tablePeople;
-            RelativeLayout rlTableDetail;
-            LinearLayout llTable;
-        }
-    }
-
 
     public void loadCommodity() {
         fetchRule();
@@ -461,7 +376,6 @@ public class MainActivity extends BaseActivity {
             public void done(List<AVObject> list, AVException e) {
                 if (e == null) {
                     RealmUtil.setRuleBeanRealm(list);
-
                 }
 
             }
@@ -533,7 +447,6 @@ public class MainActivity extends BaseActivity {
                     if (confirm) {
                         dialog.dismiss();
                     }
-
                 }
             })
                     .setTitle("提示").setNegativeButton("人工通知").setPositiveButton("人工通知").show();
@@ -561,6 +474,7 @@ public class MainActivity extends BaseActivity {
             hideDialog();
         }
     }
+
     private void checkUsbDevice() {
         if (CameraProvider.hasCamera()) {
             IntentFilter filter = new IntentFilter();
@@ -571,6 +485,39 @@ public class MainActivity extends BaseActivity {
 
 
     }
+
     private void test() {
+//        ApiManager apiManager = ApiManager.getInstance();
+////        Call<ResponseBody> responseBodyCall = apiManager.getRetrofitService().offlineRecharge("5655460f00b0bf379ee81d75",
+////                "5655460f00b0bf379ee81d75",
+////                "5655460f00b0bf379ee81d75",
+////                1.00);
+//        Call<ResponseBody> responseBodyCall = apiManager.getRetrofitService().QueryofflineRecharge("5655460f00b0bf379ee81d75");
+//        responseBodyCall.enqueue(new Callback<ResponseBody>() {
+//            @Override
+//            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+////                try {
+//                    Logger.d(response.body());
+////                    String responseText = DataUtil.JSONTokener(response.body().string());
+////                    Logger.d(responseText);
+////                    try {
+////                        JSONObject jsonObject = new JSONObject(responseText);
+////                        org.json.JSONArray commodities = jsonObject.getJSONArray("commodities");
+////                        Logger.d(commodities.length());
+////                    } catch (JSONException e) {
+////                        e.printStackTrace();
+////                    }
+//
+////                } catch (IOException e) {
+////                    e.printStackTrace();
+////                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<ResponseBody> call, Throwable t) {
+//                t.printStackTrace();
+//                Logger.d(t.getMessage());
+//            }
+//        });
     }
 }

@@ -263,8 +263,9 @@ public class PayFg extends BaseFragment {
                             mallOrder.put("useUserCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOnlineCouponEvent().getId()));
                         }
                         if (orderDetail.getOfflineCouponEvent() != null) {
-                            jsonReduce.put(orderDetail.getOfflineCouponEvent().getContent(), orderDetail.getOfflineCouponEvent().getMoney());
+                            jsonReduce.put(orderDetail.getOfflineCouponEvent().getContent()+"*"+orderDetail.getOfflineCouponNumber()+"张", orderDetail.getOfflineCouponEvent().getMoney()*orderDetail.getOfflineCouponNumber());
                             mallOrder.put("useSystemCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOfflineCouponEvent().getId()));
+                            mallOrder.put("systemCouponNum",orderDetail.getOfflineCouponNumber());
                         }
                         if (orderDetail.getChooseReduce() && orderDetail.getAvObject().getAVObject("user") != null && orderDetail.getMyReduceWeight() > 0) {
                             jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
@@ -277,7 +278,7 @@ public class PayFg extends BaseFragment {
                         }
 
                         if (orderDetail.getRate() != 100) {
-                            String content = "整单" + orderDetail.getRate() + "折优惠";
+                            String content = orderDetail.getRateContent()+orderDetail.getRate() + "折优惠";
                             jsonReduce.put(content, orderDetail.getRateReduceMoney());
                         }
                         if (orderDetail.getDeleteoddMoney() > 0) {
@@ -421,8 +422,8 @@ public class PayFg extends BaseFragment {
         }
 
         if (orderDetail.getOfflineCouponEvent() != null) {
-            tvOfflineContent.setText(orderDetail.getOfflineCouponEvent().getContent());
-            tvOfflineMoeny.setText("-" + orderDetail.getOfflineCouponEvent().getMoney());
+            tvOfflineContent.setText(orderDetail.getOfflineCouponEvent().getContent()+"*"+orderDetail.getOfflineCouponNumber()+"张");
+            tvOfflineMoeny.setText("-" + MyUtils.formatDouble(orderDetail.getOfflineCouponEvent().getMoney()*orderDetail.getOfflineCouponNumber()));
         }
         if (orderDetail.getOnlineCouponEvent() != null) {
             tvOnlineContent.setText(orderDetail.getOnlineCouponEvent().getContent());
@@ -436,7 +437,7 @@ public class PayFg extends BaseFragment {
         }
         if (orderDetail.getRate() != 100) {
             llRateReduce.setVisibility(View.VISIBLE);
-            rateReduceContent.setText("整单" + MyUtils.formatDouble((double) orderDetail.getRate() / 10) + "折优惠");
+            rateReduceContent.setText(orderDetail.getRateContent()+MyUtils.formatDouble((double) orderDetail.getRate() / 10) + "折优惠");
             rateReduceMoney.setText("-" + orderDetail.getRateReduceMoney());
 
         } else {

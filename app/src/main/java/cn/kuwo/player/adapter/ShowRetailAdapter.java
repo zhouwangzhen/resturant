@@ -16,6 +16,7 @@ import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RetailBean;
+import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ProductUtil;
 
@@ -46,7 +47,16 @@ public class ShowRetailAdapter extends RecyclerView.Adapter<ShowRetailAdapter.My
         if (productBean.getUrl()!=null&&!productBean.getUrl().equals("")){
             Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
         }
-        holder.tvPrice.setText("￥"+price+"元");
+        String nbContent="";
+        if (productBean.getType()==6||productBean.getType()==7){
+            nbContent="牛币价："+MyUtils.formatDouble(price* CONST.NB.MEATDiSCOUNT);
+        }else if(productBean.getType()==9){
+            nbContent="牛币价："+MyUtils.formatDouble(price);
+        }else{
+            nbContent="牛币价："+MyUtils.formatDouble(price* CONST.NB.OTHERDISCOUNT);
+        }
+        holder.tvPrice.setText("￥"+price+"元\n"+nbContent);
+
         holder.tvCommodityName.setText(productBean.getName());
         if (weight> 20) {
             holder.tvWeight.setText(weight + "ml");

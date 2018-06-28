@@ -96,23 +96,41 @@ public class TableApi {
             orders.remove(position);
         } else {
             commodity.put("number", ObjectUtil.getDouble(commodity, "number") - refundNumber >= 0 ? ObjectUtil.getDouble(commodity, "number") - refundNumber : 0);
+            if (ObjectUtil.getString(commodity,"barcode").length()==18){
+                if (ObjectUtil.getDouble(commodity, "price")>0){
+                    commodity.put("price",ObjectUtil.getDouble(commodity, "number") >= 0 ? MyUtils.formatDouble(ProductUtil.calCommodityMoney(ObjectUtil.getString(commodity,"barcode"))*ObjectUtil.getDouble(commodity, "number")) : 0);
+                }
+                if (ObjectUtil.getDouble(commodity,"nb")>0){
+                    commodity.put("nb",ObjectUtil.getDouble(commodity, "number")  >= 0 ? MyUtils.formatDouble((ObjectUtil.getDouble(commodity,"price")/(ObjectUtil.getDouble(commodity, "number")))* (ObjectUtil.getDouble(commodity, "number"))) : 0);
+                }
+
+            }else{
+                if (ObjectUtil.getDouble(commodity, "price")>0){
+                    commodity.put("price",ObjectUtil.getDouble(commodity, "number")  >= 0 ?MyUtils.formatDouble(productBean.getPrice()*(ObjectUtil.getDouble(commodity, "number"))): 0);
+                }
+                if (ObjectUtil.getDouble(commodity,"nb")>0){
+                    commodity.put("nb",ObjectUtil.getDouble(commodity, "number")  >= 0 ? MyUtils.formatDouble(productBean.getNb()* (ObjectUtil.getDouble(commodity, "number"))) : 0);
+                }
+
+            }
+
             tableAVObject.getList("order").set(position, commodity);
         }
         tableAVObject.put("order", orders);
         tableAVObject.put("refundOrder", refundOrders);
-        List alreadyOrders = tableAVObject.getList("order");
-            for (Object o : alreadyOrders) {
-                HashMap<String, Object> map = (HashMap<String, Object>) o;
-                if (ObjectUtil.getString(map, "id").equals(CONST.MACHINEID)) {
-                    if (ObjectUtil.getDouble(map, "number")<=refundNumber){
-                        alreadyOrders.remove(map);
-                    }else{
-                        map.put("number", ObjectUtil.getDouble(map, "number") -refundNumber);
-                        map.put("price", MyUtils.formatDouble((ObjectUtil.getDouble(map, "number") -refundNumber)*30));
-                    }
-
-                }
-            }
+//        List alreadyOrders = tableAVObject.getList("order");
+//        for (Object o : alreadyOrders) {
+//            HashMap<String, Object> map = (HashMap<String, Object>) o;
+//            if (ObjectUtil.getString(map, "id").equals(CONST.MACHINEID)) {
+//                if (ObjectUtil.getDouble(map, "number") <= refundNumber) {
+//                    alreadyOrders.remove(map);
+//                } else {
+//                    map.put("number", ObjectUtil.getDouble(map, "number") - refundNumber);
+//                    map.put("price", MyUtils.formatDouble((ObjectUtil.getDouble(map, "number") - refundNumber) * 30));
+//                }
+//
+//            }
+//        }
         return tableAVObject;
     }
 }

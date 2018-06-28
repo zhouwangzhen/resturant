@@ -23,19 +23,20 @@ public class StatisticsUtil {
         capitalDetail.put("现金", 0.0);
         capitalDetail.put("招商信用卡", 0.0);
         capitalDetail.put("浦发信用卡", 0.0);
+        capitalDetail.put("牛币", 0.0);
         for (AVObject recharge : rechargeOrders) {
             switch (recharge.getInt("escrow")) {
                 case 3:
-                    capitalDetail.put("支付宝", capitalDetail.get("支付宝") + RechargeUtil.findRealMoney(recharge.getDouble("change")));
+                    capitalDetail.put("支付宝", MyUtils.formatDouble(capitalDetail.get("支付宝") + RechargeUtil.findRealMoney(recharge.getDouble("change"))));
                     break;
                 case 4:
-                    capitalDetail.put("微信", capitalDetail.get("微信") + RechargeUtil.findRealMoney(recharge.getDouble("change")));
+                    capitalDetail.put("微信", MyUtils.formatDouble(capitalDetail.get("微信") + RechargeUtil.findRealMoney(recharge.getDouble("change"))));
                     break;
                 case 5:
-                    capitalDetail.put("银行卡", capitalDetail.get("银行卡") + RechargeUtil.findRealMoney(recharge.getDouble("change")));
+                    capitalDetail.put("银行卡", MyUtils.formatDouble(capitalDetail.get("银行卡") + RechargeUtil.findRealMoney(recharge.getDouble("change"))));
                     break;
                 case 6:
-                    capitalDetail.put("现金", capitalDetail.get("现金") + RechargeUtil.findRealMoney(recharge.getDouble("change")));
+                    capitalDetail.put("现金", MyUtils.formatDouble(capitalDetail.get("现金") + RechargeUtil.findRealMoney(recharge.getDouble("change"))));
                     break;
             }
         }
@@ -44,79 +45,82 @@ public class StatisticsUtil {
             double actuallyPaid = order.getDouble("actuallyPaid");
             switch (order.getInt("escrow")) {
                 case 1:
-                    capitalDetail.put("消费金", capitalDetail.get("消费金") + actualMoney);
+                    capitalDetail.put("消费金", MyUtils.formatDouble(capitalDetail.get("消费金") + actualMoney));
                     break;
                 case 3:
-                    capitalDetail.put("支付宝", capitalDetail.get("支付宝") + actualMoney);
+                    capitalDetail.put("支付宝", MyUtils.formatDouble(capitalDetail.get("支付宝") + actualMoney));
                     break;
                 case 4:
-                    capitalDetail.put("微信", capitalDetail.get("微信") + actualMoney);
+                    capitalDetail.put("微信", MyUtils.formatDouble(capitalDetail.get("微信") + actualMoney));
                     break;
                 case 5:
-                    capitalDetail.put("银行卡", capitalDetail.get("银行卡") + actualMoney);
+                    capitalDetail.put("银行卡", MyUtils.formatDouble(capitalDetail.get("银行卡") + actualMoney));
                     break;
                 case 6:
-                    capitalDetail.put("现金", capitalDetail.get("现金") + actualMoney);
+                    capitalDetail.put("现金", MyUtils.formatDouble(capitalDetail.get("现金") + actualMoney));
                     break;
                 case 7:
-                    capitalDetail.put("消费金", capitalDetail.get("消费金") + actuallyPaid);
-                    capitalDetail.put("支付宝", capitalDetail.get("支付宝") + actualMoney - actuallyPaid);
+                    capitalDetail.put("消费金", MyUtils.formatDouble(capitalDetail.get("消费金") + actuallyPaid));
+                    capitalDetail.put("支付宝", MyUtils.formatDouble(capitalDetail.get("支付宝") + actualMoney - actuallyPaid));
                     break;
                 case 8:
-                    capitalDetail.put("消费金", capitalDetail.get("消费金") + actuallyPaid);
-                    capitalDetail.put("微信", capitalDetail.get("微信") + actualMoney - actuallyPaid);
+                    capitalDetail.put("消费金", MyUtils.formatDouble(capitalDetail.get("消费金") + actuallyPaid));
+                    capitalDetail.put("微信", MyUtils.formatDouble(capitalDetail.get("微信") + actualMoney - actuallyPaid));
                     break;
                 case 9:
-                    capitalDetail.put("消费金", capitalDetail.get("消费金") + actuallyPaid);
-                    capitalDetail.put("银行卡", capitalDetail.get("银行卡") + actualMoney - actuallyPaid);
+                    capitalDetail.put("消费金", MyUtils.formatDouble(capitalDetail.get("消费金") + actuallyPaid));
+                    capitalDetail.put("银行卡", MyUtils.formatDouble(capitalDetail.get("银行卡") + actualMoney - actuallyPaid));
                     break;
                 case 10:
-                    capitalDetail.put("消费金", capitalDetail.get("消费金") + actuallyPaid);
-                    capitalDetail.put("现金", capitalDetail.get("现金") + actualMoney - actuallyPaid);
+                    capitalDetail.put("消费金", MyUtils.formatDouble(capitalDetail.get("消费金") + actuallyPaid));
+                    capitalDetail.put("现金", MyUtils.formatDouble(capitalDetail.get("现金") + actualMoney - actuallyPaid));
                     break;
                 case 11:
-                    capitalDetail.put("白条", capitalDetail.get("白条") + actualMoney);
+                    capitalDetail.put("白条", MyUtils.formatDouble(capitalDetail.get("白条") + actualMoney));
                     break;
                 case 12:
-                    capitalDetail.put("消费金", capitalDetail.get("消费金") + actualMoney);
+                    capitalDetail.put("消费金", MyUtils.formatDouble(capitalDetail.get("消费金") + actualMoney));
                     break;
                 case 13:
-                    capitalDetail.put("白条", capitalDetail.get("白条") + actuallyPaid);
-                    capitalDetail.put("支付宝", capitalDetail.get("支付宝") + actualMoney - actuallyPaid);
+                    capitalDetail.put("白条", MyUtils.formatDouble(capitalDetail.get("白条") + actuallyPaid));
+                    capitalDetail.put("支付宝", MyUtils.formatDouble(capitalDetail.get("支付宝") + actualMoney - actuallyPaid));
                     break;
                 case 14:
-                    capitalDetail.put("白条", capitalDetail.get("白条") + actuallyPaid);
-                    capitalDetail.put("微信", capitalDetail.get("微信") + actualMoney - actuallyPaid);
+                    capitalDetail.put("白条", MyUtils.formatDouble(capitalDetail.get("白条") + actuallyPaid));
+                    capitalDetail.put("微信", MyUtils.formatDouble(capitalDetail.get("微信") + actualMoney - actuallyPaid));
                     break;
                 case 15:
-                    capitalDetail.put("白条", capitalDetail.get("白条") + actuallyPaid);
-                    capitalDetail.put("银行卡", capitalDetail.get("银行卡") + actualMoney - actuallyPaid);
+                    capitalDetail.put("白条", MyUtils.formatDouble(capitalDetail.get("白条") + actuallyPaid));
+                    capitalDetail.put("银行卡", MyUtils.formatDouble(capitalDetail.get("银行卡") + actualMoney - actuallyPaid));
                     break;
                 case 16:
-                    capitalDetail.put("白条", capitalDetail.get("白条") + actuallyPaid);
-                    capitalDetail.put("现金", capitalDetail.get("现金") + actualMoney - actuallyPaid);
+                    capitalDetail.put("白条",MyUtils.formatDouble( capitalDetail.get("白条") + actuallyPaid));
+                    capitalDetail.put("现金",MyUtils.formatDouble( capitalDetail.get("现金") + actualMoney - actuallyPaid));
                     break;
                 case 17:
-                    capitalDetail.put("消费金", capitalDetail.get("消费金") + actuallyPaid);
-                    capitalDetail.put("支付宝", capitalDetail.get("支付宝") + actualMoney - actuallyPaid);
+                    capitalDetail.put("消费金", MyUtils.formatDouble(capitalDetail.get("消费金") + actuallyPaid));
+                    capitalDetail.put("支付宝", MyUtils.formatDouble(capitalDetail.get("支付宝") + actualMoney - actuallyPaid));
                     break;
                 case 18:
-                    capitalDetail.put("消费金", capitalDetail.get("消费金") + actuallyPaid);
-                    capitalDetail.put("微信", capitalDetail.get("微信") + actualMoney - actuallyPaid);
+                    capitalDetail.put("消费金", MyUtils.formatDouble(capitalDetail.get("消费金") + actuallyPaid));
+                    capitalDetail.put("微信", MyUtils.formatDouble(capitalDetail.get("微信") + actualMoney - actuallyPaid));
                     break;
                 case 19:
-                    capitalDetail.put("消费金", capitalDetail.get("消费金") + actuallyPaid);
-                    capitalDetail.put("银行卡", capitalDetail.get("银行卡") + actualMoney - actuallyPaid);
+                    capitalDetail.put("消费金", MyUtils.formatDouble(capitalDetail.get("消费金") + actuallyPaid));
+                    capitalDetail.put("银行卡", MyUtils.formatDouble(capitalDetail.get("银行卡") + actualMoney - actuallyPaid));
                     break;
                 case 20:
-                    capitalDetail.put("消费金", capitalDetail.get("消费金") + actuallyPaid);
-                    capitalDetail.put("现金", capitalDetail.get("现金") + actualMoney - actuallyPaid);
+                    capitalDetail.put("消费金",MyUtils.formatDouble( capitalDetail.get("消费金") + actuallyPaid));
+                    capitalDetail.put("现金", MyUtils.formatDouble(capitalDetail.get("现金") + actualMoney - actuallyPaid));
                     break;
                 case 21:
-                    capitalDetail.put("招商信用卡", capitalDetail.get("招商信用卡") + actualMoney);
+                    capitalDetail.put("招商信用卡", MyUtils.formatDouble(capitalDetail.get("招商信用卡") + actualMoney));
                     break;
                 case 22:
-                    capitalDetail.put("浦发信用卡", capitalDetail.get("浦发信用卡") + actualMoney);
+                    capitalDetail.put("浦发信用卡", MyUtils.formatDouble(capitalDetail.get("浦发信用卡") + actualMoney));
+                    break;
+                case 25:
+                    capitalDetail.put("牛币",MyUtils.formatDouble(capitalDetail.get("牛币")+actualMoney));
                     break;
 
             }
@@ -139,6 +143,8 @@ public class StatisticsUtil {
         Double offline = 0.0;
         Double rechargeMoney = 0.0;
         Double svipMoney = 0.0;
+        Double DZDPMoney = 0.0;
+        int dinnerPeople = 0;
         int retail = 0;
         int restaurarnt = 0;
         int svip = 0;
@@ -158,6 +164,7 @@ public class StatisticsUtil {
             offline += actualMoney - order.getDouble("actuallyPaid");
             if (order.getInt("type") == 0) {
                 restaurarnt++;
+                dinnerPeople += order.getInt("customer");
             } else if (order.getInt("type") == 1) {
                 retail++;
             } else if (order.getInt("type") == 2) {
@@ -165,6 +172,16 @@ public class StatisticsUtil {
                 svipMoney += actualMoney;
             } else if (order.getInt("type") == 3) {
                 hangup++;
+            }
+            if (order.getAVObject("useSystemCoupon") != null) {
+                if (order.getAVObject("useSystemCoupon").getString("from").startsWith("大众点评")) {
+                    int number = order.getInt("systemCouponNum");
+                    if (number == 0) {
+                        number = 1;
+                    }
+                    DZDPMoney += MyUtils.formatDouble(68 * number);
+                    offline += MyUtils.formatDouble(68 * number);
+                }
             }
             if (!order.getAVObject("user").getObjectId().equals(CONST.ACCOUNT.SYSTEMACCOUNT)) {
                 member++;
@@ -196,9 +213,19 @@ public class StatisticsUtil {
             if (order.getAVObject("useSystemCoupon") != null) {
                 String name = order.getAVObject("useSystemCoupon").getAVObject("type").getString("name");
                 if (offlineCoupon.containsKey(name)) {
-                    offlineCoupon.put(name, offlineCoupon.get(name) + 1);
+                    if (order.getInt("systemCouponNum") == 0) {
+                        offlineCoupon.put(name, offlineCoupon.get(name) + 1);
+                    } else {
+                        offlineCoupon.put(name, offlineCoupon.get(name) + order.getInt("systemCouponNum"));
+                    }
+
                 } else {
-                    offlineCoupon.put(name, 1);
+                    if (order.getInt("systemCouponNum") == 0) {
+                        offlineCoupon.put(name, 1);
+                    } else {
+                        offlineCoupon.put(name, order.getInt("systemCouponNum"));
+                    }
+
                 }
             }
             if (order.getAVObject("useUserCoupon") != null) {
@@ -225,6 +252,7 @@ public class StatisticsUtil {
         detail.put("onlineMoney", MyUtils.formatDouble(online) + "元");
         detail.put("offlineMoney", MyUtils.formatDouble(offline) + "元");
         detail.put("totalMoney", MyUtils.formatDouble(offline + online) + "元");
+        detail.put("DZDPMoney", DZDPMoney + "元");
         detail.put("member", member + "单");
         detail.put("noMember", noMember + "单");
         detail.put("retailNumber", retail + "单");
@@ -238,6 +266,7 @@ public class StatisticsUtil {
         detail.put("onlineCoupon", onlineCoupon);
         detail.put("orderTypes", orderTypes);
         detail.put("capitalDetail", capitalDetail);
+        detail.put("dinnerPeople", dinnerPeople + "人");
         detail.put("rechargeMoney", MyUtils.formatDouble(rechargeMoney));
         detail.put("storedRechargeNumber", recharge + "单");
         detail.put("svipMoney", MyUtils.formatDouble(svipMoney) + "元");
