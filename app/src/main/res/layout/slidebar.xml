@@ -171,6 +171,17 @@
                 android:padding="10dp"
                 android:text="库存盘点"
                 android:textColor="@color/purple" />
+            <TextView
+                android:id="@+id/menu_update_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/icon_update_data"
+                android:drawablePadding="10dp"
+                android:gravity="center_vertical"
+                android:padding="10dp"
+                android:text="检测是否最新数据"
+                android:textColor="@color/purple" />
+
         </LinearLayout>
     </ScrollView>
 

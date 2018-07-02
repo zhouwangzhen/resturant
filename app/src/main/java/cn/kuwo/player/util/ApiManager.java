@@ -1,6 +1,6 @@
 package cn.kuwo.player.util;
 
-import cn.kuwo.player.api.RetrofitService;
+import cn.kuwo.player.service.RetrofitService;
 import retrofit2.Retrofit;
 
 /**

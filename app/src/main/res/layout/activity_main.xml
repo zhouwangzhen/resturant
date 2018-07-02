@@ -6,7 +6,6 @@
     android:background="@color/grey"
     tools:context=".MainActivity">
     <include layout="@layout/slidebar" />
-
     <FrameLayout
         android:id="@+id/fragment_content"
         android:layout_width="0dp"

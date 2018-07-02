@@ -468,6 +468,8 @@ public class SettleActivity extends BaseActivity {
                                 avUser = null;
                                 chooseNb.setText("当前付款状态:正常支付(点击切换成牛币支付)");
                                 llNoNb.setVisibility(View.VISIBLE);
+                                chooseNb.setVisibility(View.GONE);
+                                nb=0.0;
                                 isNbPay=false;
                                 ToastUtil.showShort(MyApplication.getContextObject(), "清空用户数据成功");
                                 setData();
@@ -483,20 +485,22 @@ public class SettleActivity extends BaseActivity {
                 if (isNbPay){
                     useNbPay();
                 }else {
-                    Intent intent = new Intent(SettleActivity.this, PayActivity.class);
-                    Bundle bundle = new Bundle();
-                    OrderDetail orderDetail = new OrderDetail(null, hasMeatWeight, originTotalMoneny,
-                            actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
-                            onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), userBean, orders, fullReduceMoney,
-                            deleteoddMoney, orderRate, rateReduceRemark, ratereduceMoney, blackfiveMoney);
-                    bundle.putSerializable("table", (Serializable) orderDetail);
-                    if (isHangUp) {
-                        bundle.putString("remark", getIntent().getStringExtra("remark"));
-                        bundle.putString("hangUpId", getIntent().getStringExtra("hangUpId"));
-                        bundle.putBoolean("isHangUp", getIntent().getBooleanExtra("isHangUp", false));
+                    if (userBean!=null&&nb>=nbTotalMoney&&!isNbPay){
+                        new CommomDialog(context, R.style.dialog, "用户牛币充足,用牛币更优惠,确认不帮他使用么", new CommomDialog.OnCloseListener() {
+                            @Override
+                            public void onClick(Dialog dialog, boolean confirm) {
+                                if (confirm) {
+                                    skipPayPage();
+                                    dialog.dismiss();
+                                }
+
+                            }
+                        })
+                                .setTitle("提示").setNegativeButton("去重新选择").setPositiveButton("有钱任性,就这么结账").show();
+                    }else{
+                        skipPayPage();
                     }
-                    intent.putExtras(bundle);
-                    startActivityForResult(intent, 1);
+
                 }
                 break;
             case R.id.ll_max_reduce:
@@ -523,6 +527,23 @@ public class SettleActivity extends BaseActivity {
                 refreshList();
                 break;
         }
+    }
+
+    private void skipPayPage() {
+        Intent intent = new Intent(SettleActivity.this, PayActivity.class);
+        Bundle bundle = new Bundle();
+        OrderDetail orderDetail = new OrderDetail(null, hasMeatWeight, originTotalMoneny,
+                actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
+                onlineCouponEvent, offlineCouponEvent, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), userBean, orders, fullReduceMoney,
+                deleteoddMoney, orderRate, rateReduceRemark, ratereduceMoney, blackfiveMoney);
+        bundle.putSerializable("table", (Serializable) orderDetail);
+        if (isHangUp) {
+            bundle.putString("remark", getIntent().getStringExtra("remark"));
+            bundle.putString("hangUpId", getIntent().getStringExtra("hangUpId"));
+            bundle.putBoolean("isHangUp", getIntent().getBooleanExtra("isHangUp", false));
+        }
+        intent.putExtras(bundle);
+        startActivityForResult(intent, 1);
     }
 
     private void chooseScanType() {
@@ -776,7 +797,7 @@ public class SettleActivity extends BaseActivity {
                                                             MyUtils.formatDouble(Double.parseDouble(object.get("credits").toString())),
                                                             MyUtils.formatDouble(Double.parseDouble(object.get("stored").toString())),
                                                             MyUtils.formatDouble(Double.parseDouble(object.get("gold").toString()) - Double.parseDouble(object.get("arrears").toString())),
-                                                            (Boolean) object.get("test"),
+                                                            (Boolean) object.get("Test"),
                                                             Integer.parseInt(object.get("clerk").toString()),
                                                             MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
                                                             objectMap.get("meatId").toString().length() > 0 ? objectMap.get("meatId").toString() : "",

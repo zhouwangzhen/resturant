@@ -172,7 +172,7 @@ public class PayFg extends BaseFragment {
         btnFinishPay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (SharedHelper.readBoolean("test") && orderDetail.getAvObject().getAVObject("user") != null && !orderDetail.getAvObject().getAVObject("user").getBoolean("test")) {
+                if (SharedHelper.readBoolean("Test") && orderDetail.getAvObject().getAVObject("user") != null && !orderDetail.getAvObject().getAVObject("user").getBoolean("Test")) {
                     ToastUtil.showShort(MyApplication.getContextObject(), "测试账号不能结账");
                 } else {
                     new QMUIDialog.MessageDialogBuilder(getActivity())

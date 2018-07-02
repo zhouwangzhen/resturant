@@ -121,12 +121,11 @@ public class OffineAdapter extends RecyclerView.Adapter<OffineAdapter.MyViewHold
             if (view == null) {
                 view = LayoutInflater.from(MyApplication.getContextObject()).inflate(R.layout.girdview_commodity, parent, false);
                 holder = new ViewHolder();
-                holder.name = (TextView) view.findViewById(R.id.name);
-                holder.number = (TextView) view.findViewById(R.id.number);
-                holder.weight = (TextView) view.findViewById(R.id.weight);
-                holder.price = (TextView) view.findViewById(R.id.price);
-                holder.ImageAvatar = (ImageView) view.findViewById(R.id.image_avatar);
-                holder.llCommodityItem = (LinearLayout) view.findViewById(R.id.ll_commodity_item);
+                holder.name = view.findViewById(R.id.name);
+                holder.number = view.findViewById(R.id.number);
+                holder.weight =view.findViewById(R.id.weight);
+                holder.price =  view.findViewById(R.id.price);
+                holder.llCommodityItem =view.findViewById(R.id.ll_commodity_item);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
@@ -138,10 +137,7 @@ public class OffineAdapter extends RecyclerView.Adapter<OffineAdapter.MyViewHold
                 holder.weight.setText("菜品重量:" + productBean.getWeight() +  (productBean.getWeight()>20?"ml":"kg") + (productBean.getScale() > 0 ? "可抵扣牛肉重量:" + MyUtils.formatDouble(productBean.getScale() * productBean.getWeight()) + "kg" + "抵扣后需支付:" + productBean.getRemainMoney() + "元" : ""));
 
             }
-            holder.price.setText("￥" + productBean.getPrice());
-//            if (productBean.getUrl()!=null&&!productBean.getUrl().equals("")){
-//                Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.ImageAvatar);
-//            }
+            holder.price.setText("￥" + productBean.getPrice()+"\n"+"牛币价:"+productBean.getNb());
             holder.llCommodityItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -160,8 +156,7 @@ public class OffineAdapter extends RecyclerView.Adapter<OffineAdapter.MyViewHold
     }
 
     private class ViewHolder {
-        TextView number, name, barcode, weight, price;
-        ImageView ImageAvatar;
+        TextView number, name, weight, price;
         LinearLayout llCommodityItem;
     }
 }

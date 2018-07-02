@@ -53,11 +53,13 @@ import butterknife.Unbinder;
 import cn.kuwo.player.BuildConfig;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
+import cn.kuwo.player.api.CommodityApi;
 import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.MyUtils;
+import cn.kuwo.player.util.RealmUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
 
@@ -175,6 +177,16 @@ public class SettingFg extends BaseFragment {
                                             public void done(AVException e) {
                                                 hideDialog();
                                                 if (e == null) {
+                                                    showDialog();
+                                                    CommodityApi.getOfflineCommodity().findInBackground(new FindCallback<AVObject>() {
+                                                        @Override
+                                                        public void done(final List<AVObject> list, AVException e) {
+                                                            hideDialog();
+                                                            if (e == null) {
+                                                                RealmUtil.setProductBeanRealm(list);
+                                                            }
+                                                        }
+                                                    });
                                                     ToastUtil.showLong(MyApplication.getContextObject(), "修改成功");
                                                     changeCommodityName.setText(text);
                                                 } else {
@@ -190,8 +202,8 @@ public class SettingFg extends BaseFragment {
                         })
                         .create(mCurrentDialogStyle).show();
             }
-        });
-        changeCommodityPrice.setOnClickListener(new View.OnClickListener() {
+            });
+            changeCommodityPrice.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
@@ -216,11 +228,22 @@ public class SettingFg extends BaseFragment {
                                         showDialog();
                                         CommodityAVObject.put("price", Double.parseDouble(text));
                                         CommodityAVObject.put("actualprice", Double.parseDouble(text));
+                                        CommodityAVObject.put("nb",Double.parseDouble(text));
                                         CommodityAVObject.saveInBackground(new SaveCallback() {
                                             @Override
                                             public void done(AVException e) {
                                                 hideDialog();
                                                 if (e == null) {
+                                                    showDialog();
+                                                    CommodityApi.getOfflineCommodity().findInBackground(new FindCallback<AVObject>() {
+                                                        @Override
+                                                        public void done(final List<AVObject> list, AVException e) {
+                                                            hideDialog();
+                                                            if (e == null) {
+                                                                RealmUtil.setProductBeanRealm(list);
+                                                            }
+                                                        }
+                                                    });
                                                     ToastUtil.showLong(MyApplication.getContextObject(), "修改成功");
                                                     changeCommodityPrice.setText(text);
                                                 } else {

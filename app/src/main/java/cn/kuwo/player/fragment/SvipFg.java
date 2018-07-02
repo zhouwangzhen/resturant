@@ -499,7 +499,7 @@ public class SvipFg extends BaseFragment {
                     @Override
                     public void done(Map<String, Object> objectMap, AVException e) {
                         if (e == null) {
-                            if (Integer.parseInt(objectMap.get("clerk").toString()) > 0 || (Boolean) objectMap.get("test")) {
+                            if (Integer.parseInt(objectMap.get("clerk").toString()) > 0 || (Boolean) objectMap.get("Test")) {
                                 marketName=(objectMap.get("realName").toString() == null ? objectMap.get("nickName").toString() : objectMap.get("realName").toString());
                                 PayAndBind();
                             } else {

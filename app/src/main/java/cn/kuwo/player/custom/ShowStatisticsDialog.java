@@ -84,6 +84,8 @@ public class ShowStatisticsDialog extends DialogFragment {
         setItem("消费金充值金额", ordersDetail.get("rechargeMoney").toString());
         setItem("抵扣牛肉重量", ordersDetail.get("reduceWeight").toString());
         setItem("抵扣牛肉重量", ordersDetail.get("reduceWeight").toString());
+        setItem("超牛币充值笔数", ordersDetail.get("nbRechargeNum").toString());
+        setItem("超牛币充值金额", ordersDetail.get("nbRechargeMoney").toString());
         List<Map.Entry<String, Double>> numbersList = (List<Map.Entry<String, Double>>) ordersDetail.get("numbers");
         HashMap<String, Integer> offlineCoupon = (HashMap<String, Integer>) ordersDetail.get("offlineCoupon");
         HashMap<String, Integer> onlineCoupon = (HashMap<String, Integer>) ordersDetail.get("onlineCoupon");

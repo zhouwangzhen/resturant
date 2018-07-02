@@ -63,7 +63,7 @@ public class RealmHelper {
      */
 
     public List<ProductBean> queryAllProduct() {
-        RealmResults<ProductBean> all = mRealm.where(ProductBean.class).findAll().sort("serial", Sort.ASCENDING);
+        RealmResults<ProductBean> all = mRealm.where(ProductBean.class).equalTo("active",1).findAll().sort("serial", Sort.ASCENDING);
         return mRealm.copyFromRealm(all);
     }
     public List<ProductBean> queryActiveAllProduct() {

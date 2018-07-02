@@ -942,6 +942,7 @@ public class OrderFg extends BaseFragment {
                     if (tableAVObject.getInt("customer") == 0) {
                         tableAVObject.put("customer", 1);
                     }
+                    tableAVObject.put("preOrder",preOrders);
                     tableAVObject.saveInBackground(new SaveCallback() {
                         @Override
                         public void done(AVException e) {

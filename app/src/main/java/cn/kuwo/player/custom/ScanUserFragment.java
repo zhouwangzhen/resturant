@@ -190,9 +190,10 @@ public class ScanUserFragment extends DialogFragment {
                             Logger.d("收银员登录");
                             hideDialog();
                             if (type == 0) {
+                                Logger.d(object);
                                 if ((Boolean) object.get("test") || Integer.parseInt(object.get("clerk").toString()) > 0) {
                                     SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
-                                    sharedHelper.saveBoolean("test", (Boolean) object.get("test"));
+                                    sharedHelper.saveBoolean("Test", (Boolean) object.get("test"));
                                     sharedHelper.saveBoolean("cashierLogin", true);
                                     sharedHelper.save("cashierId", object.get("objectId").toString());
                                     sharedHelper.save("mobilePhoneNumber", object.get("username").toString());
@@ -244,7 +245,7 @@ public class ScanUserFragment extends DialogFragment {
                                 if (type == 0 && ((Boolean) map.get("test") || Integer.parseInt(map.get("clerk").toString()) > 0)) {//收银员登录
                                     hideDialog();
                                     SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
-                                    sharedHelper.saveBoolean("test", map.getBoolean("test"));
+                                    sharedHelper.saveBoolean("Test", map.getBoolean("test"));
                                     sharedHelper.saveBoolean("cashierLogin", true);
                                     sharedHelper.save("cashierId", map.getObjectId());
                                     sharedHelper.save("mobilePhoneNumber", map.getString("username"));
@@ -349,7 +350,7 @@ public class ScanUserFragment extends DialogFragment {
                             if (type == 0 && ((Boolean) map.get("test") || Integer.parseInt(map.get("clerk").toString()) > 0)) {//收银员登录
                                 hideDialog();
                                 SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
-                                sharedHelper.saveBoolean("test", (Boolean) map.get("test"));
+                                sharedHelper.saveBoolean("Test", (Boolean) map.get("test"));
                                 sharedHelper.saveBoolean("cashierLogin", true);
                                 sharedHelper.save("cashierId", map.get("objectId").toString());
                                 sharedHelper.save("mobilePhoneNumber", map.get("username").toString());
@@ -441,6 +442,7 @@ public class ScanUserFragment extends DialogFragment {
                             }
                         } else {
                             hideDialog();
+                            Logger.d(barcode);
                             ToastUtil.showShort(MyApplication.getContextObject(), "二维码已经失效,请刷新后再试");
                         }
                     }

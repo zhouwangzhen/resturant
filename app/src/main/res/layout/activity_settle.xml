@@ -140,8 +140,8 @@
                             android:layout_height="wrap_content"
                             android:textSize="16sp" />
                     </LinearLayout>
-
                     <LinearLayout
+                        android:background="@drawable/rl_red_border"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
@@ -163,9 +163,12 @@
                             android:layerType="software" />
 
                         <TextView
+                            android:drawableRight="@drawable/icon_dis"
                             android:id="@+id/nb_price"
+                            android:textColor="@color/red"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:gravity="center"
                             android:textSize="16sp" />
                     </LinearLayout>
 

@@ -2,7 +2,12 @@ package cn.kuwo.player.util;
 
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
+import com.google.gson.JsonArray;
 import com.orhanobut.logger.Logger;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,8 +17,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import cn.kuwo.player.service.entity.NbRechargeLog;
+
 public class StatisticsUtil {
-    public static LinkedHashMap<String, Double> getCapitalDetail(List<AVObject> orders, List<AVObject> rechargeOrders) {
+    public static LinkedHashMap<String, Double> getCapitalDetail(List<AVObject> orders, List<AVObject> rechargeOrders, List<NbRechargeLog.NiuTokenOfflineOperationsBean> offline_operations) {
         LinkedHashMap<String, Double> capitalDetail = new LinkedHashMap<>();
         capitalDetail.put("白条", 0.0);
         capitalDetail.put("消费金", 0.0);
@@ -39,6 +46,29 @@ public class StatisticsUtil {
                     capitalDetail.put("现金", MyUtils.formatDouble(capitalDetail.get("现金") + RechargeUtil.findRealMoney(recharge.getDouble("change"))));
                     break;
             }
+        }
+        for (int i = 0; i < offline_operations.size(); i++) {
+            try {
+                NbRechargeLog.NiuTokenOfflineOperationsBean niuTokenOfflineOperationsBean = offline_operations.get(i);
+                switch (niuTokenOfflineOperationsBean.getOp_type()) {
+                    case 2:
+                        capitalDetail.put("支付宝", MyUtils.formatDouble(capitalDetail.get("支付宝") + niuTokenOfflineOperationsBean.getAmount()));
+                        break;
+                    case 3:
+                        capitalDetail.put("微信", MyUtils.formatDouble(capitalDetail.get("微信") + niuTokenOfflineOperationsBean.getAmount()));
+                        break;
+                    case 4:
+                        capitalDetail.put("银行卡", MyUtils.formatDouble(capitalDetail.get("银行卡") + niuTokenOfflineOperationsBean.getAmount()));
+                        break;
+                    case 5:
+                        capitalDetail.put("现金", MyUtils.formatDouble(capitalDetail.get("现金") + niuTokenOfflineOperationsBean.getAmount()));
+                        break;
+
+                }
+            } catch (Exception e) {
+
+            }
+
         }
         for (AVObject order : orders) {
             Double actualMoney = order.getDouble("paysum") - order.getDouble("reduce");
@@ -94,8 +124,8 @@ public class StatisticsUtil {
                     capitalDetail.put("银行卡", MyUtils.formatDouble(capitalDetail.get("银行卡") + actualMoney - actuallyPaid));
                     break;
                 case 16:
-                    capitalDetail.put("白条",MyUtils.formatDouble( capitalDetail.get("白条") + actuallyPaid));
-                    capitalDetail.put("现金",MyUtils.formatDouble( capitalDetail.get("现金") + actualMoney - actuallyPaid));
+                    capitalDetail.put("白条", MyUtils.formatDouble(capitalDetail.get("白条") + actuallyPaid));
+                    capitalDetail.put("现金", MyUtils.formatDouble(capitalDetail.get("现金") + actualMoney - actuallyPaid));
                     break;
                 case 17:
                     capitalDetail.put("消费金", MyUtils.formatDouble(capitalDetail.get("消费金") + actuallyPaid));
@@ -110,7 +140,7 @@ public class StatisticsUtil {
                     capitalDetail.put("银行卡", MyUtils.formatDouble(capitalDetail.get("银行卡") + actualMoney - actuallyPaid));
                     break;
                 case 20:
-                    capitalDetail.put("消费金",MyUtils.formatDouble( capitalDetail.get("消费金") + actuallyPaid));
+                    capitalDetail.put("消费金", MyUtils.formatDouble(capitalDetail.get("消费金") + actuallyPaid));
                     capitalDetail.put("现金", MyUtils.formatDouble(capitalDetail.get("现金") + actualMoney - actuallyPaid));
                     break;
                 case 21:
@@ -120,7 +150,7 @@ public class StatisticsUtil {
                     capitalDetail.put("浦发信用卡", MyUtils.formatDouble(capitalDetail.get("浦发信用卡") + actualMoney));
                     break;
                 case 25:
-                    capitalDetail.put("牛币",MyUtils.formatDouble(capitalDetail.get("牛币")+actualMoney));
+                    capitalDetail.put("牛币", MyUtils.formatDouble(capitalDetail.get("牛币") + actualMoney));
                     break;
 
             }
@@ -131,7 +161,7 @@ public class StatisticsUtil {
     /**
      * 统计总单的信息
      */
-    public static HashMap<String, Object> TotalOrder(List<AVObject> orders, List<AVObject> rechargeOrders) {
+    public static HashMap<String, Object> TotalOrder(List<AVObject> orders, List<AVObject> rechargeOrders, List<NbRechargeLog.NiuTokenOfflineOperationsBean> offline_operations) {
         HashMap<String, Object> detail = new HashMap<>();
         HashMap<String, Double> numbers = new HashMap<>();
         HashMap<String, Double> weights = new HashMap<>();
@@ -144,6 +174,7 @@ public class StatisticsUtil {
         Double rechargeMoney = 0.0;
         Double svipMoney = 0.0;
         Double DZDPMoney = 0.0;
+        Double nbRechargeMoney = 0.0;
         int dinnerPeople = 0;
         int retail = 0;
         int restaurarnt = 0;
@@ -151,13 +182,18 @@ public class StatisticsUtil {
         int hangup = 0;
         int member = 0;
         int noMember = 0;
+        int nbRechargeNum = 0;
         int recharge = rechargeOrders.size();
         Double reduceWeight = 0.0;
         for (AVObject rechargeOrder : rechargeOrders) {
             offline += RechargeUtil.findRealMoney(rechargeOrder.getDouble("change"));
             rechargeMoney += RechargeUtil.findRealMoney(rechargeOrder.getDouble("change"));
         }
-        capitalDetail = getCapitalDetail(orders, rechargeOrders);
+        for (int i = 0; i < offline_operations.size(); i++) {
+                nbRechargeNum++;
+                nbRechargeMoney += offline_operations.get(i).getAmount();
+        }
+        capitalDetail = getCapitalDetail(orders, rechargeOrders, offline_operations);
         for (AVObject order : orders) {
             Double actualMoney = order.getDouble("paysum") - order.getDouble("reduce");
             online += order.getDouble("actuallyPaid");
@@ -249,6 +285,7 @@ public class StatisticsUtil {
                 return o2.getValue().compareTo(o1.getValue());
             }
         });
+        offline += nbRechargeMoney;
         detail.put("onlineMoney", MyUtils.formatDouble(online) + "元");
         detail.put("offlineMoney", MyUtils.formatDouble(offline) + "元");
         detail.put("totalMoney", MyUtils.formatDouble(offline + online) + "元");
@@ -257,6 +294,8 @@ public class StatisticsUtil {
         detail.put("noMember", noMember + "单");
         detail.put("retailNumber", retail + "单");
         detail.put("restaurarntNumber", restaurarnt + "单");
+        detail.put("nbRechargeMoney", nbRechargeMoney + "元");
+        detail.put("nbRechargeNum", nbRechargeNum + "单");
         detail.put("svip", svip + "单");
         detail.put("hangupNumber", hangup + "单");
         detail.put("reduceWeight", MyUtils.formatDouble(reduceWeight) + "kg");
@@ -270,7 +309,7 @@ public class StatisticsUtil {
         detail.put("rechargeMoney", MyUtils.formatDouble(rechargeMoney));
         detail.put("storedRechargeNumber", recharge + "单");
         detail.put("svipMoney", MyUtils.formatDouble(svipMoney) + "元");
-        Logger.d(detail);
+//        Logger.d(detail);
         return detail;
     }
 }

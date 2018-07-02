@@ -40,6 +40,7 @@ public class DataUtil {
                 hashMap.put("nb",MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()*CONST.NB.MEATDiSCOUNT));
             } else {
                 hashMap.put("price", 0);
+                hashMap.put("nb",0);
             }
         } else {
             hashMap.put("weight", MyUtils.formatDouble(productBean.getWeight() * event.getCommodityNumber()));
@@ -48,6 +49,7 @@ public class DataUtil {
                 hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()));
             } else {
                 hashMap.put("price", 0);
+                hashMap.put("nb",0);
             }
 
         }

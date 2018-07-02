@@ -241,7 +241,7 @@ public class TableFg extends BaseFragment {
                     holder.tableDate.setText(DateUtil.formatDate(avObject.getDate("startedAt")));
                     holder.tableTime.setText("牛币价格￥"+ProductUtil.calNbTotalMoney(avObject.getList("order")));
                 } catch (Exception e) {
-                    ToastUtil.showShort(MyApplication.getContextObject(), "获取时间错误");
+                    ToastUtil.showShort(MyApplication.getContextObject(), "获取牛币价格");
                 }
 
             } else {

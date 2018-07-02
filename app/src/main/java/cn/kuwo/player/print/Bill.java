@@ -35,7 +35,9 @@ import cn.kuwo.player.event.PrintEvent;
 import cn.kuwo.player.event.ProgressEvent;
 import cn.kuwo.player.event.RefundEvent;
 import cn.kuwo.player.event.SuccessEvent;
+import cn.kuwo.player.service.entity.NbRechargeLog;
 import cn.kuwo.player.util.CONST;
+import cn.kuwo.player.util.DateUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.PayInfoUtil;
@@ -66,92 +68,92 @@ public class Bill {
             public void run() {
                 mContext = MyApplication.getContextObject();
                 SharedHelper sharedHelper = new SharedHelper(mContext);
-                try {
-                    if (type == 0 || type == -1) {
-                        String url = SharedHelper.read("ip1") + "." + SharedHelper.read("ip2") + "." + SharedHelper.read("ip3") + "." + SharedHelper.read("ip4");
-                        Pos pos;
-                        final DecimalFormat df = new DecimalFormat("######0.00");
-                        pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
-                        pos.initPos();
-                        pos.printLocation(1);
-                        pos.bold(true);
-                        pos.printText("点单(客户联)");
-                        pos.bold(false);
-                        pos.printLocation(0);
-                        pos.printTextNewLine("----------------------------------------------");
-                        pos.printTextNewLine("操作时间:" + MyUtils.dateFormat(new Date()));
-                        pos.printTextNewLine("----------------------------------------------");
-                        pos.printLine(1);
-                        pos.printTwoColumn("台 号:" + tableAVObject.getString("tableNumber"), "人数:" + tableAVObject.getInt("customer"));
-                        pos.printLine(1);
-                        pos.printTextNewLine("操作人:" + SharedHelper.read("cashierName"));
-                        pos.printLine(1);
-                        pos.printTextNewLine("----------------------------------------------");
-                        pos.printLine(1);
-                        pos.printText("品名");
-                        pos.printLocation(20, 1);
-                        pos.printText("数量");
-                        pos.printLocation(90, 1);
-                        pos.printWordSpace(1);
-                        pos.printText("");
-                        pos.printWordSpace(2);
-                        pos.printText("金额");
-                        pos.printTextNewLine("----------------------------------------------");
-                        for (int i = 0; i < orders.size(); i++) {
-                            HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-                            String nameContent = "";
-                            nameContent += MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName();
-
-                            if (ObjectUtil.getString(format, "barcode").length() == 18) {
-                                nameContent += "(" + (ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) > 20 ? ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "ml" : ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "kg") + ")";
-                            }
-                            pos.printTextNewLine(nameContent);
-                            pos.printLine(1);
-                            pos.printText("");
-                            pos.printLocation(20, 1);
-                            pos.printText(ObjectUtil.getDouble(format, "number") + "");
-                            pos.printText("  ");
-                            pos.printLocation(80, 1);
-                            pos.printWordSpace(1);
-                            pos.printText("");
-                            pos.printWordSpace(2);
-                            pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
-                            pos.printLine(1);
-                            try {
-                                if (ObjectUtil.getList(format, "comboList").size() > 0) {
-                                    List<String> comboList = ObjectUtil.getList(format, "comboList");
-                                    for (int j = 0; j < comboList.size(); j++) {
-                                        pos.printWordSpace(1);
-                                        pos.printText(comboList.get(j));
-                                        pos.printLine(1);
-                                    }
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
-                                pos.printTextNewLine("做法:" + ObjectUtil.getString(format, "cookStyle"));
-                                pos.printLine();
-                            }
-                            if (ObjectUtil.getString(format, "presenter").length() > 0) {
-                                pos.printLine();
-                                pos.printWordSpace(1);
-                                pos.printText("赠送菜品:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
-                                pos.printLine();
-                            }
-                            if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
-                                pos.printText("(备注:" + ObjectUtil.getString(format, "comment") + ")");
-                            }
-                            pos.printTextNewLine("***********************************************");
-                        }
-                        pos.printLine(2);
-                        pos.feedAndCut();
-                        pos.closeIOAndSocket();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    EventBus.getDefault().post(new SuccessEvent(-1, tableAVObject.getString("tableNumber") + "桌下单收银小票机连接失败", orders, tableAVObject));
-                }
+//                try {
+//                    if (type == 0 || type == -1) {
+//                        String url = SharedHelper.read("ip1") + "." + SharedHelper.read("ip2") + "." + SharedHelper.read("ip3") + "." + SharedHelper.read("ip4");
+//                        Pos pos;
+//                        final DecimalFormat df = new DecimalFormat("######0.00");
+//                        pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+//                        pos.initPos();
+//                        pos.printLocation(1);
+//                        pos.bold(true);
+//                        pos.printText("点单(客户联)");
+//                        pos.bold(false);
+//                        pos.printLocation(0);
+//                        pos.printTextNewLine("----------------------------------------------");
+//                        pos.printTextNewLine("操作时间:" + MyUtils.dateFormat(new Date()));
+//                        pos.printTextNewLine("----------------------------------------------");
+//                        pos.printLine(1);
+//                        pos.printTwoColumn("台 号:" + tableAVObject.getString("tableNumber"), "人数:" + tableAVObject.getInt("customer"));
+//                        pos.printLine(1);
+//                        pos.printTextNewLine("操作人:" + SharedHelper.read("cashierName"));
+//                        pos.printLine(1);
+//                        pos.printTextNewLine("----------------------------------------------");
+//                        pos.printLine(1);
+//                        pos.printText("品名");
+//                        pos.printLocation(20, 1);
+//                        pos.printText("数量");
+//                        pos.printLocation(90, 1);
+//                        pos.printWordSpace(1);
+//                        pos.printText("");
+//                        pos.printWordSpace(2);
+//                        pos.printText("金额");
+//                        pos.printTextNewLine("----------------------------------------------");
+//                        for (int i = 0; i < orders.size(); i++) {
+//                            HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
+//                            String nameContent = "";
+//                            nameContent += MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName();
+//
+//                            if (ObjectUtil.getString(format, "barcode").length() == 18) {
+//                                nameContent += "(" + (ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) > 20 ? ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "ml" : ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "kg") + ")";
+//                            }
+//                            pos.printTextNewLine(nameContent);
+//                            pos.printLine(1);
+//                            pos.printText("");
+//                            pos.printLocation(20, 1);
+//                            pos.printText(ObjectUtil.getDouble(format, "number") + "");
+//                            pos.printText("  ");
+//                            pos.printLocation(80, 1);
+//                            pos.printWordSpace(1);
+//                            pos.printText("");
+//                            pos.printWordSpace(2);
+//                            pos.printText(MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) + "");
+//                            pos.printLine(1);
+//                            try {
+//                                if (ObjectUtil.getList(format, "comboList").size() > 0) {
+//                                    List<String> comboList = ObjectUtil.getList(format, "comboList");
+//                                    for (int j = 0; j < comboList.size(); j++) {
+//                                        pos.printWordSpace(1);
+//                                        pos.printText(comboList.get(j));
+//                                        pos.printLine(1);
+//                                    }
+//                                }
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                            }
+//                            if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+//                                pos.printTextNewLine("做法:" + ObjectUtil.getString(format, "cookStyle"));
+//                                pos.printLine();
+//                            }
+//                            if (ObjectUtil.getString(format, "presenter").length() > 0) {
+//                                pos.printLine();
+//                                pos.printWordSpace(1);
+//                                pos.printText("赠送菜品:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
+//                                pos.printLine();
+//                            }
+//                            if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
+//                                pos.printText("(备注:" + ObjectUtil.getString(format, "comment") + ")");
+//                            }
+//                            pos.printTextNewLine("***********************************************");
+//                        }
+//                        pos.printLine(2);
+//                        pos.feedAndCut();
+//                        pos.closeIOAndSocket();
+//                    }
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                    EventBus.getDefault().post(new SuccessEvent(-1, tableAVObject.getString("tableNumber") + "桌下单收银小票机连接失败", orders, tableAVObject));
+//                }
                 try {
                     if (type == 0 || type == -2) {
                         if (ProductUtil.MeatOfCookRoomNum(orders) > 0) {
@@ -240,6 +242,7 @@ public class Bill {
                                             nameContent += "(" + (ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) > 20 ? ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "ml" : ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "kg") + ")";
                                         }
                                         pos1.printTextNewLine(nameContent);
+                                        pos1.printLine(1);
                                         pos1.printText("");
                                         pos1.printLocation(20, 1);
                                         pos1.printText("");
@@ -684,6 +687,7 @@ public class Bill {
                                     }
                                     pos1.printTextNewLine(nameContent);
                                     pos1.printText("");
+                                    pos1.printLine(1);
                                     pos1.printLocation(20, 1);
                                     pos1.printText("");
                                     pos1.printLocation(80, 1);
@@ -1576,6 +1580,8 @@ public class Bill {
                     pos.printTwoColumn("超牛充值笔数", ordersDetail.get("svip").toString());
                     pos.printTwoColumn("超牛充值金额", ordersDetail.get("svipMoney").toString());
                     pos.printTwoColumn("抵扣牛肉重量", ordersDetail.get("reduceWeight").toString());
+                    pos.printTwoColumn("超牛币充值笔数", ordersDetail.get("nbRechargeNum").toString());
+                    pos.printTwoColumn("超牛币充值金额", ordersDetail.get("nbRechargeMoney").toString());
                     pos.printTextNewLine("------------------------------------------------");
                     HashMap<String, Double> weights = (HashMap<String, Double>) ordersDetail.get("weights");
                     pos.printLocation(0);
@@ -2348,10 +2354,7 @@ public class Bill {
                     pos.printLocation(1);
                     Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.logo);
                     pos.printBitmap(bitmap);
-                    pos.bold(true);
                     pos.printLargeText("PAPA BUTCHER -用户联");
-                    pos.printLine(1);
-                    pos.bold(false);
                     pos.printLine(1);
                     pos.printLocation(0);
                     pos.printText("时间:" + MyUtils.dateFormat(new Date()));
@@ -2410,10 +2413,7 @@ public class Bill {
                     pos1.printLocation(1);
                     Bitmap bitmap1 = BitmapFactory.decodeResource(context.getResources(), R.mipmap.logo);
                     pos1.printBitmap(bitmap);
-                    pos1.bold(true);
                     pos1.printLargeText("PAPA BUTCHER -用户联");
-                    pos1.printLine(1);
-                    pos1.bold(false);
                     pos1.printLine(1);
                     pos1.printLocation(0);
                     pos1.printText("时间:" + MyUtils.dateFormat(new Date()));
@@ -2863,7 +2863,7 @@ public class Bill {
                     pos.initPos();
                     pos.printLocation(1);
                     pos.bold(true);
-                    pos.printText("消费金充值充值");
+                    pos.printText("消费金充值");
                     pos.bold(false);
                     pos.printLine(1);
                     pos.printLocation(0);
@@ -3050,10 +3050,7 @@ public class Bill {
                     pos1.printLocation(1);
                     Bitmap bitmap1 = BitmapFactory.decodeResource(context.getResources(), R.mipmap.logo);
                     pos1.printBitmap(bitmap);
-                    pos1.bold(true);
-                    pos1.printLargeText("PAPA BUTCHER -用户联");
-                    pos1.printLine(1);
-                    pos1.bold(false);
+                    pos1.printLargeText("PAPA BUTCHER -商务联");
                     pos1.printLine(1);
                     pos1.printLocation(0);
                     pos1.printText("时间:" + MyUtils.dateFormat(new Date()));
@@ -3128,11 +3125,8 @@ public class Bill {
                     pos.printLocation(1);
                     Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.logo);
                     pos.printBitmap(bitmap);
-                    pos.bold(true);
                     pos.printLine(1);
                     pos.printText("用户联");
-                    pos.printLine(1);
-                    pos.bold(false);
                     pos.printLine(1);
                     pos.printLocation(0);
                     pos.printText("桌号:" + finalTableNumber);
@@ -3524,6 +3518,63 @@ public class Bill {
                     EventBus.getDefault().post(new PrintEvent(1, "打印机连接失败" + e.getMessage()));
                 }
 
+            }
+        }.start();
+    }
+    public static void rePrintNbRecharge(final NbRechargeLog.NiuTokenOfflineOperationsBean jsniuTokenOfflineOperationsBeanonText) {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    mContext = MyApplication.getContextObject();
+                    String url = SharedHelper.read("ip1") + "." + SharedHelper.read("ip2") + "." + SharedHelper.read("ip3") + "." + SharedHelper.read("ip4");
+                    Pos pos;
+                    pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+                    pos.initPos();
+                    pos.printLocation(1);
+                    pos.bold(true);
+                    pos.printText("牛币充值");
+                    pos.bold(false);
+                    pos.printLine(1);
+                    pos.printLocation(0);
+                    pos.printTextNewLine("操作人:" + jsniuTokenOfflineOperationsBeanonText.getCashier().getReal_name());
+                    pos.printTextNewLine("负责人:" + jsniuTokenOfflineOperationsBeanonText.getSalesman().getReal_name());
+                    pos.printTextNewLine("时间:" + DateUtil.formatDate(new Date(jsniuTokenOfflineOperationsBeanonText.getCreated_at() * 1000)));
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printLine(1);
+                    pos.printLocation(0);
+                    pos.printTwoColumn("充值用户:", jsniuTokenOfflineOperationsBeanonText.getTarget_user().getUsername());
+                    pos.printLine(1);
+                    pos.printTwoColumn("充值数量:", jsniuTokenOfflineOperationsBeanonText.getAmount()+"牛币");
+                    pos.printLine(1);
+                    String secrowContent = "";
+                    if (jsniuTokenOfflineOperationsBeanonText.getOp_type()== 11) {
+                        secrowContent = "白条支付";
+                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 3) {
+                        secrowContent = "支付宝支付";
+                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 4) {
+                        secrowContent = "微信支付";
+                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 5) {
+                        secrowContent = "银行卡支付";
+                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 6) {
+                        secrowContent = "现金支付";
+                    }
+                    pos.printTwoColumn("支付方式:", secrowContent);
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printLocation(1);
+                    pos.printLine(1);
+                    pos.printText("地址:" + CONST.ADDRESS);
+                    pos.printLine(1);
+                    pos.printText("电话:" + CONST.TEL);
+                    pos.printLine(1);
+                    pos.printText("祝您生活越来越牛!");
+                    pos.printLine(4);
+                    pos.feedAndCut();
+                    pos.closeIOAndSocket();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }.start();
     }

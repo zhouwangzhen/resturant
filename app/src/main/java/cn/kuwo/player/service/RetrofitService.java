@@ -1,8 +1,9 @@
-package cn.kuwo.player.api;
+package cn.kuwo.player.service;
 
 import java.util.Date;
 import java.util.List;
 
+import cn.kuwo.player.service.entity.NbRechargeLog;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -10,6 +11,7 @@ import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import rx.Observable;
 
 /**
  * Created by lovely on 2018/6/26
@@ -38,9 +40,9 @@ public interface RetrofitService {
 
     @FormUrlEncoded
     @POST("services/niu_token/offline_query/operations")
-        Call<ResponseBody> rechargeQuery(@Field("since") long since,
-                                         @Field("before") long before,
-                                         @Field("op_types") String typeList,
-                                         @Field("store") int store,
-                                         @Field("should_show_test_user") boolean showTest);
+    Observable<NbRechargeLog> rechargeQuery(@Field("since") long since,
+                                            @Field("before") long before,
+                                            @Field("op_types") String typeList,
+                                            @Field("store") int store,
+                                            @Field("should_show_test_user") boolean showTest);
 }

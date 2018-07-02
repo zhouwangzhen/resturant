@@ -1,6 +1,7 @@
 package cn.kuwo.player.fragment;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -69,6 +70,7 @@ import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.bean.FuncBean;
 import cn.kuwo.player.bean.RateBean;
 import cn.kuwo.player.bean.UserBean;
+import cn.kuwo.player.custom.CommomDialog;
 import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.custom.ShowCouponFragment;
 import cn.kuwo.player.custom.ShowFuncFragment;
@@ -223,7 +225,7 @@ public class SettleFg extends BaseFragment {
     private HashMap<String, Object> otherTableOrders = new HashMap<>();
     private ArrayList<String> selectTableNumber = new ArrayList<>();
     private ArrayList<String> selectTableIds = new ArrayList<>();
-    private static boolean isNbPay = false;
+    private boolean isNbPay = false;
     LinearLayoutManager linearLayoutManager;
     ShowGoodAdapter showGoodAdapter;
 
@@ -629,6 +631,8 @@ public class SettleFg extends BaseFragment {
                                                     chooseNb.setText("当前付款状态:正常支付(点击切换成牛币支付)");
                                                     llNoNb.setVisibility(View.VISIBLE);
                                                     isNbPay=false;
+                                                    nb=0.0;
+                                                    chooseNb.setVisibility(View.GONE);
                                                     ToastUtil.showShort(MyApplication.getContextObject(), "清空用户数据成功");
                                                     initData();
                                                 } else {
@@ -651,16 +655,22 @@ public class SettleFg extends BaseFragment {
                 if (isNbPay){
                         useNbPay();
                 }else {
-                    FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                    PayFg payFg = PayFg.newInstance("");
-                    Bundle bundle = new Bundle();
-                    OrderDetail orderDetail = new OrderDetail(tableAVObject, hasMeatWeight, originTotalMoneny,
-                            actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
-                            onlineCouponEvent, offlineCouponEvent, offlineCouponNumber, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), orders, selectTableIds, selectTableNumber, fullReduceMoney, isHangUp, deleteoddMoney,
-                            orderRate, rateReduceRemark, ratereduceMoney);
-                    bundle.putSerializable("table", (Serializable) orderDetail);
-                    payFg.setArguments(bundle);
-                    ft.replace(R.id.fragment_content, payFg, "pay").commit();
+                    if (tableAVObject.getAVObject("user")!=null&&nb>=nbTotalMoney&&!isNbPay){
+                        new CommomDialog(getContext(), R.style.dialog, "用户牛币充足,用牛币更优惠,确认不帮他使用么", new CommomDialog.OnCloseListener() {
+                            @Override
+                            public void onClick(Dialog dialog, boolean confirm) {
+                                if (confirm) {
+                                    skipPayPage();
+                                    dialog.dismiss();
+                                }
+
+                            }
+                        })
+                                .setTitle("提示").setNegativeButton("去重新选择").setPositiveButton("有钱任性,就这么结账").show();
+                    }else{
+                        skipPayPage();
+                    }
+
                 }
                 break;
             case R.id.ll_max_reduce:
@@ -690,7 +700,18 @@ public class SettleFg extends BaseFragment {
         }
     }
 
-
+    private void skipPayPage() {
+        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+        PayFg payFg = PayFg.newInstance("");
+        Bundle bundle = new Bundle();
+        OrderDetail orderDetail = new OrderDetail(tableAVObject, hasMeatWeight, originTotalMoneny,
+                actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
+                onlineCouponEvent, offlineCouponEvent, offlineCouponNumber, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), orders, selectTableIds, selectTableNumber, fullReduceMoney, isHangUp, deleteoddMoney,
+                orderRate, rateReduceRemark, ratereduceMoney);
+        bundle.putSerializable("table", (Serializable) orderDetail);
+        payFg.setArguments(bundle);
+        ft.replace(R.id.fragment_content, payFg, "pay").commit();
+    }
 
 
     /**

@@ -13,7 +13,6 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toolbar;
 
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
@@ -49,12 +48,14 @@ import cn.kuwo.player.api.MallOrderApi;
 import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.custom.ShowStatisticsDialog;
 import cn.kuwo.player.print.Bill;
+import cn.kuwo.player.service.entity.NbRechargeLog;
+import cn.kuwo.player.service.presenter.NbRechargeLogPresenter;
+import cn.kuwo.player.service.view.NbRechargeLogView;
 import cn.kuwo.player.util.ApiManager;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.DateUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
-import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.RechargeUtil;
 import cn.kuwo.player.util.StatisticsUtil;
 import cn.kuwo.player.util.T;
@@ -90,9 +91,13 @@ public class OrderListFg extends BaseFragment {
     LinearLayout llStateRecharge;
     @BindView(R.id.ll_state_hangup)
     LinearLayout llStateHangup;
+    @BindView(R.id.ll_state_nb)
+    LinearLayout llStateNb;
+    @BindView(R.id.state_nb_num)
+    TextView stateNbNum;
     private Activity mActivity;
     private String mParam;
-    private JSONArray offline_operations=new JSONArray();
+    private List<NbRechargeLog.NiuTokenOfflineOperationsBean> offline_operations = new ArrayList<>();
     @BindView(R.id.gv_table)
     GridView gvTable;
     HashMap<String, Object> ordersDetail;
@@ -105,6 +110,9 @@ public class OrderListFg extends BaseFragment {
     private int orderType = -1;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
 
+    private NbRechargeLogPresenter nbRechargeLogPresenter = new NbRechargeLogPresenter(getContext());
+
+
     @Override
     protected int getLayoutId() {
         return R.layout.fg_orderlist;
@@ -112,18 +120,12 @@ public class OrderListFg extends BaseFragment {
 
     @Override
     public void initData() {
+        nbRechargeLogPresenter.onCreate();
+        nbRechargeLogPresenter.attachView(mNbRechargeLog);
         currentDate = DateUtil.getCurrentDate();
-//        currentDate.setHours(0);
-//        currentDate.setMinutes(0);
-//        currentDate.setSeconds(0);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         showDate.setText(sdf.format(currentDate) + "");
-        try {
-
-            getOrders(currentDate);
-        } catch (ParseException e1) {
-            e1.printStackTrace();
-        }
+        getOrders();
     }
 
     private void setDatePickerView() {
@@ -137,12 +139,7 @@ public class OrderListFg extends BaseFragment {
                 currentDate = date;
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 showDate.setText(sdf.format(currentDate) + "");
-                try {
-                    Logger.d(DateUtil.getLasterTimeStamp(currentDate));
-                    getOrders(currentDate);
-                } catch (ParseException e1) {
-                    e1.printStackTrace();
-                }
+                getOrders();
 
             }
         }).setType(new boolean[]{true, true, true, false, false, false})
@@ -158,39 +155,13 @@ public class OrderListFg extends BaseFragment {
     /**
      * 获取订单信息
      */
-    private void getOrders(final Date date) throws ParseException {
+    private void getOrders() {
         showDialog();
-        Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().rechargeQuery(DateUtil.getZeroTimeStampBySecond(date),
-             DateUtil.getLasterTimeStampBySecond(date),
+        nbRechargeLogPresenter.getNbRechagreLog(DateUtil.getZeroTimeStampBySecond(currentDate),
+                DateUtil.getLasterTimeStampBySecond(currentDate),
                 "recharge",
                 2,
-                true
-        );
-        responseBodyCall.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.code()==200||response.code()==201){
-                    try {
-                        JSONObject jsonObject = new JSONObject(response.body().string());
-                        offline_operations = jsonObject.getJSONArray("niu_token_offline_operations");
-                        Logger.d(offline_operations);
-                        findMallGoldOrder(date);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }else{
-                    T.show(response);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-
-            }
-        });
-
+                CONST.isShowTEST);
 
     }
 
@@ -233,11 +204,12 @@ public class OrderListFg extends BaseFragment {
         if (orderTypes.containsKey(3)) {
             stateHangup.setText(orderTypes.get(3) + "笔");
         }
+        stateNbNum.setText(offline_operations.size() + "笔");
 
     }
 
     private void statisticsData() {
-        ordersDetail = StatisticsUtil.TotalOrder(orders, rechargeOrders);
+        ordersDetail = StatisticsUtil.TotalOrder(orders, rechargeOrders, offline_operations);
     }
 
     public void onAttach(Context context) {
@@ -255,7 +227,7 @@ public class OrderListFg extends BaseFragment {
     }
 
 
-    @OnClick({R.id.btn_change_date, R.id.btn_print, R.id.ll_state_res, R.id.ll_state_retail, R.id.ll_state_recharge, R.id.ll_state_hangup})
+    @OnClick({R.id.btn_change_date, R.id.btn_print, R.id.ll_state_res, R.id.ll_state_retail, R.id.ll_state_recharge, R.id.ll_state_hangup, R.id.ll_state_nb})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_change_date:
@@ -281,6 +253,10 @@ public class OrderListFg extends BaseFragment {
                 orderType = 3;
                 findOrders();
                 break;
+            case R.id.ll_state_nb:
+                orderType = 4;
+                findOrders();
+                break;
         }
     }
 
@@ -289,6 +265,7 @@ public class OrderListFg extends BaseFragment {
         for (int i = 0; i < orders.size(); i++) {
             if (orders.get(i).getInt("type") == orderType || orderType == -1) {
                 findOrders.add(orders.get(i));
+
             }
         }
         if (orderType == 2 || orderType == -1) {
@@ -311,6 +288,7 @@ public class OrderListFg extends BaseFragment {
     public void onDestroyView() {
         super.onDestroyView();
         unbinder1.unbind();
+        nbRechargeLogPresenter.onStop();
     }
 
 
@@ -319,7 +297,12 @@ public class OrderListFg extends BaseFragment {
 
         @Override
         public int getCount() {
-            return findOrders.size()+offline_operations.length();
+            if (orderType == 4 || orderType == -1) {
+                return findOrders.size() + offline_operations.size();
+            } else {
+                return findOrders.size();
+            }
+
         }
 
         @Override
@@ -353,7 +336,7 @@ public class OrderListFg extends BaseFragment {
             } else {
                 holder = (ViewHolder) view.getTag();
             }
-            if (position<findOrders.size()) {
+            if (position < findOrders.size()) {
                 final AVObject avObject = findOrders.get(position);
                 if (avObject.getClassName().equals("MallOrder")) {
                     if (avObject.getDate("startedAt") != null) {
@@ -436,6 +419,7 @@ public class OrderListFg extends BaseFragment {
                         }
                     });
                 } else if (avObject.getClassName().equals("MallGoldLog")) {
+                    holder.order_state.setText("订单状态:已完成");
                     holder.order_state_img.setBackgroundResource(R.drawable.order_recharge);
                     holder.order_table_number.setText("");
                     holder.order_paysum.setText("");
@@ -492,8 +476,52 @@ public class OrderListFg extends BaseFragment {
                 if (position != selectIndex) {
                     holder.show_detail.setVisibility(View.GONE);
                 }
-            }else{
+            } else {
+                if (orderType == 4 || orderType == -1) {
+                    holder.order_state.setText("订单状态:已完成");
+                    holder.order_state_img.setBackgroundResource(R.drawable.order_nb);
+                    holder.order_paysum.setVisibility(View.GONE);
+                    holder.order_table_number.setVisibility(View.GONE);
+                    final NbRechargeLog.NiuTokenOfflineOperationsBean niuTokenOfflineOperationsBean = offline_operations.get(position - findOrders.size());
+                    holder.order_date.setText("充值时间:" + DateUtil.formatDate(new Date(niuTokenOfflineOperationsBean.getCreated_at() * 1000)));
+                    holder.order_memberstyle.setText("会员用户:" + niuTokenOfflineOperationsBean.getTarget_user().getUsername()+"\n营业员:"+niuTokenOfflineOperationsBean.getCashier().getReal_name()+"\n销售:"+niuTokenOfflineOperationsBean.getSalesman().getReal_name());
+                    String payContent = "";
+                    switch (niuTokenOfflineOperationsBean.getOp_type()) {
+                        case 2:
+                            payContent = "支付宝支付";
+                            break;
+                        case 3:
+                            payContent = "微信支付";
+                            break;
+                        case 4:
+                            payContent = "银行卡支付";
+                            break;
+                        case 5:
+                            payContent = "现金支付";
+                            break;
+                    }
+                    holder.order_settle.setText("支付方式:" + payContent);
+                    holder.order_detail.setText("牛币充值:" + niuTokenOfflineOperationsBean.getAmount());
 
+                    holder.card_order.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            selectIndex = position;
+                            if (holder.show_detail.getVisibility() == View.VISIBLE) {
+                                holder.show_detail.setVisibility(View.GONE);
+                            } else {
+                                holder.show_detail.setVisibility(View.VISIBLE);
+                            }
+                            orderListAdapter.notifyDataSetChanged();
+                        }
+                    });
+                    holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Bill.rePrintNbRecharge(niuTokenOfflineOperationsBean);
+                        }
+                    });
+                }
             }
             return view;
         }
@@ -513,4 +541,17 @@ public class OrderListFg extends BaseFragment {
         }
     }
 
+    private NbRechargeLogView mNbRechargeLog = new NbRechargeLogView() {
+        @Override
+        public void onSuccess(NbRechargeLog nbRechargeLog) {
+            offline_operations = nbRechargeLog.getNiu_token_offline_operations();
+            findMallGoldOrder(currentDate);
+        }
+
+        @Override
+        public void onError(String result) {
+            T.L(result);
+            hideDialog();
+        }
+    };
 }

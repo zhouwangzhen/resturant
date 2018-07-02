@@ -12,8 +12,8 @@ public class CONST {
         public static final String ROUTER="/api/v1/";
     }
     public static final class NB {
-        public static final Double MEATDiSCOUNT=0.5;
-        public static final Double OTHERDISCOUNT=0.88;
+        public static final Double MEATDiSCOUNT=0.6;
+        public static final Double OTHERDISCOUNT=0.95;
     }
     public static final class UserCode {
         public static final int SCANCASHIER = 0;

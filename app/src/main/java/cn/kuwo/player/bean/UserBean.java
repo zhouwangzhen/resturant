@@ -198,7 +198,7 @@ public class UserBean implements Serializable{
                 ", stored=" + stored +
                 ", balance=" + balance +
                 ", meatWeight=" + meatWeight +
-                ", test=" + test +
+                ", Test=" + test +
                 ", clerk=" + clerk +
                 ", meatId='" + meatId + '\'' +
                 ", isSvip=" + isSvip +

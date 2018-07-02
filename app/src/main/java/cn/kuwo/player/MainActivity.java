@@ -1,18 +1,33 @@
 package cn.kuwo.player;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVLiveQuery;
@@ -22,12 +37,20 @@ import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
+import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,10 +82,12 @@ import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.receiver.NetWorkStateReceiver;
 import cn.kuwo.player.receiver.USBBroadcastReceiver;
 import cn.kuwo.player.util.AppUtils;
+import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.ErrorUtil;
 import cn.kuwo.player.util.ImageUtil;
 import cn.kuwo.player.util.LoginUtil;
+import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.RealmUtil;
 import cn.kuwo.player.util.SharedHelper;
@@ -79,6 +104,8 @@ public class MainActivity extends BaseActivity {
     TextView menuNb;
     @BindView(R.id.fragment_content)
     FrameLayout fragmentContent;
+    @BindView(R.id.menu_update_info)
+    TextView menuUpdateInfo;
     private int REQUEST_CODE_SCAN = 111;
     @BindView(R.id.menu_retail)
     TextView menuRetail;
@@ -107,6 +134,14 @@ public class MainActivity extends BaseActivity {
     private AVQuery<AVObject> table;
     NetWorkStateReceiver netWorkStateReceiver;
     ShowNoNetFragment showNoNetFragment = null;
+    ProgressDialog mProgressDialog;
+    private Context mContext;
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+        }
+    };
 
     @Override
     protected int getContentViewId() {
@@ -116,11 +151,29 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void initData() {
+        mContext=this;
         LoginUtil.checkSystemLogin();
         checkCashierLogin();
         checkLocalStorageCommodity();
         setListener();
-        test();
+        showDialog();
+        AVQuery<AVObject> query = new AVQuery<>("OffineControl");
+        query.whereEqualTo("store", CONST.STORECODE);
+        query.findInBackground(new FindCallback<AVObject>() {
+            @Override
+            public void done(List<AVObject> list, AVException e) {
+                if (e == null) {
+                    final AVObject avObject = list.get(0);
+                    hideDialog();
+                    if ( MyUtils.getVersionCode(MyApplication.getContextObject()) <avObject.getInt("version") && avObject.getAVFile("upgrade") != null) {
+                        String upgradeUrl = avObject.getAVFile("upgrade").getUrl();
+                        ShowDialog(upgradeUrl);
+                    }
+                } else {
+                    hideDialog();
+                }
+            }
+        });
     }
 
 
@@ -197,7 +250,7 @@ public class MainActivity extends BaseActivity {
         ft.replace(R.id.fragment_content, tableFg, "table").commitAllowingStateLoss();
     }
 
-    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored, R.id.menu_inventory,R.id.menu_nb})
+    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored, R.id.menu_inventory, R.id.menu_nb, R.id.menu_update_info})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.ll_table:
@@ -231,8 +284,12 @@ public class MainActivity extends BaseActivity {
             case R.id.menu_nb:
                 switchFragment("nb");
                 break;
+            case R.id.menu_update_info:
+                checkInfo();
+                break;
         }
     }
+
 
     /**
      * fragment切换
@@ -487,37 +544,176 @@ public class MainActivity extends BaseActivity {
     }
 
     private void test() {
-//        ApiManager apiManager = ApiManager.getInstance();
-////        Call<ResponseBody> responseBodyCall = apiManager.getRetrofitService().offlineRecharge("5655460f00b0bf379ee81d75",
-////                "5655460f00b0bf379ee81d75",
-////                "5655460f00b0bf379ee81d75",
-////                1.00);
-//        Call<ResponseBody> responseBodyCall = apiManager.getRetrofitService().QueryofflineRecharge("5655460f00b0bf379ee81d75");
-//        responseBodyCall.enqueue(new Callback<ResponseBody>() {
-//            @Override
-//            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-////                try {
-//                    Logger.d(response.body());
-////                    String responseText = DataUtil.JSONTokener(response.body().string());
-////                    Logger.d(responseText);
-////                    try {
-////                        JSONObject jsonObject = new JSONObject(responseText);
-////                        org.json.JSONArray commodities = jsonObject.getJSONArray("commodities");
-////                        Logger.d(commodities.length());
-////                    } catch (JSONException e) {
-////                        e.printStackTrace();
-////                    }
-//
-////                } catch (IOException e) {
-////                    e.printStackTrace();
-////                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<ResponseBody> call, Throwable t) {
-//                t.printStackTrace();
-//                Logger.d(t.getMessage());
-//            }
-//        });
+    }
+
+    private void checkInfo() {
+        showDialog();
+        AVQuery<AVObject> query = new AVQuery<>("OffineControl");
+        query.whereEqualTo("store", CONST.STORECODE);
+        query.findInBackground(new FindCallback<AVObject>() {
+            @Override
+            public void done(List<AVObject> list, AVException e) {
+                if (e == null) {
+                    final AVObject avObject = list.get(0);
+                    final SharedHelper sharedHelper = new SharedHelper(mContext);
+                    if (!avObject.getString("updateDate").equals(sharedHelper.read("updateDate"))) {
+                        CommodityApi.getOfflineCommodity().findInBackground(new FindCallback<AVObject>() {
+                            @Override
+                            public void done(final List<AVObject> list, AVException e) {
+                                if (e == null) {
+                                    RealmUtil.setProductBeanRealm(list);
+                                    sharedHelper.save("updateDate", avObject.getString("updateDate"));
+                                    checkVersion(avObject);
+                                }else{
+                                    hideDialog();
+                                }
+                            }
+                        });
+                    }else{
+                        checkVersion(avObject);
+                    }
+                } else {
+                    hideDialog();
+                }
+            }
+        });
+    }
+
+    private void checkVersion(AVObject avObject) {
+        hideDialog();
+        if ( MyUtils.getVersionCode(MyApplication.getContextObject()) <avObject.getInt("version") && avObject.getAVFile("upgrade") != null) {
+            String upgradeUrl = avObject.getAVFile("upgrade").getUrl();
+            ShowDialog(upgradeUrl);
+        } else {
+            ToastUtil.showShort(MyApplication.getContextObject(), "已经是最新最新数据");
+        }
+    }
+    private void ShowDialog(final String upgradeUrl) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.app_name)
+                .setMessage("您的版本过低，请去更新最新版本，如不更新将无法继续使用")
+                .setPositiveButton("更新",
+                        new AlertDialog.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    requestWritePermission(upgradeUrl);
+                                } else {
+                                    if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                                        startDownloadApk(upgradeUrl);
+                                    } else {
+                                        Toast.makeText(MyApplication.getContextObject(), "请确认外部存储可用", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+
+                            }
+                        })
+                .setNegativeButton(android.R.string.no,
+                        new AlertDialog.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int i) {
+                                dialog.dismiss();
+                            }
+                        })
+                .setCancelable(false)
+                .create()
+                .show();
+    }
+    private void startDownloadApk(final String url) {
+        mProgressDialog = new ProgressDialog(this, android.R.style.Theme_Material_Light_Dialog);
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setTitle("正在下载中");
+        mProgressDialog.setMax(100);
+        mProgressDialog.setCanceledOnTouchOutside(false);
+        mProgressDialog.show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    downLoadFile(url);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * 下载文件
+     *
+     * @return
+     * @throws IOException
+     */
+    private File downLoadFile(String upgradeUrl) throws IOException {
+        URL url = new URL(upgradeUrl);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(10000);
+        InputStream is = conn.getInputStream();
+        final File file = new File(Environment.getExternalStorageDirectory(), "app.apk");
+        FileOutputStream fos = new FileOutputStream(file);
+        BufferedInputStream bis = new BufferedInputStream(is);
+        byte[] buffer = new byte[1024];
+        int len;
+        int current = 0;
+        int total = conn.getContentLength();
+        float percent;
+        while ((len = bis.read(buffer)) != -1) {
+            fos.write(buffer, 0, len);
+            current += len;
+            //获取当前下载量
+            percent = (float) current / (float) total;
+            mProgressDialog.setProgress((int) (percent * 100));
+        }
+        fos.close();
+        bis.close();
+        is.close();
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mProgressDialog.dismiss();
+                installApk(file);
+            }
+        });
+        return file;
+    }
+
+    /**
+     * `
+     * 安装apk
+     *
+     * @param file
+     */
+    private void installApk(File file) {
+        Intent intent = new Intent();
+        //执行动作
+        intent.setAction(Intent.ACTION_VIEW);
+        Uri contentUri;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            contentUri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileProvider", file);
+            intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
+        } else {
+            contentUri = Uri.fromFile(file);
+            intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
+
+        }
+
+        startActivity(intent);
+    }
+
+    private void requestWritePermission(String upgradeUrl) {
+        int permissionCheck = ContextCompat.checkSelfPermission(MyApplication.getContextObject(), "android.permission.WRITE_EXTERNAL_STORAGE");
+        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                startDownloadApk(upgradeUrl);
+            } else {
+                Toast.makeText(MyApplication.getContextObject(), "请确认外部存储可用", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(MyApplication.getContextObject(), "请设置读写存储权限", Toast.LENGTH_SHORT).show();
+            ActivityCompat.requestPermissions((Activity) this, new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 100);
+        }
     }
 }

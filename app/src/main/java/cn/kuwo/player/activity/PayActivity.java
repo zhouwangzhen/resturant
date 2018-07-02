@@ -300,7 +300,7 @@ public class PayActivity extends BaseActivity {
     }
 
     private void checkExplode() {
-        if (!SharedHelper.readBoolean("test")) {
+        if (!SharedHelper.readBoolean("Test")) {
             final int explodeNumber = ProductUtil.calExplodeNumbers(orderDetail.getOrders());
             if (ProductUtil.calExplodeNumbers(orderDetail.getOrders()) > 0) {
                 final AVQuery<AVObject> query = new AVQuery<>("OffineControl");
