@@ -7,8 +7,8 @@ android {
         applicationId "cn.kuwo.player"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 7
-        versionName '1.0.5'
+        versionCode 16
+        versionName '1.1.5'
         testInstrumentationRunner "android.support.Test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
@@ -73,4 +73,5 @@ dependencies {
     compile 'com.squareup.retrofit2:converter-gson:2.0.2'
     compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
     compile 'io.reactivex:rxandroid:1.2.0'
+    compile 'io.sentry:sentry-android:1.5.3'
 }

@@ -20,6 +20,7 @@ import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.FunctionCallback;
 import com.avos.avoscloud.GetCallback;
@@ -71,6 +72,7 @@ import cn.kuwo.player.util.ApiManager;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.DataUtil;
+import cn.kuwo.player.util.DateUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
@@ -222,7 +224,7 @@ public class SettleActivity extends BaseActivity {
      */
     @Override
     public void initData() {
-        isNbPay=false;
+        isNbPay = false;
         context = this;
         isHangUp = getIntent().getBooleanExtra("isHangUp", false);
         retailBean = (RetailBean) getIntent().getSerializableExtra("retailBean");
@@ -320,14 +322,14 @@ public class SettleActivity extends BaseActivity {
         originTotalMoneny = MyUtils.totalPrice(retailBean.getPrices());
         Double noDiscountMoney = ProductUtil.calNoDiscountMoney(orders);
         orginPrice.setText(originTotalMoneny + "");
-        if (userId.length() > 0&&!isNbPay) {
+        if (userId.length() > 0 && !isNbPay) {
             cbUseSvip.setVisibility(View.VISIBLE);
         } else {
             cbUseSvip.setVisibility(View.GONE);
         }
         nbTotalMoney = ProductUtil.calNbTotalMoney(orders);
         nbPrice.setText(nbTotalMoney + "");
-        if (nb>=nbTotalMoney){
+        if (nb >= nbTotalMoney) {
             chooseNb.setVisibility(View.VISIBLE);
         }
         meatReduceMoney = ProductUtil.calMeatduceMoney(orders, retailBean.getPrices());
@@ -447,8 +449,8 @@ public class SettleActivity extends BaseActivity {
             actualTotalMoneny = MyUtils.formatDouble(actualTotalMoneny) >= 0 ? MyUtils.formatDouble(actualTotalMoneny) : 0.0;
             totalMoney.setText("￥" + actualTotalMoneny + "元");
             minPayMoney.setText("-" + meatReduceMoney);
-        }else {
-            actualTotalMoneny=nbTotalMoney;
+        } else {
+            actualTotalMoneny = nbTotalMoney;
             totalMoney.setText("￥" + actualTotalMoneny + "牛币");
         }
     }
@@ -469,8 +471,8 @@ public class SettleActivity extends BaseActivity {
                                 chooseNb.setText("当前付款状态:正常支付(点击切换成牛币支付)");
                                 llNoNb.setVisibility(View.VISIBLE);
                                 chooseNb.setVisibility(View.GONE);
-                                nb=0.0;
-                                isNbPay=false;
+                                nb = 0.0;
+                                isNbPay = false;
                                 ToastUtil.showShort(MyApplication.getContextObject(), "清空用户数据成功");
                                 setData();
                             }
@@ -482,23 +484,59 @@ public class SettleActivity extends BaseActivity {
                 }
                 break;
             case R.id.btn_pay:
-                if (isNbPay){
-                    useNbPay();
-                }else {
-                    if (userBean!=null&&nb>=nbTotalMoney&&!isNbPay){
-                        new CommomDialog(context, R.style.dialog, "用户牛币充足,用牛币更优惠,确认不帮他使用么", new CommomDialog.OnCloseListener() {
+                if (isNbPay) {
+                    if (ProductUtil.checkCanBuy(orders,userBean)) {
+                        AVQuery<AVObject> query = new AVQuery<>("OfflineExchange");
+                        query.whereEqualTo("user", AVObject.createWithoutData("_User", userBean.getId()));
+                        query.whereGreaterThan("createdAt", new Date(DateUtil.getZeroTimeStamp(new Date())));
+                        query.countInBackground(new CountCallback() {
                             @Override
-                            public void onClick(Dialog dialog, boolean confirm) {
-                                if (confirm) {
-                                    skipPayPage();
-                                    dialog.dismiss();
+                            public void done(int count, AVException e) {
+                                if (e == null) {
+                                    if (count == 0) {
+                                        useNbPay();
+                                    } else {
+                                        T.L("今日已经购买过爆款");
+                                    }
+                                } else {
+                                    T.L("网络错误稍后再试");
                                 }
-
                             }
-                        })
-                                .setTitle("提示").setNegativeButton("去重新选择").setPositiveButton("有钱任性,就这么结账").show();
-                    }else{
-                        skipPayPage();
+                        });
+                    }
+                } else {
+                    if (ProductUtil.checkCanBuy(orders,userBean)) {
+                        AVQuery<AVObject> query = new AVQuery<>("OfflineExchange");
+                        query.whereEqualTo("user", AVObject.createWithoutData("_User", userBean.getId()));
+                        query.whereGreaterThan("createdAt", new Date(DateUtil.getZeroTimeStamp(new Date())));
+                        query.countInBackground(new CountCallback() {
+                            @Override
+                            public void done(int count, AVException e) {
+                                if (e == null) {
+                                    if (count == 0) {
+                                        if (userBean != null && nb >= nbTotalMoney && !isNbPay) {
+                                            new CommomDialog(context, R.style.dialog, "用户牛币充足,用牛币更优惠,确认不帮他使用么", new CommomDialog.OnCloseListener() {
+                                                @Override
+                                                public void onClick(Dialog dialog, boolean confirm) {
+                                                    if (confirm) {
+                                                        skipPayPage();
+                                                        dialog.dismiss();
+                                                    }
+
+                                                }
+                                            })
+                                                    .setTitle("提示").setNegativeButton("去重新选择").setPositiveButton("有钱任性,就这么结账").show();
+                                        } else {
+                                            skipPayPage();
+                                        }
+                                    } else {
+                                        T.L("今日已经购买过");
+                                    }
+                                } else {
+                                    T.L("网络错误稍后再试");
+                                }
+                            }
+                        });
                     }
 
                 }
@@ -523,11 +561,12 @@ public class SettleActivity extends BaseActivity {
                     chooseNb.setText("当前付款状态:正常支付(点击切换成牛币支付)");
                     llNoNb.setVisibility(View.VISIBLE);
                 }
-                isNbPay=!isNbPay;
+                isNbPay = !isNbPay;
                 refreshList();
                 break;
         }
     }
+
 
     private void skipPayPage() {
         Intent intent = new Intent(SettleActivity.this, PayActivity.class);
@@ -700,7 +739,7 @@ public class SettleActivity extends BaseActivity {
         if (deleteoddMoney > 0) {
             reduceMap.put("抹零", deleteoddMoney);
         }
-        Bill.printPreOrderRest(MyApplication.getContextObject(), originTotalMoneny, actualTotalMoneny, reduceMap, useExchangeList, ProductUtil.calExchangeMeatList(orders), orders, getIntent().getStringExtra("remark"),isNbPay,nbTotalMoney);
+        Bill.printPreOrderRest(MyApplication.getContextObject(), originTotalMoneny, actualTotalMoneny, reduceMap, useExchangeList, ProductUtil.calExchangeMeatList(orders), orders, getIntent().getStringExtra("remark"), isNbPay, nbTotalMoney);
     }
 
     private void deleteOdd() {
@@ -904,10 +943,11 @@ public class SettleActivity extends BaseActivity {
             }
         });
     }
+
     private void useNbPay() {
         new QMUIDialog.MessageDialogBuilder(this)
                 .setTitle("付款确认")
-                .setMessage("确认使用"+nbTotalMoney+"个牛币支付此订单？")
+                .setMessage("确认使用" + nbTotalMoney + "个牛币支付此订单？")
                 .addAction("取消", new QMUIDialogAction.ActionListener() {
                     @Override
                     public void onClick(QMUIDialog dialog, int index) {
@@ -919,19 +959,20 @@ public class SettleActivity extends BaseActivity {
                     public void onClick(QMUIDialog dialog, int index) {
                         dialog.dismiss();
                         showDialog();
-                        Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().offlineConsume(userId, SharedHelper.read("cashierId"), SharedHelper.read("cashierId"), nbTotalMoney,2);
+                        Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().offlineConsume(userId, SharedHelper.read("cashierId"), SharedHelper.read("cashierId"), nbTotalMoney, 2);
                         responseBodyCall.enqueue(new Callback<ResponseBody>() {
                             @Override
                             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                                 hideDialog();
-                                if (response.code()==200||response.code()==201){
+                                if (response.code() == 200 || response.code() == 201) {
                                     Logger.d("消费成功");
                                     finishOrder();
-                                }else{
+                                } else {
                                     Logger.d(response.code());
                                     T.show(response);
                                 }
                             }
+
                             @Override
                             public void onFailure(Call<ResponseBody> call, Throwable t) {
                                 hideDialog();
@@ -943,6 +984,7 @@ public class SettleActivity extends BaseActivity {
                 .create(mCurrentDialogStyle).show();
 
     }
+
     private void finishOrder() {
         showDialog();
         Map<String, Object> parameters = new HashMap<String, Object>();
@@ -954,11 +996,11 @@ public class SettleActivity extends BaseActivity {
             parameters.put("commodityids", ids);
             parameters.put("paysum", nbTotalMoney);
             parameters.put("sum", nbTotalMoney);
-            AVCloud.callFunctionInBackground("offlineMallOrder",parameters,new FunctionCallback<Map<String, Map<String, Object>>>(){
+            AVCloud.callFunctionInBackground("offlineMallOrder", parameters, new FunctionCallback<Map<String, Map<String, Object>>>() {
 
                 @Override
                 public void done(Map<String, Map<String, Object>> map, AVException e) {
-                    if (e==null) {
+                    if (e == null) {
                         String orderId = map.get("order").get("objectId").toString();
                         AVObject mallOrder = AVObject.createWithoutData("MallOrder", orderId);
                         mallOrder.put("cashier", AVObject.createWithoutData("_User", new SharedHelper(getApplicationContext()).read("cashierId")));
@@ -976,21 +1018,21 @@ public class SettleActivity extends BaseActivity {
                             mallOrder.put("type", 1);
                         }
                         Map<String, Double> escrowDetail = new HashMap<>();
-                        escrowDetail.put("牛币",nbTotalMoney);
+                        escrowDetail.put("牛币", nbTotalMoney);
                         mallOrder.put("escrowDetail", escrowDetail);
                         mallOrder.saveInBackground(new SaveCallback() {
                             @Override
                             public void done(AVException e) {
                                 if (e == null) {
-                                    Bill.printRetailBillByNb(MyApplication.getContextObject(), order, 25, userBean,nbTotalMoney,nb,originTotalMoneny);
+                                    Bill.printRetailBillByNb(MyApplication.getContextObject(), order, 25, userBean, nbTotalMoney, nb, originTotalMoneny);
                                     resetTable();
-                                }else{
+                                } else {
                                     finishOrder();
                                     ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙请重试" + e.getMessage());
                                 }
                             }
                         });
-                    }else {
+                    } else {
                         hideDialog();
                         finishOrder();
                         ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙请重试" + e.getMessage());
@@ -999,7 +1041,9 @@ public class SettleActivity extends BaseActivity {
             });
         }
     }
+
     private void resetTable() {
+        ProductUtil.addExploseRecord(orders,userBean);
         if (getIntent().getBooleanExtra("isHangUp", false)) {
             AVQuery<AVObject> query = new AVQuery<>("HangUpOrder");
             query.getInBackground(getIntent().getStringExtra("hangUpId"), new GetCallback<AVObject>() {
@@ -1030,4 +1074,5 @@ public class SettleActivity extends BaseActivity {
             finish();
         }
     }
+
 }

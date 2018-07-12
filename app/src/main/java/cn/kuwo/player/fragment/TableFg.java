@@ -62,7 +62,6 @@ public class TableFg extends BaseFragment {
     @BindView(R.id.btn_hangup)
     TextView btnHangup;
     private Activity mActivity;
-    private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private boolean chooseBigTable = true;
     private AVLiveQuery avLiveQuery;
 
@@ -85,7 +84,6 @@ public class TableFg extends BaseFragment {
             public void done(int i, AVException e) {
                 if (e == null) {
                     try {
-
                         if (i > 0) {
                             rlHangup.setVisibility(View.VISIBLE);
                             tvHangupNumber.setText(i + "");

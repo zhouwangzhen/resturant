@@ -21,19 +21,21 @@ import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.interfaces.MyItemClickListener;
+import cn.kuwo.player.interfaces.MyItemLongClickListener;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
 
-public class ShowGoodAdapter extends RecyclerView.Adapter<ShowGoodAdapter.MyViewHolder>  {
+public class ShowGoodAdapter extends RecyclerView.Adapter<ShowGoodAdapter.MyViewHolder> implements View.OnClickListener {
     private Context mContext;
     private LayoutInflater inflater;
     private AVObject tableAVObject;
     private List<AVObject> orders;
     private List<Object> finalOrders;
+    private MyItemClickListener mListener = null;
 
 
-    public   ShowGoodAdapter(Context context, AVObject tableAVObject, List<Object> finalOrders) {
+    public ShowGoodAdapter(Context context, AVObject tableAVObject, List<Object> finalOrders) {
         this.mContext = context;
         inflater = LayoutInflater.from(mContext);
         this.tableAVObject = tableAVObject;
@@ -94,18 +96,28 @@ public class ShowGoodAdapter extends RecyclerView.Adapter<ShowGoodAdapter.MyView
         }else{
             holder.tvNumber.setText("￥"+productBean.getPrice()+"*"+ObjectUtil.getDouble(format, "number")+"份");
         }
-
+        holder.tvName.setOnClickListener(this);
+        holder.tvName.setTag(position);
     }
 
     @Override
     public int getItemCount() {
         return finalOrders.size();
     }
+    public void setOnItemClickListener(MyItemClickListener listener) {
+        this.mListener = listener;
+    }
+    @Override
+    public void onClick(View v) {
+        if (mListener!=null){
+            mListener.onItemClick(v, (Integer) v.getTag());
+        }
+
+    }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvPrice, tvSerial, tvWeight,tvNumber;
         LinearLayout llItem;
-        ImageView imageAvatar, imageState;
 
         public MyViewHolder(View itemView) {
             super(itemView);

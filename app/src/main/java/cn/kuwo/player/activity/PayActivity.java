@@ -302,7 +302,7 @@ public class PayActivity extends BaseActivity {
     private void checkExplode() {
         if (!SharedHelper.readBoolean("Test")) {
             final int explodeNumber = ProductUtil.calExplodeNumbers(orderDetail.getOrders());
-            if (ProductUtil.calExplodeNumbers(orderDetail.getOrders()) > 0) {
+            if (explodeNumber> 0) {
                 final AVQuery<AVObject> query = new AVQuery<>("OffineControl");
                 query.whereEqualTo("store", 1);
                 query.findInBackground(new FindCallback<AVObject>() {
@@ -327,6 +327,7 @@ public class PayActivity extends BaseActivity {
     }
 
     private void resetTable() {
+        ProductUtil.addExploseRecord(orderDetail.getOrders(),orderDetail.getUserBean());
         if (getIntent().getBooleanExtra("isHangUp", false)) {
             AVQuery<AVObject> query = new AVQuery<>("HangUpOrder");
             query.getInBackground(getIntent().getStringExtra("hangUpId"), new GetCallback<AVObject>() {

@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.Map;
 import cn.kuwo.player.service.entity.NbRechargeLog;
 
 public class StatisticsUtil {
-    public static LinkedHashMap<String, Double> getCapitalDetail(List<AVObject> orders, List<AVObject> rechargeOrders, List<NbRechargeLog.NiuTokenOfflineOperationsBean> offline_operations) {
+    public static LinkedHashMap<String, Double> getCapitalDetail(List<AVObject> orders, List<AVObject> rechargeOrders, List<NbRechargeLog> nbRechargeLogs) {
         LinkedHashMap<String, Double> capitalDetail = new LinkedHashMap<>();
         capitalDetail.put("白条", 0.0);
         capitalDetail.put("消费金", 0.0);
@@ -47,21 +48,21 @@ public class StatisticsUtil {
                     break;
             }
         }
-        for (int i = 0; i < offline_operations.size(); i++) {
+        for (int i = 0; i < nbRechargeLogs.size(); i++) {
             try {
-                NbRechargeLog.NiuTokenOfflineOperationsBean niuTokenOfflineOperationsBean = offline_operations.get(i);
-                switch (niuTokenOfflineOperationsBean.getOp_type()) {
+                NbRechargeLog nbRechargeLog = nbRechargeLogs.get(i);
+                switch (nbRechargeLog.getPayment()) {
+                    case 1:
+                        capitalDetail.put("支付宝", MyUtils.formatDouble(capitalDetail.get("支付宝") + nbRechargeLog.getAcctually_paid()));
+                        break;
                     case 2:
-                        capitalDetail.put("支付宝", MyUtils.formatDouble(capitalDetail.get("支付宝") + niuTokenOfflineOperationsBean.getAmount()));
+                        capitalDetail.put("微信", MyUtils.formatDouble(capitalDetail.get("微信") + nbRechargeLog.getAcctually_paid()));
                         break;
                     case 3:
-                        capitalDetail.put("微信", MyUtils.formatDouble(capitalDetail.get("微信") + niuTokenOfflineOperationsBean.getAmount()));
+                        capitalDetail.put("银行卡", MyUtils.formatDouble(capitalDetail.get("银行卡") + nbRechargeLog.getAcctually_paid()));
                         break;
                     case 4:
-                        capitalDetail.put("银行卡", MyUtils.formatDouble(capitalDetail.get("银行卡") + niuTokenOfflineOperationsBean.getAmount()));
-                        break;
-                    case 5:
-                        capitalDetail.put("现金", MyUtils.formatDouble(capitalDetail.get("现金") + niuTokenOfflineOperationsBean.getAmount()));
+                        capitalDetail.put("现金", MyUtils.formatDouble(capitalDetail.get("现金") + nbRechargeLog.getAcctually_paid()));
                         break;
 
                 }
@@ -161,7 +162,7 @@ public class StatisticsUtil {
     /**
      * 统计总单的信息
      */
-    public static HashMap<String, Object> TotalOrder(List<AVObject> orders, List<AVObject> rechargeOrders, List<NbRechargeLog.NiuTokenOfflineOperationsBean> offline_operations) {
+    public static HashMap<String, Object> TotalOrder(List<AVObject> orders, List<AVObject> rechargeOrders, List<NbRechargeLog> offline_operations) {
         HashMap<String, Object> detail = new HashMap<>();
         HashMap<String, Double> numbers = new HashMap<>();
         HashMap<String, Double> weights = new HashMap<>();
@@ -175,6 +176,7 @@ public class StatisticsUtil {
         Double svipMoney = 0.0;
         Double DZDPMoney = 0.0;
         Double nbRechargeMoney = 0.0;
+        Double nbTotalMoney=0.0;
         int dinnerPeople = 0;
         int retail = 0;
         int restaurarnt = 0;
@@ -191,91 +193,100 @@ public class StatisticsUtil {
         }
         for (int i = 0; i < offline_operations.size(); i++) {
                 nbRechargeNum++;
-                nbRechargeMoney += offline_operations.get(i).getAmount();
+                nbRechargeMoney += offline_operations.get(i).getAcctually_paid();
+            nbTotalMoney+=offline_operations.get(i).getAmount();
         }
         capitalDetail = getCapitalDetail(orders, rechargeOrders, offline_operations);
         for (AVObject order : orders) {
-            Double actualMoney = order.getDouble("paysum") - order.getDouble("reduce");
-            online += order.getDouble("actuallyPaid");
-            offline += actualMoney - order.getDouble("actuallyPaid");
-            if (order.getInt("type") == 0) {
-                restaurarnt++;
-                dinnerPeople += order.getInt("customer");
-            } else if (order.getInt("type") == 1) {
-                retail++;
-            } else if (order.getInt("type") == 2) {
-                svip++;
-                svipMoney += actualMoney;
-            } else if (order.getInt("type") == 3) {
-                hangup++;
-            }
-            if (order.getAVObject("useSystemCoupon") != null) {
-                if (order.getAVObject("useSystemCoupon").getString("from").startsWith("大众点评")) {
-                    int number = order.getInt("systemCouponNum");
-                    if (number == 0) {
-                        number = 1;
-                    }
-                    DZDPMoney += MyUtils.formatDouble(68 * number);
-                    offline += MyUtils.formatDouble(68 * number);
+            if (order.getAVObject("orderStatus").getObjectId().equals(CONST.OrderState.ORDER_STATUS_FINSIH)) {
+                Double actualMoney = order.getDouble("paysum") - order.getDouble("reduce");
+                online += order.getDouble("actuallyPaid");
+                offline += actualMoney - order.getDouble("actuallyPaid");
+                if (order.getInt("type") == 0) {
+                    restaurarnt++;
+                    dinnerPeople += order.getInt("customer");
+                } else if (order.getInt("type") == 1) {
+                    retail++;
+                } else if (order.getInt("type") == 2) {
+                    svip++;
+                    svipMoney += actualMoney;
+                } else if (order.getInt("type") == 3) {
+                    hangup++;
                 }
-            }
-            if (!order.getAVObject("user").getObjectId().equals(CONST.ACCOUNT.SYSTEMACCOUNT)) {
-                member++;
-            } else {
-                noMember++;
-            }
-            if (order.getList("meatWeights").size() > 0) {
-                for (int i = 0; i < order.getList("meatWeights").size(); i++) {
-                    reduceWeight += MyUtils.formatDouble(Double.parseDouble(order.getList("meatWeights").get(i) + ""));
-                }
-            }
-            List commodityDetail = order.getList("commodityDetail");
-            for (int j = 0; j < commodityDetail.size(); j++) {
-                HashMap<String, Object> format = ObjectUtil.format(commodityDetail.get(j));
-                String name = ObjectUtil.getString(format, "name");
-                if (numbers.containsKey(name)) {
-                    numbers.put(name, numbers.get(name) + ObjectUtil.getDouble(format, "number"));
-                } else {
-                    numbers.put(name, ObjectUtil.getDouble(format, "number"));
-                }
-                if (order.getInt("type") == 1) {
-                    if (weights.containsKey(name)) {
-                        weights.put(name, MyUtils.formatDouble(weights.get(name) + ObjectUtil.getDouble(format, "weight")));
-                    } else {
-                        weights.put(name, MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")));
-                    }
-                }
-            }
-            if (order.getAVObject("useSystemCoupon") != null) {
-                String name = order.getAVObject("useSystemCoupon").getAVObject("type").getString("name");
-                if (offlineCoupon.containsKey(name)) {
-                    if (order.getInt("systemCouponNum") == 0) {
-                        offlineCoupon.put(name, offlineCoupon.get(name) + 1);
-                    } else {
-                        offlineCoupon.put(name, offlineCoupon.get(name) + order.getInt("systemCouponNum"));
-                    }
+                if (order.getAVObject("useSystemCoupon") != null) {
+                    if (order.getAVObject("useSystemCoupon").getString("from").startsWith("大众点评")) {
+                        int number = order.getInt("systemCouponNum");
+                        if (number == 0) {
+                            number = 1;
+                        }
+                        if (DateUtil.getZeroTimeStamp(new Date())>1531238400000l){
+                            DZDPMoney += MyUtils.formatDouble(85 * number);
+                            offline += MyUtils.formatDouble(85 * number);
+                        }else{
+                            DZDPMoney += MyUtils.formatDouble(68 * number);
+                            offline += MyUtils.formatDouble(68 * number);
+                        }
 
-                } else {
-                    if (order.getInt("systemCouponNum") == 0) {
-                        offlineCoupon.put(name, 1);
-                    } else {
-                        offlineCoupon.put(name, order.getInt("systemCouponNum"));
                     }
-
                 }
-            }
-            if (order.getAVObject("useUserCoupon") != null) {
-                String name = order.getAVObject("useUserCoupon").getAVObject("type").getString("name");
-                if (onlineCoupon.containsKey(name)) {
-                    onlineCoupon.put(name, onlineCoupon.get(name) + 1);
+                if (!order.getAVObject("user").getObjectId().equals(CONST.ACCOUNT.SYSTEMACCOUNT)) {
+                    member++;
                 } else {
-                    onlineCoupon.put(name, 1);
+                    noMember++;
                 }
-            }
-            if (orderTypes.containsKey(order.getInt("type"))) {
-                orderTypes.put(order.getInt("type"), orderTypes.get(order.getInt("type")) + 1);
-            } else {
-                orderTypes.put(order.getInt("type"), 1);
+                if (order.getList("meatWeights").size() > 0) {
+                    for (int i = 0; i < order.getList("meatWeights").size(); i++) {
+                        reduceWeight += MyUtils.formatDouble(Double.parseDouble(order.getList("meatWeights").get(i) + ""));
+                    }
+                }
+                List commodityDetail = order.getList("commodityDetail");
+                for (int j = 0; j < commodityDetail.size(); j++) {
+                    HashMap<String, Object> format = ObjectUtil.format(commodityDetail.get(j));
+                    String name = ObjectUtil.getString(format, "name");
+                    if (numbers.containsKey(name)) {
+                        numbers.put(name, numbers.get(name) + ObjectUtil.getDouble(format, "number"));
+                    } else {
+                        numbers.put(name, ObjectUtil.getDouble(format, "number"));
+                    }
+                    if (order.getInt("type") == 1) {
+                        if (weights.containsKey(name)) {
+                            weights.put(name, MyUtils.formatDouble(weights.get(name) + ObjectUtil.getDouble(format, "weight")));
+                        } else {
+                            weights.put(name, MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")));
+                        }
+                    }
+                }
+                if (order.getAVObject("useSystemCoupon") != null) {
+                    String name = order.getAVObject("useSystemCoupon").getAVObject("type").getString("name");
+                    if (offlineCoupon.containsKey(name)) {
+                        if (order.getInt("systemCouponNum") == 0) {
+                            offlineCoupon.put(name, offlineCoupon.get(name) + 1);
+                        } else {
+                            offlineCoupon.put(name, offlineCoupon.get(name) + order.getInt("systemCouponNum"));
+                        }
+
+                    } else {
+                        if (order.getInt("systemCouponNum") == 0) {
+                            offlineCoupon.put(name, 1);
+                        } else {
+                            offlineCoupon.put(name, order.getInt("systemCouponNum"));
+                        }
+
+                    }
+                }
+                if (order.getAVObject("useUserCoupon") != null) {
+                    String name = order.getAVObject("useUserCoupon").getAVObject("type").getString("name");
+                    if (onlineCoupon.containsKey(name)) {
+                        onlineCoupon.put(name, onlineCoupon.get(name) + 1);
+                    } else {
+                        onlineCoupon.put(name, 1);
+                    }
+                }
+                if (orderTypes.containsKey(order.getInt("type"))) {
+                    orderTypes.put(order.getInt("type"), orderTypes.get(order.getInt("type")) + 1);
+                } else {
+                    orderTypes.put(order.getInt("type"), 1);
+                }
             }
         }
         List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(numbers.entrySet());
@@ -309,6 +320,8 @@ public class StatisticsUtil {
         detail.put("rechargeMoney", MyUtils.formatDouble(rechargeMoney));
         detail.put("storedRechargeNumber", recharge + "单");
         detail.put("svipMoney", MyUtils.formatDouble(svipMoney) + "元");
+        detail.put("nbTotalMoney", MyUtils.formatDouble(nbTotalMoney) + "元");
+
 //        Logger.d(detail);
         return detail;
     }

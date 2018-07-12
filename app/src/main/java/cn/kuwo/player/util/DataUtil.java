@@ -1,8 +1,14 @@
 package cn.kuwo.player.util;
 
+import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,10 +43,10 @@ public class DataUtil {
             hashMap.put("weight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(event.getBarcode()) * event.getCommodityNumber()));
             if (mode == 0) {
                 hashMap.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()));
-                hashMap.put("nb",MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()*CONST.NB.MEATDiSCOUNT));
+                hashMap.put("nb", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber() * CONST.NB.MEATDiSCOUNT));
             } else {
                 hashMap.put("price", 0);
-                hashMap.put("nb",0);
+                hashMap.put("nb", 0);
             }
         } else {
             hashMap.put("weight", MyUtils.formatDouble(productBean.getWeight() * event.getCommodityNumber()));
@@ -49,7 +55,7 @@ public class DataUtil {
                 hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()));
             } else {
                 hashMap.put("price", 0);
-                hashMap.put("nb",0);
+                hashMap.put("nb", 0);
             }
 
         }
@@ -95,7 +101,7 @@ public class DataUtil {
                     format.put("weight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(event.getBarcode()) * event.getCommodityNumber()));
                     if (mode == 0) {
                         format.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()));
-                        format.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()*CONST.NB.MEATDiSCOUNT));
+                        format.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber() * CONST.NB.MEATDiSCOUNT));
                     } else {
                         format.put("price", 0);
                     }
@@ -144,13 +150,13 @@ public class DataUtil {
     }
 
     /**
-     * @param preOrders  预下单订单
-     * @param event  修改商品的信息
-     * @param mode  模式
-     * @param isEdit 是否是修改模式
+     * @param preOrders    预下单订单
+     * @param event        修改商品的信息
+     * @param mode         模式
+     * @param isEdit       是否是修改模式
      * @param OriginNumber 原订单数量
      */
-    public static void additionalCharge(List<Object> preOrders, ComboEvent event, int mode, boolean isEdit,int OriginNumber) {
+    public static void additionalCharge(List<Object> preOrders, ComboEvent event, int mode, boolean isEdit, int OriginNumber) {
         if (!isEdit) {
             if (!event.getCookStyle().equals("")) {
                 if (QueryUtil.findMachine(preOrders) == 0) {
@@ -182,9 +188,9 @@ public class DataUtil {
                         if (ObjectUtil.getString(map, "id").equals(CONST.MACHINEID)) {
                             map.put("number", ObjectUtil.getDouble(map, "number") + event.getCommodityNumber());
                             if (mode == 1) {
-                                map.put("price", ObjectUtil.getDouble(map,"price")+0);
+                                map.put("price", ObjectUtil.getDouble(map, "price") + 0);
                             } else {
-                                map.put("price", MyUtils.formatDouble(ObjectUtil.getDouble(map,"price") * event.getCommodityNumber()));
+                                map.put("price", MyUtils.formatDouble(ObjectUtil.getDouble(map, "price") * event.getCommodityNumber()));
                             }
                             return;
                         }
@@ -196,36 +202,94 @@ public class DataUtil {
             if (!event.getCookStyle().equals("")) {
                 int cookMeatNumber = QueryUtil.findCookMeatNumber(preOrders);
                 Logger.d(event.getCommodityNumber());
-                    if (event.getCommodityNumber()>0){
-                        for (Object o : preOrders) {
-                            HashMap<String, Object> map = (HashMap<String, Object>) o;
-                            if (ObjectUtil.getString(map,"id").equals(CONST.MACHINEID)){
-                                if (ObjectUtil.getDouble(map,"price")!=0){
-                                    Logger.d(ObjectUtil.getDouble(map, "price"));
-                                    Logger.d(event.getCommodityNumber());
-                                    Logger.d((OriginNumber - event.getCommodityNumber() * 30));
-                                    double price = ObjectUtil.getDouble(map, "price") - ((OriginNumber - event.getCommodityNumber() )* 30);
-                                    map.put("price",MyUtils.formatDouble(price>0?price:0));
-                                }
-                                map.put("number",cookMeatNumber);
+                if (event.getCommodityNumber() > 0) {
+                    for (Object o : preOrders) {
+                        HashMap<String, Object> map = (HashMap<String, Object>) o;
+                        if (ObjectUtil.getString(map, "id").equals(CONST.MACHINEID)) {
+                            if (ObjectUtil.getDouble(map, "price") != 0) {
+                                Logger.d(ObjectUtil.getDouble(map, "price"));
+                                Logger.d(event.getCommodityNumber());
+                                Logger.d((OriginNumber - event.getCommodityNumber() * 30));
+                                double price = ObjectUtil.getDouble(map, "price") - ((OriginNumber - event.getCommodityNumber()) * 30);
+                                map.put("price", MyUtils.formatDouble(price > 0 ? price : 0));
                             }
-                        }
-                    }else{
-                        for (Object o : preOrders) {
-                            HashMap<String, Object> map = (HashMap<String, Object>) o;
-                            if (ObjectUtil.getString(map,"id").equals(CONST.MACHINEID)){
-                                preOrders.remove(map);
-                            }
+                            map.put("number", cookMeatNumber);
                         }
                     }
+                } else {
+                    for (Object o : preOrders) {
+                        HashMap<String, Object> map = (HashMap<String, Object>) o;
+                        if (ObjectUtil.getString(map, "id").equals(CONST.MACHINEID)) {
+                            preOrders.remove(map);
+                        }
+                    }
+                }
             }
         }
     }
+
     public static String JSONTokener(String str_json) {
         // consume an optional byte order mark (BOM) if it exists
         if (str_json != null && str_json.startsWith("\ufeff")) {
             str_json = str_json.substring(1);
         }
         return str_json;
+    }
+
+    public static void changeDZDPCommodity(AVObject avObject, List<Object> orders, int postion, double v) {
+        HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(orders.size() - postion - 1);
+        ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(hashMap, "id"));
+        Double number = ObjectUtil.getDouble(hashMap, "number");
+        if (v > 0) {
+            if (number > v) {
+                HashMap<String, Object> hashMap1 = (HashMap<String, Object>) ObjectUtil.deepClone(hashMap);
+                hashMap.put("number", number - v);
+                hashMap.put("price", MyUtils.formatDouble(ObjectUtil.getDouble(hashMap, "price") * (number - v) / number));
+                hashMap.put("nb", MyUtils.formatDouble(ObjectUtil.getDouble(hashMap, "nb") * (number - v) / number));
+
+                hashMap1.put("name", MyUtils.getProductById(productBean.getReviewCommodity()).getName());
+                hashMap1.put("price", 0);
+                hashMap1.put("nb", 0);
+                hashMap1.put("number", v);
+                hashMap1.put("id", MyUtils.getProductById(productBean.getReviewCommodity()).getObjectId());
+                hashMap1.put("barcode", MyUtils.getProductById(productBean.getReviewCommodity()).getCode());
+                orders.add(hashMap1);
+            } else if (number == v) {
+                hashMap.put("name", MyUtils.getProductById(productBean.getReviewCommodity()).getName());
+                hashMap.put("price", 0);
+                hashMap.put("nb", 0);
+                hashMap.put("id", MyUtils.getProductById(productBean.getReviewCommodity()).getObjectId());
+                hashMap.put("barcode", MyUtils.getProductById(productBean.getReviewCommodity()).getCode());
+            }
+        }
+        avObject.put("order", orders);
+        avObject.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(AVException e) {
+                Logger.d("修改成功");
+            }
+        });
+    }
+
+
+    public static void changeGroupNumber(AVObject avObject, List<Object> orders, int postion, double v) {
+        HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(orders.size() - postion - 1);
+        if (v == 1) {
+            hashMap.put("price", 270.4);
+            hashMap.put("nb", 270.4);
+        } else if (v == 2 || v == 3) {
+            hashMap.put("price", 338);
+            hashMap.put("nb", 338);
+        }else{
+            hashMap.put("price", MyUtils.formatDouble(98*v));
+            hashMap.put("nb", MyUtils.formatDouble(338));
+        }
+        avObject.put("order", orders);
+        avObject.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(AVException e) {
+                Logger.d("修改成功");
+            }
+        });
     }
 }

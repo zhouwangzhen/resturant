@@ -92,6 +92,10 @@ import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.RealmUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
+import io.sentry.Sentry;
+import io.sentry.android.AndroidSentryClientFactory;
+import io.sentry.event.BreadcrumbBuilder;
+import io.sentry.event.UserBuilder;
 
 public class MainActivity extends BaseActivity {
     @BindView(R.id.menu_stored)
@@ -152,6 +156,7 @@ public class MainActivity extends BaseActivity {
     @Override
     public void initData() {
         mContext=this;
+        setSentry();
         LoginUtil.checkSystemLogin();
         checkCashierLogin();
         checkLocalStorageCommodity();
@@ -176,6 +181,13 @@ public class MainActivity extends BaseActivity {
         });
     }
 
+    private void setSentry() {
+        Sentry.init(new AndroidSentryClientFactory(mContext));
+        String sentryDsn = "http://afd0d53d341a4658b44f6437aa0639ae:68cce1a109524b65bebbe592e98daf07@sentry.aobeef.cn/3";
+        Sentry.init(sentryDsn, new AndroidSentryClientFactory(mContext));
+        Sentry.init(new AndroidSentryClientFactory(mContext));
+    }
+
 
     /**
      * 系统账号登录
@@ -188,7 +200,6 @@ public class MainActivity extends BaseActivity {
             new ScanUserFragment(0).show(getSupportFragmentManager(), "scanuser");
         }
     }
-
 
     private void checkLocalStorageCommodity() {
         final RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());

@@ -1197,28 +1197,28 @@ public class Bill {
                         pos.printFourColumn("总计", "    ", "    " + orderDetail.getMyReduceWeight() + "kg", MyUtils.formatDouble(actualReduce) + "");
                         pos.printLine(2);
                     }
-                    if (orderDetail.getSvipMaxExchangeList().size() > 0) {
-                        pos.printTextNewLine("------------------------------------------------");
-                        pos.printLine(1);
-                        pos.printLocation(1);
-                        pos.printText("超牛会员牛肉额度充足时可抵扣详情");
-                        pos.printLine(2);
-                        pos.printLocation(0);
-                        pos.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
-                        pos.printLine(2);
-                        for (int i = 0; i < orderDetail.getSvipMaxExchangeList().size(); i++) {
-                            Object o = orderDetail.getSvipMaxExchangeList().get(i);
-                            HashMap<String, Object> format = ObjectUtil.format(o);
-                            pos.printTextNewLine(ObjectUtil.getString(format, "name"));
-                            pos.printLine(1);
-                            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                            Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
-                            pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", reduce + "");
-                            pos.printLine(1);
-                        }
-                        pos.printFourColumn("总计", "    ", "    " + orderDetail.getMaxReduceWeight() + "kg", orderDetail.getMaxReduceMoney() + "");
-                        pos.printLine(2);
-                    }
+//                    if (orderDetail.getSvipMaxExchangeList().size() > 0) {
+//                        pos.printTextNewLine("------------------------------------------------");
+//                        pos.printLine(1);
+//                        pos.printLocation(1);
+//                        pos.printText("超牛会员牛肉额度充足时可抵扣详情");
+//                        pos.printLine(2);
+//                        pos.printLocation(0);
+//                        pos.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
+//                        pos.printLine(2);
+//                        for (int i = 0; i < orderDetail.getSvipMaxExchangeList().size(); i++) {
+//                            Object o = orderDetail.getSvipMaxExchangeList().get(i);
+//                            HashMap<String, Object> format = ObjectUtil.format(o);
+//                            pos.printTextNewLine(ObjectUtil.getString(format, "name"));
+//                            pos.printLine(1);
+//                            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+//                            Double reduce = MyUtils.formatDouble((productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number"));
+//                            pos.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", reduce + "");
+//                            pos.printLine(1);
+//                        }
+//                        pos.printFourColumn("总计", "    ", "    " + orderDetail.getMaxReduceWeight() + "kg", orderDetail.getMaxReduceMoney() + "");
+//                        pos.printLine(2);
+//                    }
                     pos.printTextNewLine("------------------------------------------------");
                     if (orderDetail.getAvObject().getAVObject("user") != null) {
                         AVObject user = orderDetail.getAvObject().getAVObject("user");
@@ -1370,30 +1370,30 @@ public class Bill {
                         pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMyReduceWeight() + "kg", MyUtils.formatDouble(actualReduce) + "");
                         pos1.printLine(2);
                     }
-                    if (orderDetail.getSvipMaxExchangeList().size() > 0) {
-                        pos1.printTextNewLine("------------------------------------------------");
-                        pos1.printLine(1);
-                        pos1.printLocation(1);
-                        pos1.printText("超牛会员牛肉额度充足时可抵扣详情");
-                        pos1.printLine();
-                        pos1.printLocation(0);
-                        pos1.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
-                        pos1.printLine(1);
-                        Double maxReduce = 0.0;
-                        for (int i = 0; i < orderDetail.getSvipMaxExchangeList().size(); i++) {
-                            Object o = orderDetail.getSvipMaxExchangeList().get(i);
-                            HashMap<String, Object> format = ObjectUtil.format(o);
-                            pos1.printTextNewLine(ObjectUtil.getString(format, "name"));
-                            pos1.printLine(1);
-                            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format, "reduceMoeny"));
-                            maxReduce += reduce;
-                            pos1.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(reduce) + "");
-                            pos1.printLine(1);
-                        }
-                        pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMaxReduceWeight() + "kg", MyUtils.formatDouble(maxReduce) + "");
-                        pos1.printLine(2);
-                    }
+//                    if (orderDetail.getSvipMaxExchangeList().size() > 0) {
+//                        pos1.printTextNewLine("------------------------------------------------");
+//                        pos1.printLine(1);
+//                        pos1.printLocation(1);
+//                        pos1.printText("超牛会员牛肉额度充足时可抵扣详情");
+//                        pos1.printLine();
+//                        pos1.printLocation(0);
+//                        pos1.printFourColumn("品名", "数量", "  抵扣重量", "抵扣金额");
+//                        pos1.printLine(1);
+//                        Double maxReduce = 0.0;
+//                        for (int i = 0; i < orderDetail.getSvipMaxExchangeList().size(); i++) {
+//                            Object o = orderDetail.getSvipMaxExchangeList().get(i);
+//                            HashMap<String, Object> format = ObjectUtil.format(o);
+//                            pos1.printTextNewLine(ObjectUtil.getString(format, "name"));
+//                            pos1.printLine(1);
+//                            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+//                            Double reduce = MyUtils.formatDouble(ObjectUtil.getDouble(format, "reduceMoeny"));
+//                            maxReduce += reduce;
+//                            pos1.printFourColumn("    ", ObjectUtil.getDouble(format, "number") + "份", "   " + ObjectUtil.getDouble(format, "meatWeight") + "kg", MyUtils.formatDouble(reduce) + "");
+//                            pos1.printLine(1);
+//                        }
+//                        pos1.printFourColumn("总计", "    ", "    " + orderDetail.getMaxReduceWeight() + "kg", MyUtils.formatDouble(maxReduce) + "");
+//                        pos1.printLine(2);
+//                    }
                     pos1.printTextNewLine("------------------------------------------------");
                     if (orderDetail.getAvObject().getAVObject("user") != null) {
                         AVObject user = orderDetail.getAvObject().getAVObject("user");
@@ -3521,61 +3521,61 @@ public class Bill {
             }
         }.start();
     }
-    public static void rePrintNbRecharge(final NbRechargeLog.NiuTokenOfflineOperationsBean jsniuTokenOfflineOperationsBeanonText) {
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    mContext = MyApplication.getContextObject();
-                    String url = SharedHelper.read("ip1") + "." + SharedHelper.read("ip2") + "." + SharedHelper.read("ip3") + "." + SharedHelper.read("ip4");
-                    Pos pos;
-                    pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
-                    pos.initPos();
-                    pos.printLocation(1);
-                    pos.bold(true);
-                    pos.printText("牛币充值");
-                    pos.bold(false);
-                    pos.printLine(1);
-                    pos.printLocation(0);
-                    pos.printTextNewLine("操作人:" + jsniuTokenOfflineOperationsBeanonText.getCashier().getReal_name());
-                    pos.printTextNewLine("负责人:" + jsniuTokenOfflineOperationsBeanonText.getSalesman().getReal_name());
-                    pos.printTextNewLine("时间:" + DateUtil.formatDate(new Date(jsniuTokenOfflineOperationsBeanonText.getCreated_at() * 1000)));
-                    pos.printTextNewLine("----------------------------------------------");
-                    pos.printLine(1);
-                    pos.printLocation(0);
-                    pos.printTwoColumn("充值用户:", jsniuTokenOfflineOperationsBeanonText.getTarget_user().getUsername());
-                    pos.printLine(1);
-                    pos.printTwoColumn("充值数量:", jsniuTokenOfflineOperationsBeanonText.getAmount()+"牛币");
-                    pos.printLine(1);
-                    String secrowContent = "";
-                    if (jsniuTokenOfflineOperationsBeanonText.getOp_type()== 11) {
-                        secrowContent = "白条支付";
-                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 3) {
-                        secrowContent = "支付宝支付";
-                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 4) {
-                        secrowContent = "微信支付";
-                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 5) {
-                        secrowContent = "银行卡支付";
-                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 6) {
-                        secrowContent = "现金支付";
-                    }
-                    pos.printTwoColumn("支付方式:", secrowContent);
-                    pos.printTextNewLine("----------------------------------------------");
-                    pos.printLocation(1);
-                    pos.printLine(1);
-                    pos.printText("地址:" + CONST.ADDRESS);
-                    pos.printLine(1);
-                    pos.printText("电话:" + CONST.TEL);
-                    pos.printLine(1);
-                    pos.printText("祝您生活越来越牛!");
-                    pos.printLine(4);
-                    pos.feedAndCut();
-                    pos.closeIOAndSocket();
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
+    public static void rePrintNbRecharge(final NbRechargeLog jsniuTokenOfflineOperationsBeanonText) {
+//        new Thread() {
+//            @Override
+//            public void run() {
+//                try {
+//                    mContext = MyApplication.getContextObject();
+//                    String url = SharedHelper.read("ip1") + "." + SharedHelper.read("ip2") + "." + SharedHelper.read("ip3") + "." + SharedHelper.read("ip4");
+//                    Pos pos;
+//                    pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+//                    pos.initPos();
+//                    pos.printLocation(1);
+//                    pos.bold(true);
+//                    pos.printText("牛币充值");
+//                    pos.bold(false);
+//                    pos.printLine(1);
+//                    pos.printLocation(0);
+//                    pos.printTextNewLine("操作人:" + jsniuTokenOfflineOperationsBeanonText.getCashier().getReal_name());
+//                    pos.printTextNewLine("负责人:" + jsniuTokenOfflineOperationsBeanonText.getSalesman().getReal_name());
+//                    pos.printTextNewLine("时间:" + DateUtil.formatDate(new Date(jsniuTokenOfflineOperationsBeanonText.getCreated_at() * 1000)));
+//                    pos.printTextNewLine("----------------------------------------------");
+//                    pos.printLine(1);
+//                    pos.printLocation(0);
+//                    pos.printTwoColumn("充值用户:", jsniuTokenOfflineOperationsBeanonText.getTarget_user().getUsername());
+//                    pos.printLine(1);
+//                    pos.printTwoColumn("充值数量:", jsniuTokenOfflineOperationsBeanonText.getAmount()+"牛币");
+//                    pos.printLine(1);
+//                    String secrowContent = "";
+//                    if (jsniuTokenOfflineOperationsBeanonText.getOp_type()== 11) {
+//                        secrowContent = "白条支付";
+//                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 3) {
+//                        secrowContent = "支付宝支付";
+//                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 4) {
+//                        secrowContent = "微信支付";
+//                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 5) {
+//                        secrowContent = "银行卡支付";
+//                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 6) {
+//                        secrowContent = "现金支付";
+//                    }
+//                    pos.printTwoColumn("支付方式:", secrowContent);
+//                    pos.printTextNewLine("----------------------------------------------");
+//                    pos.printLocation(1);
+//                    pos.printLine(1);
+//                    pos.printText("地址:" + CONST.ADDRESS);
+//                    pos.printLine(1);
+//                    pos.printText("电话:" + CONST.TEL);
+//                    pos.printLine(1);
+//                    pos.printText("祝您生活越来越牛!");
+//                    pos.printLine(4);
+//                    pos.feedAndCut();
+//                    pos.closeIOAndSocket();
+//
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }.start();
     }
 }

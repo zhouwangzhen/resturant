@@ -97,7 +97,7 @@ public class OrderListFg extends BaseFragment {
     TextView stateNbNum;
     private Activity mActivity;
     private String mParam;
-    private List<NbRechargeLog.NiuTokenOfflineOperationsBean> offline_operations = new ArrayList<>();
+    private List<NbRechargeLog> nbRechargeLogs=new ArrayList<>();
     @BindView(R.id.gv_table)
     GridView gvTable;
     HashMap<String, Object> ordersDetail;
@@ -131,7 +131,7 @@ public class OrderListFg extends BaseFragment {
     private void setDatePickerView() {
         Calendar selectedDate = Calendar.getInstance();
         Calendar startDate = Calendar.getInstance();
-        startDate.set(2018, 5, 21);
+        startDate.set(2018, 4, 21);
         Calendar endDate = Calendar.getInstance();
         TimePickerView pvTime = new TimePickerView.Builder(getContext(), new TimePickerView.OnTimeSelectListener() {
             @Override
@@ -159,8 +159,8 @@ public class OrderListFg extends BaseFragment {
         showDialog();
         nbRechargeLogPresenter.getNbRechagreLog(DateUtil.getZeroTimeStampBySecond(currentDate),
                 DateUtil.getLasterTimeStampBySecond(currentDate),
-                "recharge",
                 2,
+                0,
                 CONST.isShowTEST);
 
     }
@@ -204,12 +204,12 @@ public class OrderListFg extends BaseFragment {
         if (orderTypes.containsKey(3)) {
             stateHangup.setText(orderTypes.get(3) + "笔");
         }
-        stateNbNum.setText(offline_operations.size() + "笔");
+        stateNbNum.setText(nbRechargeLogs.size() + "笔");
 
     }
 
     private void statisticsData() {
-        ordersDetail = StatisticsUtil.TotalOrder(orders, rechargeOrders, offline_operations);
+        ordersDetail = StatisticsUtil.TotalOrder(orders, rechargeOrders, nbRechargeLogs);
     }
 
     public void onAttach(Context context) {
@@ -298,7 +298,7 @@ public class OrderListFg extends BaseFragment {
         @Override
         public int getCount() {
             if (orderType == 4 || orderType == -1) {
-                return findOrders.size() + offline_operations.size();
+                return findOrders.size() + nbRechargeLogs.size();
             } else {
                 return findOrders.size();
             }
@@ -482,26 +482,26 @@ public class OrderListFg extends BaseFragment {
                     holder.order_state_img.setBackgroundResource(R.drawable.order_nb);
                     holder.order_paysum.setVisibility(View.GONE);
                     holder.order_table_number.setVisibility(View.GONE);
-                    final NbRechargeLog.NiuTokenOfflineOperationsBean niuTokenOfflineOperationsBean = offline_operations.get(position - findOrders.size());
-                    holder.order_date.setText("充值时间:" + DateUtil.formatDate(new Date(niuTokenOfflineOperationsBean.getCreated_at() * 1000)));
-                    holder.order_memberstyle.setText("会员用户:" + niuTokenOfflineOperationsBean.getTarget_user().getUsername()+"\n营业员:"+niuTokenOfflineOperationsBean.getCashier().getReal_name()+"\n销售:"+niuTokenOfflineOperationsBean.getSalesman().getReal_name());
+                    NbRechargeLog nbRechargeLog = nbRechargeLogs.get(position - findOrders.size());
+                    holder.order_date.setText("充值时间:" + DateUtil.formatDate(new Date(nbRechargeLog.getCreated_at() * 1000)));
+                    holder.order_memberstyle.setText("会员用户:" + nbRechargeLog.getTarget_user().getUsername()+"\n营业员:"+nbRechargeLog.getCashier().getReal_name()+"\n销售:"+(nbRechargeLog.getSalesman()!=null?nbRechargeLog.getSalesman().getReal_name():"无"));
                     String payContent = "";
-                    switch (niuTokenOfflineOperationsBean.getOp_type()) {
-                        case 2:
+                    switch (nbRechargeLog.getPayment()) {
+                        case 1:
                             payContent = "支付宝支付";
                             break;
-                        case 3:
+                        case 2:
                             payContent = "微信支付";
                             break;
-                        case 4:
+                        case 3:
                             payContent = "银行卡支付";
                             break;
-                        case 5:
+                        case 4:
                             payContent = "现金支付";
                             break;
                     }
                     holder.order_settle.setText("支付方式:" + payContent);
-                    holder.order_detail.setText("牛币充值:" + niuTokenOfflineOperationsBean.getAmount());
+                    holder.order_detail.setText("牛币充值:" + nbRechargeLog.getAmount());
 
                     holder.card_order.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -518,7 +518,7 @@ public class OrderListFg extends BaseFragment {
                     holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Bill.rePrintNbRecharge(niuTokenOfflineOperationsBean);
+//                            Bill.rePrintNbRecharge(niuTokenOfflineOperationsBean);
                         }
                     });
                 }
@@ -543,8 +543,9 @@ public class OrderListFg extends BaseFragment {
 
     private NbRechargeLogView mNbRechargeLog = new NbRechargeLogView() {
         @Override
-        public void onSuccess(NbRechargeLog nbRechargeLog) {
-            offline_operations = nbRechargeLog.getNiu_token_offline_operations();
+        public void onSuccess(List<NbRechargeLog> nbRechargeLog) {
+            Logger.d(nbRechargeLog);
+            nbRechargeLogs=nbRechargeLog;
             findMallGoldOrder(currentDate);
         }
 

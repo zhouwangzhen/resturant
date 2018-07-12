@@ -19,30 +19,32 @@ import rx.Observable;
 public interface RetrofitService {
     @FormUrlEncoded
     @POST("services/niu_token/offline_operation/recharge")
-    Call<ResponseBody> offlineRecharge(@Field("targetUserId") String targetUserId,
-                                       @Field("salesmanId") String salesmanId,
-                                       @Field("cashierId") String cashierId,
+    Call<ResponseBody> offlineRecharge(@Field("target_user_id") String targetUserId,
+                                       @Field("salesman_id") String salesmanId,
+                                       @Field("cashier_id") String cashierId,
                                        @Field("amount") Double amount,
-                                       @Field("payment") String payment,
-                                       @Field("store") int store);
+                                       @Field("acctually_paid") Double acctually_paid,
+                                       @Field("payment_num") int payment,
+                                       @Field("store_num") int store,
+                                       @Field("gift_type_num") int gift_type_num);
 
     @FormUrlEncoded
     @POST("services/niu_token/offline_query/user_amount")
-    Call<ResponseBody> QueryofflineRecharge(@Field("targetUserId") String targetUserId);
+    Call<ResponseBody> QueryofflineRecharge(@Field("target_user_id") String targetUserId);
 
     @FormUrlEncoded
     @POST("services/niu_token/offline_operation/consume")
-    Call<ResponseBody> offlineConsume(@Field("targetUserId") String targetUserId,
-                                       @Field("salesmanId") String salesmanId,
-                                       @Field("cashierId") String cashierId,
+    Call<ResponseBody> offlineConsume(@Field("target_user_id") String targetUserId,
+                                       @Field("salesman_id") String salesmanId,
+                                       @Field("cashier_id") String cashierId,
                                        @Field("amount") Double amount,
-                                      @Field("store") int store);
+                                      @Field("store_num") int store);
 
     @FormUrlEncoded
-    @POST("services/niu_token/offline_query/operations")
-    Observable<NbRechargeLog> rechargeQuery(@Field("since") long since,
+    @POST("services/niu_token/offline_query/recharges")
+    Observable<List<NbRechargeLog>> rechargeQuery(@Field("since") long since,
                                             @Field("before") long before,
-                                            @Field("op_types") String typeList,
-                                            @Field("store") int store,
+                                            @Field("store_num") int store,
+                                            @Field("gift_type_num") int type,
                                             @Field("should_show_test_user") boolean showTest);
 }

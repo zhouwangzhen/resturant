@@ -3,6 +3,8 @@ package cn.kuwo.player.service.presenter;
 import android.content.Context;
 import android.content.Intent;
 
+import java.util.List;
+
 import cn.kuwo.player.service.entity.NbRechargeLog;
 import cn.kuwo.player.service.manager.DataManager;
 import cn.kuwo.player.service.view.NbRechargeLogView;
@@ -21,7 +23,7 @@ public class NbRechargeLogPresenter implements Presenter {
     private DataManager manager;
     private CompositeSubscription mCompositeSubscription;
     private Context mContext;
-    private NbRechargeLog mNbRechargeLog;
+    private List<NbRechargeLog> mNbRechargeLog;
     private NbRechargeLogView mNbRechargeLogView;
 
     public NbRechargeLogPresenter(Context mContext){
@@ -61,13 +63,13 @@ public class NbRechargeLogPresenter implements Presenter {
 
     public void getNbRechagreLog(long since,
                                  long before,
-                                 String typeList,
                                  int store,
+                                 int type,
                                  boolean isShowTest){
-        mCompositeSubscription.add(manager.getNbRechagreLogList(since,before,typeList,store,isShowTest)
+        mCompositeSubscription.add(manager.getNbRechagreLogList(since,before,store,type,isShowTest)
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Observer<NbRechargeLog>() {
+        .subscribe(new Observer<List<NbRechargeLog>>() {
             @Override
             public void onCompleted() {
                 if (mNbRechargeLogView!=null){
@@ -77,13 +79,14 @@ public class NbRechargeLogPresenter implements Presenter {
 
             @Override
             public void onError(Throwable e) {
-             T.L("请求失败!!!");
+             T.L("请求失败!!!"+e.getMessage());
             }
 
             @Override
-            public void onNext(NbRechargeLog nbRechargeLog) {
+            public void onNext(List<NbRechargeLog> nbRechargeLog) {
                 mNbRechargeLog=nbRechargeLog;
             }
+
         }));
     }
 }

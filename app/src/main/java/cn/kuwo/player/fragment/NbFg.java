@@ -302,7 +302,7 @@ public class NbFg extends BaseFragment {
         escrow = 3;
         rechargeMoney = 800.0;
         paySumMoney = 1000.0;
-        tvRechargeMoney.setText("800个牛币");
+        tvRechargeMoney.setText("1000个牛币");
         tvPaymoney.setText("需要支付的金额"+tvPaymoney+"元");
         rgPaystyle.check(R.id.pay_ali);
     }
@@ -438,22 +438,24 @@ public class NbFg extends BaseFragment {
 
     private void toRecharge() {
         showDialog();
-        String payment = "";
+        int payment = 1;
         if (escrow == 3) {
-            payment = "alipay";
+            payment = 1;
         } else if (escrow == 4) {
-            payment = "wechat";
+            payment = 2;
         } else if (escrow == 5) {
-            payment = "bankcard";
+            payment = 3;
         } else if (escrow == 6) {
-            payment = "cash";
+            payment = 4;
         }
         Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().offlineRecharge(userId,
                 marketId,
                 SharedHelper.read("cashierId"),
                 rechargeMoney,
+                paySumMoney,
                 payment,
-                2);
+                2,
+                0);
         responseBodyCall.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -491,7 +493,7 @@ public class NbFg extends BaseFragment {
             AVObject coupon = new AVObject("Coupon");
             coupon.put("type",AVObject.createWithoutData("CouponType","5b39958a9f5454003a7c5aa4"));
             coupon.put("username",username);
-            coupon.put("from","牛爸餐厅派发");
+            coupon.put("from","牛爸餐厅充值派发");
             coupon.put("gold",200);
             coupon.put("start",new Date());
             coupon.put("active",1);
@@ -546,7 +548,7 @@ public class NbFg extends BaseFragment {
         new QMUIBottomSheet.BottomListSheetBuilder(getActivity())
                 .addItem("充值800个牛币")
                 .addItem("充值2000个牛币")
-                .addItem("充值5000个牛币")
+                .addItem("充值5000个牛币(赠送200牛币)")
                 .setTitle("选择充值牛币的数量")
                 .setOnSheetItemClickListener(new QMUIBottomSheet.BottomListSheetBuilder.OnSheetItemClickListener() {
                     @Override
@@ -556,7 +558,7 @@ public class NbFg extends BaseFragment {
                             case 0:
                                 rechargeMoney = 800.0;
                                 paySumMoney = 1000.0;
-                                tvRechargeMoney.setText("800个牛币");
+                                tvRechargeMoney.setText("1000个牛币");
                                 tvPaymoney.setText("需要支付的金额1000元");
                                 break;
                             case 1:
@@ -566,9 +568,9 @@ public class NbFg extends BaseFragment {
                                 tvPaymoney.setText("需要支付的金额2000元");
                                 break;
                             case 2:
-                                rechargeMoney = 5000.0;
+                                rechargeMoney = 5200.0;
                                 paySumMoney = 5000.0;
-                                tvRechargeMoney.setText("5000个牛币");
+                                tvRechargeMoney.setText("5200个牛币");
                                 tvPaymoney.setText("需要支付的金额5000元");
                                 break;
                             default:

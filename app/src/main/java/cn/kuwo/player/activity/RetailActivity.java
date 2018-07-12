@@ -153,9 +153,6 @@ public class RetailActivity extends BaseActivity {
                 startActivityForResult(intent, 1);
             }
         });
-//        scanMeatcode.setText("211001165540011301");
-//        scanMeatcode.setText("214000188800080006");
-//        scanMeatcode.setText("219999911500002306");
         otherGoods.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -187,6 +184,10 @@ public class RetailActivity extends BaseActivity {
                     case R.id.goods_no_code:
                         LoadingGoods(5);
                         break;
+                    case R.id.goods_operator:
+                        LoadingGoods(6);
+                        break;
+
                 }
             }
         });

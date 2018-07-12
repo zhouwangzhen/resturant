@@ -5,6 +5,7 @@ import android.widget.TextView;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 
@@ -16,11 +17,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.bean.ProductBean;
@@ -252,7 +255,6 @@ public class ProductUtil {
                 meatList.add(format);
             }
         }
-        Logger.d(meatList);
         return meatList;
     }
 
@@ -1154,5 +1156,55 @@ public class ProductUtil {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 检查爆款西冷是否可以买
+     */
+    public static boolean checkCanBuy(List<Object> orders,UserBean userBean) {
+
+        int number=0;
+        for (int i=0;i<orders.size();i++){
+            HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(i);
+            String id = ObjectUtil.getString(hashMap, "id");
+            if (id.equals(CONST.EXPLODEID)){
+                number++;
+            }
+        }
+        if (number>1){
+            T.L("每个用户每天只能买一份爆款产品");
+            return false;
+        }
+        if (userBean==null){
+            T.L("未登陆用户不可以买爆款产品");
+            return false;
+        }
+        return true;
+
+    }
+
+    public static void addExploseRecord(List<Object> orders,UserBean userBean){
+        int number=0;
+        for (int i=0;i<orders.size();i++){
+            HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(i);
+            String id = ObjectUtil.getString(hashMap, "id");
+            if (id.equals(CONST.EXPLODEID)){
+                number++;
+            }
+        }
+        if (number>0){
+            AVObject offlineExchange = new AVObject("OfflineExchange");
+            offlineExchange.put("number",number);
+            offlineExchange.put("user",AVObject.createWithoutData("_User",userBean.getId()));
+            offlineExchange.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(AVException e) {
+                    if (e==null){
+
+                    }
+                }
+            });
+        }
+
     }
 }

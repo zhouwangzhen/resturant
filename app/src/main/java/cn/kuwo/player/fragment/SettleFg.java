@@ -68,6 +68,7 @@ import cn.kuwo.player.api.HangUpApi;
 import cn.kuwo.player.api.TableApi;
 import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.bean.FuncBean;
+import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RateBean;
 import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.custom.CommomDialog;
@@ -78,6 +79,7 @@ import cn.kuwo.player.custom.ShowReduceListFragment;
 import cn.kuwo.player.custom.ShowWholeSaleFragment;
 import cn.kuwo.player.event.CouponEvent;
 import cn.kuwo.player.event.OrderDetail;
+import cn.kuwo.player.interfaces.MyItemClickListener;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.ApiManager;
 import cn.kuwo.player.util.CONST;
@@ -254,7 +256,7 @@ public class SettleFg extends BaseFragment {
                     if (tableAVObject.getAVObject("user") != null) {
                         Map<String, Object> parameter = new HashMap<String, Object>();
                         parameter.put("userID", avObject.getAVObject("user").getObjectId());
-                        userId=avObject.getAVObject("user").getObjectId();
+                        userId = avObject.getAVObject("user").getObjectId();
                         AVCloud.callFunctionInBackground("svip", parameter, new FunctionCallback<Map<String, Object>>() {
                             @Override
                             public void done(final Map<String, Object> objectMap, AVException e) {
@@ -263,7 +265,7 @@ public class SettleFg extends BaseFragment {
                                     responseBodyCall.enqueue(new Callback<ResponseBody>() {
                                         @Override
                                         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                                            if (response.code() == 200||response.code()==200) {
+                                            if (response.code() == 200 || response.code() == 200) {
                                                 try {
                                                     String responseText = DataUtil.JSONTokener(response.body().string());
                                                     JSONObject jsonObject = new JSONObject(responseText);
@@ -423,8 +425,15 @@ public class SettleFg extends BaseFragment {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        showGoodAdapter = new ShowGoodAdapter(getContext(), tableAVObject, orders);
-        recycleScanGood.setAdapter(showGoodAdapter);
+//        showGoodAdapter = new ShowGoodAdapter(getContext(), tableAVObject, orders);
+//        recycleScanGood.setAdapter(showGoodAdapter);
+//        showGoodAdapter.setOnItemClickListener(new MyItemClickListener() {
+//            @Override
+//            public void onItemClick(View view, int postion) {
+//                Logger.d(postion);
+//                T.L(postion+"");
+//            }
+//        });
         refreshList();
 
     }
@@ -459,18 +468,24 @@ public class SettleFg extends BaseFragment {
         }
         showGoodAdapter = new ShowGoodAdapter(getContext(), tableAVObject, orders);
         recycleScanGood.setAdapter(showGoodAdapter);
+        showGoodAdapter.setOnItemClickListener(new MyItemClickListener() {
+            @Override
+            public void onItemClick(View view, int postion) {
+                    changeCommodity(postion);
+            }
+        });
         totalNumber.setText(orders.size() + "");
         originTotalMoneny = ProductUtil.calculateTotalMoney(orders, new ArrayList<Object>());
         orginPrice.setText(originTotalMoneny + "");
         nbTotalMoney = ProductUtil.calNbTotalMoney(orders);
         nbPrice.setText(nbTotalMoney + "");
-        if (nb>=nbTotalMoney&&tableAVObject.get("user")!=null){
+        if (nb >= nbTotalMoney && tableAVObject.get("user") != null) {
             chooseNb.setVisibility(View.VISIBLE);
         }
-        if (isNbPay){
+        if (isNbPay) {
             cbUseSvip.setVisibility(View.GONE);
             cbUseSvip.setChecked(false);
-        }else {
+        } else {
             cbUseSvip.setVisibility(View.GONE);
         }
         if (!isNbPay) {
@@ -583,10 +598,11 @@ public class SettleFg extends BaseFragment {
             totalMoney.setText("￥" + actualTotalMoneny + "元");
             minPayMoney.setText("-" + meatReduceMoney);
         } else {
-            actualTotalMoneny=nbTotalMoney;
+            actualTotalMoneny = nbTotalMoney;
             totalMoney.setText("￥" + actualTotalMoneny + "牛币");
         }
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -630,8 +646,8 @@ public class SettleFg extends BaseFragment {
                                                     hideDialog();
                                                     chooseNb.setText("当前付款状态:正常支付(点击切换成牛币支付)");
                                                     llNoNb.setVisibility(View.VISIBLE);
-                                                    isNbPay=false;
-                                                    nb=0.0;
+                                                    isNbPay = false;
+                                                    nb = 0.0;
                                                     chooseNb.setVisibility(View.GONE);
                                                     ToastUtil.showShort(MyApplication.getContextObject(), "清空用户数据成功");
                                                     initData();
@@ -652,10 +668,10 @@ public class SettleFg extends BaseFragment {
                 }
                 break;
             case R.id.btn_pay:
-                if (isNbPay){
-                        useNbPay();
-                }else {
-                    if (tableAVObject.getAVObject("user")!=null&&nb>=nbTotalMoney&&!isNbPay){
+                if (isNbPay) {
+                    useNbPay();
+                } else {
+                    if (tableAVObject.getAVObject("user") != null && nb >= nbTotalMoney && !isNbPay) {
                         new CommomDialog(getContext(), R.style.dialog, "用户牛币充足,用牛币更优惠,确认不帮他使用么", new CommomDialog.OnCloseListener() {
                             @Override
                             public void onClick(Dialog dialog, boolean confirm) {
@@ -667,7 +683,7 @@ public class SettleFg extends BaseFragment {
                             }
                         })
                                 .setTitle("提示").setNegativeButton("去重新选择").setPositiveButton("有钱任性,就这么结账").show();
-                    }else{
+                    } else {
                         skipPayPage();
                     }
 
@@ -694,7 +710,7 @@ public class SettleFg extends BaseFragment {
                     chooseNb.setText("当前付款状态:正常支付(点击切换成牛币支付)");
                     llNoNb.setVisibility(View.VISIBLE);
                 }
-                isNbPay=!isNbPay;
+                isNbPay = !isNbPay;
                 refreshList();
                 break;
         }
@@ -945,7 +961,7 @@ public class SettleFg extends BaseFragment {
         if (deleteoddMoney > 0) {
             reduceMap.put("抹零", deleteoddMoney);
         }
-        Bill.printPreOrder(MyApplication.getContextObject(), tableAVObject, originTotalMoneny, actualTotalMoneny, reduceMap, useExchangeList, ProductUtil.calExchangeMeatList(orders),isNbPay,nbTotalMoney);
+        Bill.printPreOrder(MyApplication.getContextObject(), tableAVObject, originTotalMoneny, actualTotalMoneny, reduceMap, useExchangeList, ProductUtil.calExchangeMeatList(orders), isNbPay, nbTotalMoney);
     }
 
 
@@ -1043,20 +1059,9 @@ public class SettleFg extends BaseFragment {
                         String text = builder.getEditText().getText().toString();
                         if (text != null && text.length() > 0) {
                             try {
-                                if (Double.parseDouble(text) > 10) {
-                                    if (!CameraProvider.hasCamera()) {
-                                        deleteoddMoney = Double.parseDouble(text);
-                                        dialog.dismiss();
-                                        refreshList();
-                                    } else {
-                                        Toast.makeText(getActivity(), "超过可抹零的权限", Toast.LENGTH_SHORT).show();
-                                    }
-                                } else {
-                                    deleteoddMoney = Double.parseDouble(text);
-                                    dialog.dismiss();
-                                    refreshList();
-                                }
-
+                                deleteoddMoney = Double.parseDouble(text);
+                                dialog.dismiss();
+                                refreshList();
                             } catch (Exception e) {
                                 e.printStackTrace();
                                 Toast.makeText(getActivity(), "请输入正确金额", Toast.LENGTH_SHORT).show();
@@ -1186,10 +1191,11 @@ public class SettleFg extends BaseFragment {
                 })
                 .create(mCurrentDialogStyle).show();
     }
+
     private void useNbPay() {
         new QMUIDialog.MessageDialogBuilder(getActivity())
                 .setTitle("付款确认")
-                .setMessage("确认使用"+nbTotalMoney+"个牛币支付此订单？")
+                .setMessage("确认使用" + nbTotalMoney + "个牛币支付此订单？")
                 .addAction("取消", new QMUIDialogAction.ActionListener() {
                     @Override
                     public void onClick(QMUIDialog dialog, int index) {
@@ -1201,23 +1207,24 @@ public class SettleFg extends BaseFragment {
                     public void onClick(QMUIDialog dialog, int index) {
                         dialog.dismiss();
                         showDialog();
-                        Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().offlineConsume(userId, SharedHelper.read("cashierId"), SharedHelper.read("cashierId"), nbTotalMoney,2);
+                        Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().offlineConsume(userId, SharedHelper.read("cashierId"), SharedHelper.read("cashierId"), nbTotalMoney, 2);
                         responseBodyCall.enqueue(new Callback<ResponseBody>() {
                             @Override
                             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                                 hideDialog();
-                                if (response.code()==200||response.code()==201){
+                                if (response.code() == 200 || response.code() == 201) {
                                     Logger.d("消费成功");
                                     finishOrder();
-                                }else{
+                                } else {
                                     Logger.d(response.code());
                                     T.show(response);
                                 }
                             }
+
                             @Override
                             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                                    hideDialog();
-                                    T.L("网络错误,请重试");
+                                hideDialog();
+                                T.L("网络错误,请重试");
                             }
                         });
                     }
@@ -1237,11 +1244,11 @@ public class SettleFg extends BaseFragment {
             parameters.put("commodityids", ids);
             parameters.put("paysum", nbTotalMoney);
             parameters.put("sum", nbTotalMoney);
-            AVCloud.callFunctionInBackground("offlineMallOrder",parameters,new FunctionCallback<Map<String, Map<String, Object>>>(){
+            AVCloud.callFunctionInBackground("offlineMallOrder", parameters, new FunctionCallback<Map<String, Map<String, Object>>>() {
 
                 @Override
                 public void done(Map<String, Map<String, Object>> map, AVException e) {
-                    if (e==null) {
+                    if (e == null) {
                         String orderId = map.get("order").get("objectId").toString();
                         AVObject mallOrder = AVObject.createWithoutData("MallOrder", orderId);
                         mallOrder.put("cashier", AVObject.createWithoutData("_User", new SharedHelper(getContext()).read("cashierId")));
@@ -1260,7 +1267,7 @@ public class SettleFg extends BaseFragment {
                         mallOrder.put("maxMeatDeduct", new List[0]);
                         mallOrder.put("realMeatDeduct", new List[0]);
                         Map<String, Double> escrowDetail = new HashMap<>();
-                        escrowDetail.put("牛币",nbTotalMoney);
+                        escrowDetail.put("牛币", nbTotalMoney);
                         mallOrder.put("escrowDetail", escrowDetail);
                         if (isHangUp) {
                             mallOrder.put("hangUp", true);
@@ -1273,15 +1280,15 @@ public class SettleFg extends BaseFragment {
                             @Override
                             public void done(AVException e) {
                                 if (e == null) {
-                                    Bill.printSettleBillByNb(MyApplication.getContextObject(), tableAVObject, 25, finalTableNumber,orders,nb);
+                                    Bill.printSettleBillByNb(MyApplication.getContextObject(), tableAVObject, 25, finalTableNumber, orders, nb);
                                     resetTable();
-                                }else{
+                                } else {
                                     finishOrder();
                                     ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙请重试" + e.getMessage());
                                 }
                             }
                         });
-                    }else {
+                    } else {
                         hideDialog();
                         finishOrder();
                         ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙请重试" + e.getMessage());
@@ -1290,6 +1297,7 @@ public class SettleFg extends BaseFragment {
             });
         }
     }
+
     private void resetTable() {
         showDialog();
         if (isHangUp) {
@@ -1373,6 +1381,82 @@ public class SettleFg extends BaseFragment {
                     }
                 }
             });
+        }
+    }
+
+
+    /**
+     * 判断是否是大众点评商品
+     */
+    private void changeCommodity(final int postion) {
+        final HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(orders.size()-postion-1);
+        ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(hashMap, "id"));
+        if (productBean.getReviewCommodity()!=null){
+        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
+        builder.setTitle("当前商品"+productBean.getName()+"*"+ObjectUtil.getDouble(hashMap,"number")+"份"+"==>可大众点评购券抵扣("+MyUtils.getProductById(productBean.getReviewCommodity()).getName()+")\n请选择抵扣数量")
+                .setPlaceholder("在此输入抵扣")
+                .setInputType(InputType.TYPE_CLASS_TEXT)
+                .setCanceledOnTouchOutside(false)
+                .setDefaultText("" + ObjectUtil.getDouble(hashMap,"number").intValue())
+                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        dialog.dismiss();
+                    }
+                })
+                .addAction("确定", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        String text = builder.getEditText().getText().toString();
+                        if (text != null && text.length() > 0&&MyUtils.isNumber(text)&&ObjectUtil.getDouble(hashMap,"number")>=Double.parseDouble(text) ) {
+                            try {
+                                DataUtil.changeDZDPCommodity(tableAVObject,orders,postion,Double.parseDouble(text));
+                                dialog.dismiss();
+                                refreshList();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                Toast.makeText(getActivity(), "请输入正确金额", Toast.LENGTH_SHORT).show();
+                            }
+
+                        } else {
+                            Toast.makeText(getActivity(), "请输入正确金额", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .create(mCurrentDialogStyle).show();
+        }else if (productBean.getSerial().equals("110")){
+            final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
+            builder.setTitle("修改你组团我买单的人数")
+                    .setPlaceholder("在此输入人数")
+                    .setInputType(InputType.TYPE_CLASS_TEXT)
+                    .setCanceledOnTouchOutside(false)
+                    .setDefaultText("" + ObjectUtil.getDouble(hashMap,"number").intValue())
+                    .addAction("取消", new QMUIDialogAction.ActionListener() {
+                        @Override
+                        public void onClick(QMUIDialog dialog, int index) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .addAction("确定", new QMUIDialogAction.ActionListener() {
+                        @Override
+                        public void onClick(QMUIDialog dialog, int index) {
+                            String text = builder.getEditText().getText().toString();
+                            if (text != null && text.length() > 0&&MyUtils.isNumber(text)&&ObjectUtil.getDouble(hashMap,"number")>=Double.parseDouble(text)&&Double.parseDouble(text)>0 ) {
+                                try {
+                                    DataUtil.changeGroupNumber(tableAVObject,orders,postion,Double.parseDouble(text));
+                                    dialog.dismiss();
+                                    refreshList();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(getActivity(), "请输入正确金额", Toast.LENGTH_SHORT).show();
+                                }
+
+                            } else {
+                                Toast.makeText(getActivity(), "请输入正确金额", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    })
+                    .create(mCurrentDialogStyle).show();
         }
     }
 }

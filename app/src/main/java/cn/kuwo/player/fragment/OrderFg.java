@@ -299,6 +299,7 @@ public class OrderFg extends BaseFragment {
                         }
                         setView();
                         setSpinnerPeople();
+                        refreshList();
                         if (tableAVObject.getAVObject("user") != null) {
                             AVObject userObject = avObject.getAVObject("user");
                             llShowMember.setVisibility(View.VISIBLE);
@@ -535,7 +536,6 @@ public class OrderFg extends BaseFragment {
                     public void done(AVObject table, AVException e) {
                         if (e == null) {
                             if (table.getInt("customer") > 0) {
-                                table.put("order", orders);
                                 table.put("preOrder", preOrders);
                                 table.saveInBackground(new SaveCallback() {
                                     @Override
@@ -992,6 +992,7 @@ public class OrderFg extends BaseFragment {
             userId = userBean.getId();
             if (tableAVObject != null) {
                 tableAVObject.put("user", AVObject.createWithoutData("_User", userId));
+                tableAVObject.put("preOrder", preOrders);
                 tableAVObject.saveInBackground(new SaveCallback() {
                     @Override
                     public void done(AVException e) {

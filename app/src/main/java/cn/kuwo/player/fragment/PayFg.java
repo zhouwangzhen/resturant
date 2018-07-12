@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,8 @@ import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVFile;
 import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.FunctionCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.bumptech.glide.Glide;
@@ -146,6 +149,8 @@ public class PayFg extends BaseFragment {
     private Double whiteBarBalance;
     private Double storedBalance;
 
+
+    private Boolean isShield=false;
     @Override
     protected int getLayoutId() {
         return R.layout.fg_pay;
@@ -172,7 +177,7 @@ public class PayFg extends BaseFragment {
         btnFinishPay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (SharedHelper.readBoolean("Test") && orderDetail.getAvObject().getAVObject("user") != null && !orderDetail.getAvObject().getAVObject("user").getBoolean("Test")) {
+                if (SharedHelper.readBoolean("Test") && orderDetail.getAvObject().getAVObject("user") != null && !orderDetail.getAvObject().getAVObject("user").getBoolean("test")) {
                     ToastUtil.showShort(MyApplication.getContextObject(), "测试账号不能结账");
                 } else {
                     new QMUIDialog.MessageDialogBuilder(getActivity())
@@ -296,6 +301,8 @@ public class PayFg extends BaseFragment {
                         public void done(AVException e) {
                             hideDialog();
                             if (e == null) {
+                                showDialog();
+                                isShield=true;
                                 Bill.printSettleBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow, finalTableNumber);
                                 ToastUtil.showShort(MyApplication.getContextObject(), "订单结算完成");
                             } else {
@@ -355,48 +362,53 @@ public class PayFg extends BaseFragment {
                 }
             });
         } else {
-            AVObject avObject = orderDetail.getAvObject();
-            avObject.put("order", new List[0]);
-            avObject.put("preOrder", new List[0]);
-            avObject.put("refundOrder", new List[0]);
-            avObject.put("customer", 0);
-            avObject.put("startedAt", null);
-            avObject.put("user", null);
-            avObject.saveInBackground(new SaveCallback() {
-                @Override
-                public void done(AVException e) {
-                    if (e == null) {
-                        hideDialog();
-                        for (int i = 0; i < orderDetail.getSelectTableIds().size(); i++) {
-                            AVObject table = AVObject.createWithoutData("Table", orderDetail.getSelectTableIds().get(i));
-                            table.put("order", new List[0]);
-                            table.put("preOrder", new List[0]);
-                            table.put("refundOrder", new List[0]);
-                            table.put("customer", 0);
-                            table.put("startedAt", null);
-                            table.put("user", null);
-                            table.saveInBackground(new SaveCallback() {
-                                @Override
-                                public void done(AVException e) {
-                                    if (e == null) {
-                                        hideDialog();
+            clearTable();
 
-                                    } else {
-                                        hideDialog();
-                                        resetTable();
-                                    }
-                                }
-                            });
-                        }
-                        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                        ft.replace(R.id.fragment_content, TableFg.newInstance(""), "table").commit();
-                    } else {
-                        ToastUtil.showShort(MyApplication.getContextObject(), "网络错误" + e.getMessage());
-                        resetTable();
-                    }
-                }
-            });
         }
+    }
+
+    private void clearTable() {
+        AVObject avObject = orderDetail.getAvObject();
+        avObject.put("order", new List[0]);
+        avObject.put("preOrder", new List[0]);
+        avObject.put("refundOrder", new List[0]);
+        avObject.put("customer", 0);
+        avObject.put("startedAt", null);
+        avObject.put("user", null);
+        avObject.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(AVException e) {
+                if (e == null) {
+                    hideDialog();
+                    for (int i = 0; i < orderDetail.getSelectTableIds().size(); i++) {
+                        AVObject table = AVObject.createWithoutData("Table", orderDetail.getSelectTableIds().get(i));
+                        table.put("order", new List[0]);
+                        table.put("preOrder", new List[0]);
+                        table.put("refundOrder", new List[0]);
+                        table.put("customer", 0);
+                        table.put("startedAt", null);
+                        table.put("user", null);
+                        table.saveInBackground(new SaveCallback() {
+                            @Override
+                            public void done(AVException e) {
+                                if (e == null) {
+                                    hideDialog();
+
+                                } else {
+                                    hideDialog();
+                                    resetTable();
+                                }
+                            }
+                        });
+                    }
+                    FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                    ft.replace(R.id.fragment_content, TableFg.newInstance(""), "table").commit();
+                } else {
+                    ToastUtil.showShort(MyApplication.getContextObject(), "网络错误" + e.getMessage());
+                    resetTable();
+                }
+            }
+        });
     }
 
     private void setData() {
@@ -550,7 +562,29 @@ public class PayFg extends BaseFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        Logger.d("销毁");
         unbinder1.unbind();
+        if (isShield){
+            AVObject avObject = orderDetail.getAvObject();
+            avObject.put("order", new List[0]);
+            avObject.put("preOrder", new List[0]);
+            avObject.put("refundOrder", new List[0]);
+            avObject.put("customer", 0);
+            avObject.put("startedAt", null);
+            avObject.put("user", null);
+            avObject.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(AVException e) {
+                    if (e == null) {
+                        hideDialog();
+
+                    } else {
+                        ToastUtil.showShort(MyApplication.getContextObject(), "网络错误" + e.getMessage());
+                        resetTable();
+                    }
+                }
+            });
+        }
     }
 
     public class PaymentAdapter extends BaseAdapter {
@@ -605,6 +639,23 @@ public class PayFg extends BaseFragment {
     public void onResume() {
         super.onResume();
         EventBus.getDefault().register(this);
+        getFocus();
+    }
+
+    private void getFocus() {
+        getView().setFocusableInTouchMode(true);
+        getView().requestFocus();
+        getView().setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK&&isShield) {
+                    // 监听到返回按钮点击事件
+                    return true;
+                }
+                return false;
+
+            }
+        });
     }
 
     @Override
@@ -617,5 +668,32 @@ public class PayFg extends BaseFragment {
     public void onMessageEvent(PrintEvent event) {
         hideDialog();
         resetTable();
+        checkExplode();
+    }
+    private void checkExplode() {
+        if (!SharedHelper.readBoolean("Test")) {
+            final int explodeNumber = ProductUtil.calExplodeNumbers(orderDetail.getFinalOrders());
+            if (explodeNumber > 0) {
+                final AVQuery<AVObject> query = new AVQuery<>("OffineControl");
+                query.whereEqualTo("store", 1);
+                query.findInBackground(new FindCallback<AVObject>() {
+                    @Override
+                    public void done(List<AVObject> list, AVException e) {
+                        if (e == null) {
+                            AVObject avObject = list.get(0);
+                            avObject.put("number", avObject.getInt("number") + explodeNumber);
+                            avObject.saveInBackground(new SaveCallback() {
+                                @Override
+                                public void done(AVException e) {
+                                    if (e != null) {
+                                        checkExplode();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
     }
 }
