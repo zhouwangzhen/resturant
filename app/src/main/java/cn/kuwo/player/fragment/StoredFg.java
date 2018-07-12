@@ -159,7 +159,7 @@ public class StoredFg extends BaseFragment {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_scan_user:
-                if (CameraProvider.hasCamera()) {
+                if (CameraProvider.hasCamera()&&!SharedHelper.readBoolean("useGun")) {
                     if (MyUtils.getCameraPermission(MyApplication.getContextObject())) {
                         Intent intent = new Intent(getActivity(), CaptureActivity.class);
                         intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
@@ -257,7 +257,7 @@ public class StoredFg extends BaseFragment {
                     @Override
                     public void onClick(QMUIDialog dialog, int index) {
                         dialog.dismiss();
-                        if (CameraProvider.hasCamera()) {
+                        if (CameraProvider.hasCamera()&&!SharedHelper.readBoolean("useGun")) {
                             if (MyUtils.getCameraPermission(MyApplication.getContextObject())) {
                                 Intent intent = new Intent(getActivity(), CaptureActivity.class);
                                 intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
@@ -329,9 +329,9 @@ public class StoredFg extends BaseFragment {
                     @Override
                     public void done(Map<String, Object> objectMap, AVException e) {
                         if (e == null) {
-                            if (Integer.parseInt(objectMap.get("clerk").toString()) > 6 || (Boolean) objectMap.get("test")) {
+                            if (Integer.parseInt(objectMap.get("clerk").toString()) > 0 || (Boolean) objectMap.get("Test")) {
                                 marketId = objectMap.get("objectId").toString();
-                                marketName= objectMap.get("realName").toString() == null ? objectMap.get("nickName").toString() : objectMap.get("realName").toString();
+                                marketName= objectMap.get("realName") == null ? objectMap.get("nickName").toString() : objectMap.get("realName").toString();
                                 toRecharge();
                             } else {
                                 hideDialog();
@@ -402,7 +402,7 @@ public class StoredFg extends BaseFragment {
                 tvIsSvip.setText("会员类型:普通会员");
             }
         } else if (userBean.getCallbackCode() == CONST.UserCode.SCANUSER) {
-            if (userBean.getClerk() > 6 || userBean.getTest()) {
+            if (userBean.getClerk() > 0 || userBean.getTest()) {
                 marketId = userBean.getId();
                 marketName=userBean.getRealName();
                 toRecharge();

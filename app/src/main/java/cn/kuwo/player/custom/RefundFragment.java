@@ -38,6 +38,7 @@ import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.api.TableApi;
 import cn.kuwo.player.event.SuccessEvent;
+import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.SharedHelper;
@@ -93,6 +94,7 @@ public class RefundFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 showDialog();
+                Bill.printRefundOrder(tableAVObject,commodity,refundNumber.getText().toString().substring(0, refundNumber.getText().toString().length() - 1), ((TextView) view.findViewById(rgContent.getCheckedRadioButtonId())).getText().toString());
                 TableApi.refundOrder(
                         tableAVObject,
                         commodity,
@@ -104,7 +106,7 @@ public class RefundFragment extends DialogFragment {
                             public void done(AVException e) {
                                 hideDialog();
                                 if (e == null) {
-                                    ToastUtil.showShort(MyApplication.getContextObject(), "退菜成功");
+                                   ToastUtil.showShort(MyApplication.getContextObject(), "退菜成功");
                                     getDialog().dismiss();
                                     EventBus.getDefault().post(new SuccessEvent(0));
                                 } else {

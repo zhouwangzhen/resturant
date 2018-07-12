@@ -1,5 +1,7 @@
 package cn.kuwo.player.fragment;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.CardView;
@@ -14,11 +16,15 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVLiveQuery;
+import com.avos.avoscloud.AVLiveQueryEventHandler;
+import com.avos.avoscloud.AVLiveQuerySubscribeCallback;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.SaveCallback;
+import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
@@ -39,8 +45,8 @@ import cn.kuwo.player.util.ToastUtil;
 
 public class TableFg extends BaseFragment {
     private static String ARG_PARAM = "param_key";
-    @BindView(R.id.gv_table)
-    GridView gvTable;
+    @BindView(R.id.gv_tables)
+    GridView gvTables;
     TableAdapter tableAdapter;
     List<AVObject> tables = new ArrayList<>();
     @BindView(R.id.radio_big_table)
@@ -53,11 +59,11 @@ public class TableFg extends BaseFragment {
     TextView tvHangupNumber;
     @BindView(R.id.rl_hangup)
     RelativeLayout rlHangup;
-    Unbinder unbinder;
     @BindView(R.id.btn_hangup)
     TextView btnHangup;
-    private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
+    private Activity mActivity;
     private boolean chooseBigTable = true;
+    private AVLiveQuery avLiveQuery;
 
     @Override
     protected int getLayoutId() {
@@ -70,8 +76,6 @@ public class TableFg extends BaseFragment {
         setListener();
         fetchTable();
         fetchHangUp();
-        MainActivity activity = (MainActivity) getActivity();
-        activity.fetchTable();
     }
 
     private void fetchHangUp() {
@@ -80,7 +84,6 @@ public class TableFg extends BaseFragment {
             public void done(int i, AVException e) {
                 if (e == null) {
                     try {
-
                         if (i > 0) {
                             rlHangup.setVisibility(View.VISIBLE);
                             tvHangupNumber.setText(i + "");
@@ -94,7 +97,10 @@ public class TableFg extends BaseFragment {
             }
         });
     }
-
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mActivity = (Activity) context;
+    }
     private void fetchTable() {
         final AVQuery<AVObject> table = new AVQuery<>("Table");
         table.orderByAscending("tableNumber");
@@ -107,14 +113,13 @@ public class TableFg extends BaseFragment {
                     try {
                         tables = list;
                         tableAdapter = new TableAdapter();
-                        gvTable.setAdapter(tableAdapter);
-                        TextView remainTable = (TextView) getActivity().findViewById(R.id.remain_table);
+                        gvTables.setAdapter(tableAdapter);
+                        TextView remainTable = (TextView) mActivity.findViewById(R.id.remain_table);
                         remainTable.setText(ProductUtil.remainTable(list) + "");
                     } catch (Exception e1) {
                         e1.printStackTrace();
-                        ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
+                        Logger.d(e1.getMessage());
                     }
-
                     hideDialog();
                 } else {
                     hideDialog();
@@ -122,13 +127,29 @@ public class TableFg extends BaseFragment {
                 }
             }
         });
+        subscribeQuery(table);
     }
-
+    private void subscribeQuery(AVQuery<AVObject> query) {
+         avLiveQuery = AVLiveQuery.initWithQuery(query);
+        avLiveQuery.setEventHandler(new AVLiveQueryEventHandler() {
+            @Override
+            public void onObjectUpdated(AVObject avObject, List<String> updateKeyList) {
+                super.onObjectUpdated(avObject, updateKeyList);
+                fetchTable();
+            }
+        });
+        avLiveQuery.subscribeInBackground(new AVLiveQuerySubscribeCallback() {
+            @Override
+            public void done(AVException e) {
+            }
+        });
+    }
     private void setListener() {
         radioBigTable.setChecked(true);
         rgChooseTableStyle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
+                showDialog();
                 switch (checkedId) {
                     case R.id.radio_big_table:
                         chooseBigTable = true;
@@ -161,17 +182,14 @@ public class TableFg extends BaseFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // TODO: inflate a fragment view
-        View rootView = super.onCreateView(inflater, container, savedInstanceState);
-        unbinder = ButterKnife.bind(this, rootView);
-        return rootView;
-    }
-
-    @Override
     public void onDestroyView() {
         super.onDestroyView();
-        unbinder.unbind();
+        avLiveQuery.unsubscribeInBackground(new AVLiveQuerySubscribeCallback() {
+            @Override
+            public void done(AVException e) {
+
+            }
+        });
     }
 
 
@@ -195,7 +213,7 @@ public class TableFg extends BaseFragment {
         public View getView(final int i, View view, ViewGroup parent) {
             final ViewHolder holder;
             if (view == null) {
-                view = LayoutInflater.from(getContext()).inflate(R.layout.adapter_table, parent, false);
+                view=getLayoutInflater().inflate(R.layout.adapter_table,null);
                 holder = new ViewHolder();
                 holder.tableNumber = (TextView) view.findViewById(R.id.table_number);
                 holder.tableCommodity = (TextView) view.findViewById(R.id.table_commodity);
@@ -204,8 +222,6 @@ public class TableFg extends BaseFragment {
                 holder.tablePeople = (TextView) view.findViewById(R.id.table_people);
                 holder.tableDate = (TextView) view.findViewById(R.id.table_date);
                 holder.tableTime = (TextView) view.findViewById(R.id.table_time);
-                holder.card_hide = (CardView) view.findViewById(R.id.card_hide);
-                holder.card_show = (CardView) view.findViewById(R.id.card_show);
                 holder.cv_table = (CardView) view.findViewById(R.id.cv_table);
                 view.setTag(holder);
             } else {
@@ -221,9 +237,9 @@ public class TableFg extends BaseFragment {
                 holder.tablePeople.setText(avObject.getInt("customer") + "人");
                 try {
                     holder.tableDate.setText(DateUtil.formatDate(avObject.getDate("startedAt")));
-                    holder.tableTime.setText(DateUtil.TimeInterval(avObject.getDate("startedAt")));
+                    holder.tableTime.setText("牛币价格￥"+ProductUtil.calNbTotalMoney(avObject.getList("order")));
                 } catch (Exception e) {
-                    ToastUtil.showShort(MyApplication.getContextObject(), "获取时间错误");
+                    ToastUtil.showShort(MyApplication.getContextObject(), "获取牛币价格");
                 }
 
             } else {
@@ -233,130 +249,12 @@ public class TableFg extends BaseFragment {
                 holder.tableDate.setText("");
                 holder.tableTime.setText("");
             }
-
-            holder.cv_table.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    if (avObject.getBoolean("spread")) {
-                        holder.card_hide.setVisibility(View.VISIBLE);
-                        holder.card_show.setVisibility(View.INVISIBLE);
-                    } else {
-                        holder.card_hide.setVisibility(View.INVISIBLE);
-                        holder.card_show.setVisibility(View.VISIBLE);
-                    }
-                    return true;
-                }
-            });
             holder.cv_table.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
                     OrderFg orderFg = OrderFg.newInstance(tables.get(i).getObjectId(), true);
                     ft.replace(R.id.fragment_content, orderFg, "order").commit();
-                }
-            });
-            holder.card_show.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (avObject.getList("order").size() == 0 && avObject.getList("preOrder").size() == 0) {
-                        final AVQuery<AVObject> table = new AVQuery<>("Table");
-                        table.whereStartsWith("tableNumber", avObject.getString("tableNumber"));
-                        table.whereEqualTo("spread", true);
-                        table.whereEqualTo("active", 0);
-                        table.findInBackground(new FindCallback<AVObject>() {
-                            @Override
-                            public void done(List<AVObject> list, AVException e) {
-                                if (e == null && list.size() > 0) {
-
-                                    for (int i = 0; i < list.size(); i++) {
-                                        AVObject tableAVObject = list.get(i);
-                                        tableAVObject.put("active", 1);
-                                        tableAVObject.saveInBackground(new SaveCallback() {
-                                            @Override
-                                            public void done(AVException e) {
-                                                if (e == null) {
-                                                    avObject.put("active", 0);
-                                                    avObject.saveInBackground(new SaveCallback() {
-                                                        @Override
-                                                        public void done(AVException e) {
-                                                            if (e == null) {
-                                                                ToastUtil.showShort(MyApplication.getContextObject(), "修改成功");
-                                                                initData();
-                                                            }
-                                                        }
-                                                    });
-                                                }
-                                            }
-                                        });
-                                    }
-                                }
-                            }
-                        });
-                    } else {
-                        new QMUIDialog.MessageDialogBuilder(getActivity())
-                                .setTitle("温馨提示")
-                                .setMessage("此桌有已经下单商品或预下单商品,不可变成小桌")
-                                .addAction("确定", new QMUIDialogAction.ActionListener() {
-                                    @Override
-                                    public void onClick(QMUIDialog dialog, int index) {
-                                        dialog.dismiss();
-                                    }
-                                })
-                                .create(mCurrentDialogStyle).show();
-                    }
-
-                }
-            });
-            holder.card_hide.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AVQuery<AVObject> tables = new AVQuery<>("Table");
-                    tables.whereStartsWith("tableNumber", avObject.getString("tableNumber").substring(0, 1));
-                    tables.findInBackground(new FindCallback<AVObject>() {
-                        @Override
-                        public void done(List<AVObject> list, AVException e) {
-                            boolean ableMerge = true;
-                            for (int i = 0; i < list.size(); i++) {
-                                if (list.get(i).getList("order").size() > 0 && list.get(i).getBoolean("spread")) {
-                                    ableMerge = false;
-                                    break;
-                                }
-                            }
-                            if (!ableMerge) {
-                                new QMUIDialog.MessageDialogBuilder(getActivity())
-                                        .setTitle("温馨提示")
-                                        .setMessage("此桌小桌中已经下单商品，不可隐藏")
-                                        .addAction("确定", new QMUIDialogAction.ActionListener() {
-                                            @Override
-                                            public void onClick(QMUIDialog dialog, int index) {
-                                                dialog.dismiss();
-                                            }
-                                        })
-                                        .create(mCurrentDialogStyle).show();
-                            } else {
-                                for (int i = 0; i < list.size(); i++) {
-                                    AVObject avObject1 = list.get(i);
-                                    if (list.get(i).getBoolean("spread")) {
-                                        avObject1.put("active", 0);
-                                        avObject1.saveInBackground(new SaveCallback() {
-                                            @Override
-                                            public void done(AVException e) {
-                                                initData();
-                                            }
-                                        });
-                                    } else {
-                                        avObject1.put("active", 1);
-                                        avObject1.saveInBackground(new SaveCallback() {
-                                            @Override
-                                            public void done(AVException e) {
-                                                initData();
-                                            }
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    });
                 }
             });
             return view;
@@ -370,8 +268,6 @@ public class TableFg extends BaseFragment {
             TextView tablePeople;
             TextView tableDate;
             TextView tableTime;
-            CardView card_hide;
-            CardView card_show;
             CardView cv_table;
         }
     }

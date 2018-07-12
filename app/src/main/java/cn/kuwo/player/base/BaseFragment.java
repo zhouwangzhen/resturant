@@ -39,7 +39,7 @@ public abstract class BaseFragment extends Fragment {
         tipDialog = new QMUITipDialog.Builder(getContext())
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
                 .setTipWord("加载中")
-                .create();
+                .create(false);
         return view;
     }
 
@@ -66,9 +66,7 @@ public abstract class BaseFragment extends Fragment {
         if (tipDialog != null) {
             tipDialog.dismiss();
         }
-
     }
-
     public Float getDensity() {
         try {
             return AppUtils.getScreenDensity(getContext());

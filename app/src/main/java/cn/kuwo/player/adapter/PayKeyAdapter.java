@@ -39,7 +39,7 @@ public class PayKeyAdapter extends BaseAdapter {
             "8",
             "9",
             //  "=",
-            "<",
+            "扫描",
             "0",
             "✖"
             // "+",

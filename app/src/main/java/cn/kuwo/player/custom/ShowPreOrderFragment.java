@@ -67,7 +67,6 @@ public class ShowPreOrderFragment extends DialogFragment {
                 return ObjectUtil.getInt(format, "cookSerial") - ObjectUtil.getInt(format1, "cookSerial");
             }
         });
-        Logger.d(preOrders);
         this.preOrders = preOrders;
         this.tableAVObject = tableAVObject;
     }
@@ -100,20 +99,6 @@ public class ShowPreOrderFragment extends DialogFragment {
             public void onClick(View v) {
                 if (tableAVObject!=null) {
                     showDialog();
-//                    List order = tableAVObject.getList("order");
-//                    List<Object> orderList = new ArrayList<>();
-//                    orderList.addAll(order);
-//                    for (int i = 0; i < preOrders.size(); i++) {
-//                        orderList.add(preOrders.get(i));
-//                    }
-//                    tableAVObject.put("order", orderList);
-//                    tableAVObject.put("preOrder", new List[0]);
-//                    if (tableAVObject.getDate("startedAt") == null) {
-//                        tableAVObject.put("startedAt", new Date());
-//                    }
-//                    if (tableAVObject.getInt("customer") == 0) {
-//                        tableAVObject.put("customer", 1);
-//                    }
                     TableApi.addOrder(tableAVObject,preOrders).saveInBackground(new SaveCallback() {
                         @Override
                         public void done(AVException e) {
@@ -174,12 +159,22 @@ public class ShowPreOrderFragment extends DialogFragment {
                 holder.show_list_give = view.findViewById(R.id.show_list_give);
                 holder.show_combo_content = view.findViewById(R.id.show_combo_content);
                 holder.commodity_type = view.findViewById(R.id.commodity_type);
+                holder.show_cookstyle = view.findViewById(R.id.show_cookstyle);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
             }
             HashMap<String, Object> format = ObjectUtil.format(preOrders.get(i));
-            holder.show_list_name.setText(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName());
+            String nameContent="";
+            nameContent+=MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName();
+            if (ObjectUtil.getString(format,"barcode").length()==18){
+                nameContent+="("+(ProductUtil.calCommodityWeight(ObjectUtil.getString(format,"barcode"))>20?ProductUtil.calCommodityWeight(ObjectUtil.getString(format,"barcode"))+"ml":ProductUtil.calCommodityWeight(ObjectUtil.getString(format,"barcode"))+"kg")+")";
+            }
+            holder.show_list_name.setText(nameContent);
+            if (!ObjectUtil.getString(format,"cookStyle").equals("")){
+                holder.show_cookstyle.setText("做法:"+ObjectUtil.getString(format,"cookStyle"));
+            }
+
             if (ObjectUtil.getString(format, "comment").length() > 0) {
                 holder.show_list_content.setVisibility(View.VISIBLE);
                 holder.show_list_content.setText("(备注:" + ObjectUtil.getString(format, "comment") + ")");
@@ -208,6 +203,7 @@ public class ShowPreOrderFragment extends DialogFragment {
             TextView show_list_give;
             TextView show_combo_content;
             TextView commodity_type;
+            TextView show_cookstyle;
         }
     }
 

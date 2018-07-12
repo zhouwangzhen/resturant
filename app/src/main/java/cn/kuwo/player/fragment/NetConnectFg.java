@@ -26,6 +26,7 @@ import cn.kuwo.player.R;
 import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.print.Pos;
+import cn.kuwo.player.util.AppUtils;
 import cn.kuwo.player.util.SharedHelper;
 
 public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheckedChangeListener, TextWatcher {
@@ -83,6 +84,18 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
     EditText ip3Cool;
     @BindView(R.id.ip_4_cool)
     EditText ip4Cool;
+    @BindView(R.id.group_show)
+    TextView groupShow;
+    @BindView(R.id.ip_1_show)
+    EditText ip1Show;
+    @BindView(R.id.ip_2_show)
+    EditText ip2Show;
+    @BindView(R.id.ip_3_show)
+    EditText ip3Show;
+    @BindView(R.id.ip_4_show)
+    EditText ip4Show;
+    @BindView(R.id.test_printer_show)
+    RelativeLayout testPrinterShow;
 
     private SharedHelper sharedHelper;
     @SuppressLint("HandlerLeak")
@@ -126,6 +139,10 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
         ip2Cool.addTextChangedListener(this);
         ip3Cool.addTextChangedListener(this);
         ip4Cool.addTextChangedListener(this);
+        ip1Show.addTextChangedListener(this);
+        ip2Show.addTextChangedListener(this);
+        ip3Show.addTextChangedListener(this);
+        ip4Show.addTextChangedListener(this);
         sharedHelper = new SharedHelper(MyApplication.getContextObject());
         String ip1String = sharedHelper.read("ip1");
         String ip2String = sharedHelper.read("ip2");
@@ -147,6 +164,10 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
         String ip3StringCool = sharedHelper.read("ip3_cool");
         String ip4StringCool = sharedHelper.read("ip4_cool");
 
+        String ip1StringShow = sharedHelper.read("ip1_show");
+        String ip2StringShow = sharedHelper.read("ip2_show");
+        String ip3StringShow = sharedHelper.read("ip3_show");
+        String ip4StringShow = sharedHelper.read("ip4_show");
 
 
         ip1.setText(ip1String);
@@ -165,10 +186,14 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
         ip2Cool.setText(ip2StringCool);
         ip3Cool.setText(ip3StringCool);
         ip4Cool.setText(ip4StringCool);
+        ip1Show.setText(ip1StringShow);
+        ip2Show.setText(ip2StringShow);
+        ip3Show.setText(ip3StringShow);
+        ip4Show.setText(ip4StringShow);
 
     }
 
-    @OnClick({R.id.test_printer, R.id.test_printer_kitchen, R.id.opem_cash_box, R.id.search_print_ip, R.id.test_printer_drink, R.id.test_printer_cool})
+    @OnClick({R.id.test_printer, R.id.test_printer_kitchen, R.id.opem_cash_box, R.id.search_print_ip, R.id.test_printer_drink, R.id.test_printer_cool,R.id.test_printer_show})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.test_printer:
@@ -181,7 +206,14 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
                 openBox();
                 break;
             case R.id.search_print_ip:
-                checkAllPrint();
+                try {
+                    if (!AppUtils.isFastDoubleClick()) {
+                        checkAllPrint();
+                    }
+                } catch (Exception e) {
+
+                }
+
                 break;
             case R.id.test_printer_drink:
                 testDrinkPrinter();
@@ -189,7 +221,33 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
             case R.id.test_printer_cool:
                 tesCoolPrinter();
                 break;
+            case R.id.test_printer_show:
+                testShowPrinter();
+                break;
         }
+    }
+
+    private void testShowPrinter() {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
+                    String url = SharedHelper.read("ip1_show") + "." + SharedHelper.read("ip2_show") + "." + SharedHelper.read("ip3_show") + "." + SharedHelper.read("ip4_show");
+                    Pos pos = null;
+                    pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+                    pos.initPos();
+                    pos.printText("我是展示间打印机测试" + url);
+                    pos.printLine(2);
+                    pos.feedAndCut();
+                    pos.closeIOAndSocket();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    mHandler.sendEmptyMessage(1);
+                }
+            }
+        }.start();
     }
 
     private void tesCoolPrinter() {
@@ -293,32 +351,36 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
     }
 
     private void checkAllPrint() {
-        showDialog();
-        for (int i = 1; i < 250; i++) {
-            final int finalI = i;
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        String url = "192.168.1." + finalI;
-                        Pos pos = null;
-                        pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
-                        pos.initPos();
-                        pos.printText("我的ip地址  " + url);
-                        Logger.d(finalI);
-                        pos.printLine(1);
-                        pos.feedAndCut();
-                        pos.closeIOAndSocket();
-                    } catch (Exception e) {
-                        e.printStackTrace();
+        try {
+            showDialog();
+            for (int i = 1; i < 250; i++) {
+                final int finalI = i;
+                new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            String url = "192.168.1." + finalI;
+                            Pos pos = null;
+                            pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+                            pos.initPos();
+                            pos.printText("我的ip地址  " + url);
+                            Logger.d(finalI);
+                            pos.printLine(1);
+                            pos.feedAndCut();
+                            pos.closeIOAndSocket();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
                     }
 
+                }.start();
+                if (i == 249) {
+                    hideDialog();
                 }
-
-            }.start();
-            if (i == 249) {
-                hideDialog();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }
@@ -335,6 +397,7 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
         int size1_kitchen, size2_kitchen, size3_kitchen, size4_kitchen;
         int size1_drink, size2_drink, size3_drink, size4_drink;
         int size1_cool, size2_cool, size3_cool, size4_cool;
+        int size1_show, size2_show, size3_show, size4_show;
         size1 = ip1.getText().toString().trim().length();
         size2 = ip2.getText().toString().trim().length();
         size3 = ip3.getText().toString().trim().length();
@@ -352,6 +415,12 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
         size2_cool = ip2Cool.getText().toString().trim().length();
         size3_cool = ip3Cool.getText().toString().trim().length();
         size4_cool = ip4Cool.getText().toString().trim().length();
+
+        size1_show = ip1Show.getText().toString().trim().length();
+        size2_show = ip2Show.getText().toString().trim().length();
+        size3_show = ip3Show.getText().toString().trim().length();
+        size4_show = ip4Show.getText().toString().trim().length();
+
         if (size1 == 3 && size2 == 3 && size3 == 1 && (size4 == 2 || size4 == 3 || size4 == 1)) {
             sharedHelper.save("ip1", ip1.getText().toString().trim());
             sharedHelper.save("ip2", ip2.getText().toString().trim());
@@ -376,6 +445,12 @@ public class NetConnectFg extends BaseFragment implements CompoundButton.OnCheck
             sharedHelper.save("ip2_cool", ip2Cool.getText().toString().trim());
             sharedHelper.save("ip3_cool", ip3Cool.getText().toString().trim());
             sharedHelper.save("ip4_cool", ip4Cool.getText().toString().trim());
+        }
+        if (size1_show == 3 && size2_show == 3 && size3_show == 1 && (size4_show == 2 || size4_show == 3 || size4_show == 1)) {
+            sharedHelper.save("ip1_show", ip1Show.getText().toString().trim());
+            sharedHelper.save("ip2_show", ip2Show.getText().toString().trim());
+            sharedHelper.save("ip3_show", ip3Show.getText().toString().trim());
+            sharedHelper.save("ip4_show", ip4Show.getText().toString().trim());
         }
     }
 

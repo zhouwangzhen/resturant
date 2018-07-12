@@ -4,11 +4,43 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimaryDark">
+
+        <LinearLayout
+            android:id="@+id/tv_back"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="10dp"
+                android:text="返回"
+                android:textColor="@color/white"
+                android:drawableLeft="@drawable/ic_back"
+                android:gravity="center_vertical" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:gravity="center"
+            android:text="零售结账"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+    </LinearLayout>
+
     <EditText
         android:id="@+id/scan_meatcode"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="-3dp"
+        android:layout_marginTop="-1dp"
         android:maxLines="1"
         android:paddingLeft="50dp" />
 
@@ -35,8 +67,8 @@
                 android:layout_height="90dp"
                 android:layout_gravity="bottom"
                 android:background="#fff"
-                android:visibility="gone"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:visibility="gone">
 
                 <View
                     android:layout_width="match_parent"
@@ -73,12 +105,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="扫描商品条形码"
-                android:textSize="40sp"
-                android:textStyle="bold"
+                android:drawableTop="@drawable/scan_barcode"
                 android:gravity="center"
+                android:text="扫描商品条形码"
                 android:textColor="#999"
-                android:drawableTop="@drawable/scan_barcode" />
+                android:textSize="40sp"
+                android:textStyle="bold" />
         </FrameLayout>
 
         <LinearLayout
@@ -105,6 +137,66 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
+                    <RadioButton
+                        android:id="@+id/goods_explode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:checked="true"
+                        android:padding="6dp"
+                        android:text="爆款产品"
+                        android:textColor="#000000"
+                        android:textSize="22sp" />
+                    <RadioButton
+                        android:id="@+id/goods_dish"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:checked="true"
+                        android:padding="6dp"
+                        android:text="菜品"
+                        android:textColor="#000000"
+                        android:textSize="22sp" />
+                    <RadioButton
+                        android:id="@+id/goods_wine"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:checked="true"
+                        android:padding="6dp"
+                        android:text="葡萄酒"
+                        android:textColor="#000000"
+                        android:textSize="22sp" />
+                    <RadioButton
+                        android:id="@+id/goods_drink"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:checked="true"
+                        android:padding="6dp"
+                        android:text="饮料"
+                        android:textColor="#000000"
+                        android:textSize="22sp" />
+                    <RadioButton
+                        android:id="@+id/goods_no_code"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:checked="true"
+                        android:padding="6dp"
+                        android:text="按份卖的商品"
+                        android:textColor="#000000"
+                        android:textSize="22sp" />
+                    <RadioButton
+                        android:id="@+id/goods_operator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:checked="true"
+                        android:padding="6dp"
+                        android:text="加工费"
+                        android:textColor="#000000"
+                        android:textSize="22sp" />
                 </cn.kuwo.player.custom.FlowRadioGroup>
 
                 <android.support.v7.widget.RecyclerView
@@ -120,9 +212,9 @@
                 android:background="#000000" />
 
             <LinearLayout
-                android:visibility="gone"
                 android:layout_width="100dp"
                 android:layout_height="match_parent"
+                android:layout_marginTop="2dp"
                 android:background="#90EE90"
                 android:gravity="center"
                 android:orientation="vertical">

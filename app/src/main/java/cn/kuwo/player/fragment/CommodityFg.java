@@ -79,11 +79,6 @@ public class CommodityFg extends BaseFragment {
     @Override
     public void initData() {
         mRealmHleper = new RealmHelper(MyApplication.getContextObject());
-        emptyView.show(true);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MyApplication.getContextObject(), LinearLayout.VERTICAL, false);
-        offinelist.setLayoutManager(linearLayoutManager);
-        offineAdapter = new OffineAdapter(MyApplication.getContextObject(), mRealmHleper.queryAllProduct(), mRealmHleper.queryAllType(), getActivity().getFragmentManager());
-        offinelist.setAdapter(offineAdapter);
         List<RuleBean> ruleBeans = mRealmHleper.queryAllRule();
         if (ruleBeans.size() > 0) {
             RuleBean ruleBean = ruleBeans.get(0);
@@ -93,7 +88,14 @@ public class CommodityFg extends BaseFragment {
             }
             ruleContent.setText(ruleInfo);
         }
-        emptyView.show(false);
+        final List<ProductBean> productBeans = mRealmHleper.queryAllProduct();
+        final List<TypeBean> typeBeans = mRealmHleper.queryAllType();
+        showDialog();
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MyApplication.getContextObject(), LinearLayout.VERTICAL, false);
+        offinelist.setLayoutManager(linearLayoutManager);
+        offineAdapter = new OffineAdapter(MyApplication.getContextObject(), productBeans, typeBeans, getActivity().getFragmentManager());
+        offinelist.setAdapter(offineAdapter);
+        hideDialog();
 
     }
 
@@ -126,12 +128,14 @@ public class CommodityFg extends BaseFragment {
                         productBean.setScale(avObject.getDouble("scale"));
                         productBean.setRemainMoney(avObject.getDouble("remainMoney"));
                         productBean.setActive(avObject.getInt("active"));
+                        productBean.setNb(avObject.getDouble("nb"));
                         productBean.setComboMenu(avObject.getString("comboMenu") == null ? "" : MyUtils.replaceBlank(avObject.getString("comboMenu").trim().replace(" ", "")));
                         RealmList<String> commentsList = new RealmList<>();
                         for (int k = 0; k < avObject.getList("comments").size(); k++) {
                             commentsList.add(avObject.getList("comments").get(k).toString());
                         }
                         productBean.setGiveRule(avObject.getInt("giveRule"));
+                        productBean.setReviewCommodity(avObject.getString("reviewCommodity"));
                         productBean.setComments(commentsList);
                         mRealmHleper.addProduct(productBean);
 
@@ -141,7 +145,9 @@ public class CommodityFg extends BaseFragment {
                     offineAdapter = new OffineAdapter(MyApplication.getContextObject(), mRealmHleper.queryAllProduct(), mRealmHleper.queryAllType(), mActivity.getFragmentManager());
                     offinelist.setAdapter(offineAdapter);
                     emptyView.show(false);
-
+                    hideDialog();
+                } else {
+                    hideDialog();
                 }
             }
         });
@@ -198,6 +204,7 @@ public class CommodityFg extends BaseFragment {
     }
 
     public void loadType() {
+        showDialog();
         emptyView.show(true);
         CommodityTypeApi.getCommodityType().findInBackground(new FindCallback<AVObject>() {
             @Override
@@ -215,6 +222,7 @@ public class CommodityFg extends BaseFragment {
                     }
                     loadCommodity();
                 } else {
+                    hideDialog();
                     emptyView.show(false);
                     ToastUtil.showLong(MyApplication.getContextObject(), "加载失败");
                 }

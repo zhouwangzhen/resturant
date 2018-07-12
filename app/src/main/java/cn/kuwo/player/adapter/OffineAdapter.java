@@ -27,7 +27,9 @@ import cn.kuwo.player.bean.TypeBean;
 import cn.kuwo.player.custom.ShowComboMenuFragment;
 import cn.kuwo.player.interfaces.MyItemClickListener;
 import cn.kuwo.player.util.AppUtils;
+import cn.kuwo.player.util.CalViewGroupUtil;
 import cn.kuwo.player.util.MyUtils;
+import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.ToastUtil;
@@ -67,17 +69,18 @@ public class OffineAdapter extends RecyclerView.Adapter<OffineAdapter.MyViewHold
         holder.title.setText(typeBeans.get(position).getName() + "·" + productBeans.size());
         CommodityAdapter commodityAdapter = new CommodityAdapter(productBeans);
         holder.gvTable.setAdapter(commodityAdapter);
-        ViewGroup.LayoutParams layoutParams = holder.gvTable.getLayoutParams();
-        int screenDensity = (int) AppUtils.getScreenDensity(MyApplication.getContextObject());
-        layoutParams.height = 330 * ((productBeans.size() + 1) / 2) * screenDensity / 2;
-        holder.gvTable.setLayoutParams(layoutParams);
+        CalViewGroupUtil.calGridViewWidthAndHeigh(2,holder.gvTable);
     }
 
     @Override
     public int getItemCount() {
         return typeBeans.size();
     }
+    @Override
+    public int getItemViewType(int position) {
 
+        return position;
+    }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         TextView title;
@@ -118,12 +121,11 @@ public class OffineAdapter extends RecyclerView.Adapter<OffineAdapter.MyViewHold
             if (view == null) {
                 view = LayoutInflater.from(MyApplication.getContextObject()).inflate(R.layout.girdview_commodity, parent, false);
                 holder = new ViewHolder();
-                holder.name = (TextView) view.findViewById(R.id.name);
-                holder.number = (TextView) view.findViewById(R.id.number);
-                holder.weight = (TextView) view.findViewById(R.id.weight);
-                holder.price = (TextView) view.findViewById(R.id.price);
-                holder.ImageAvatar = (ImageView) view.findViewById(R.id.image_avatar);
-                holder.llCommodityItem = (LinearLayout) view.findViewById(R.id.ll_commodity_item);
+                holder.name = view.findViewById(R.id.name);
+                holder.number = view.findViewById(R.id.number);
+                holder.weight =view.findViewById(R.id.weight);
+                holder.price =  view.findViewById(R.id.price);
+                holder.llCommodityItem =view.findViewById(R.id.ll_commodity_item);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
@@ -132,19 +134,13 @@ public class OffineAdapter extends RecyclerView.Adapter<OffineAdapter.MyViewHold
             holder.number.setText(productBean.getSerial());
             holder.name.setText(productBean.getName().toString());
             if (productBean.getSerial()!=null) {
-                holder.weight.setText("菜品重量:" + productBean.getWeight() + "kg  " + (productBean.getScale() > 0 ? "可抵扣牛肉重量:" + MyUtils.formatDouble(productBean.getScale() * productBean.getWeight()) + "kg" + "抵扣后需支付:" + productBean.getRemainMoney() + "元" : ""));
+                holder.weight.setText("菜品重量:" + productBean.getWeight() +  (productBean.getWeight()>20?"ml":"kg") + (productBean.getScale() > 0 ? "可抵扣牛肉重量:" + MyUtils.formatDouble(productBean.getScale() * productBean.getWeight()) + "kg" + "抵扣后需支付:" + productBean.getRemainMoney() + "元" : ""));
 
             }
-            holder.price.setText("￥" + productBean.getPrice());
-            Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.ImageAvatar);
+            holder.price.setText("￥" + productBean.getPrice()+"\n"+"牛币价:"+productBean.getNb());
             holder.llCommodityItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-//                    if (productBean.getComboMenu()!=null) {
-//
-//                        ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(context, productBean, false);
-//                        showComboMenuFragment.show(supportFragmentManager, "showcomboMenu");
-//                    }
 
 
                 }
@@ -160,8 +156,7 @@ public class OffineAdapter extends RecyclerView.Adapter<OffineAdapter.MyViewHold
     }
 
     private class ViewHolder {
-        TextView number, name, barcode, weight, price;
-        ImageView ImageAvatar;
+        TextView number, name, weight, price;
         LinearLayout llCommodityItem;
     }
 }

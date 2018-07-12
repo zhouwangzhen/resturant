@@ -11,6 +11,8 @@ import com.tencent.bugly.crashreport.CrashReport;
 import cn.kuwo.player.util.RealmHelper;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.sentry.Sentry;
+import io.sentry.android.AndroidSentryClientFactory;
 
 public class MyApplication extends Application {
     private  static Context context;

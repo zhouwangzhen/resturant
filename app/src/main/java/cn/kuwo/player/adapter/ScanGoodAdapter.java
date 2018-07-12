@@ -22,11 +22,12 @@ import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.interfaces.MyItemClickListener;
+import cn.kuwo.player.interfaces.MyItemLongClickListener;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
 
-public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyViewHolder> implements View.OnClickListener {
+public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyViewHolder> implements View.OnClickListener,View.OnLongClickListener {
     private Context mContext;
     private LayoutInflater inflater;
     private MyItemClickListener mListener = null;
@@ -34,7 +35,7 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
     private List<Object> orders;
     private List<Object> preOrders;
     private List<Object> refundOrders;
-
+    private MyItemLongClickListener myItemLongClickListener = null;
 
     public ScanGoodAdapter(Context context, AVObject tableAVObject) {
         this.mContext = context;
@@ -59,6 +60,9 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             HashMap<String, Object> format = ObjectUtil.format(preOrders.get(preOrders.size() - position - 1));
             ProductBean preProductBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             String contnet = preProductBean.getName();
+            if (!ObjectUtil.getString(format,"cookStyle").equals("")){
+                contnet+="(做法:"+ObjectUtil.getString(format,"cookStyle")+")";
+            }
             if (format.containsKey("comboList") && ObjectUtil.getList(format, "comboList").size() > 0) {
                 List<String> comboList = ObjectUtil.getList(format, "comboList");
                 for (int j = 0; j < comboList.size(); j++) {
@@ -78,10 +82,12 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             Drawable drawable = mContext.getResources().getDrawable(R.mipmap.icon_dot);
             holder.tvNumber.setText("x" + ObjectUtil.getDouble(format, "number") + "份");
             holder.tvPrice.setText("￥" + ObjectUtil.getDouble(format, "price"));
-            Glide.with(MyApplication.getContextObject()).load(preProductBean.getUrl()).into(holder.imageAvatar);
+            if (preProductBean.getUrl()!=null&&!preProductBean.getUrl().equals("")){
+                Glide.with(MyApplication.getContextObject()).load(preProductBean.getUrl()).into(holder.imageAvatar);
+            }
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(preProductBean.getSerial());
-            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + "kg";
+            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + (ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
             if (preProductBean.getScale() > 0) {
                 weightContent += "超牛会员可抵扣" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")*preProductBean.getScale()) + "kg";
                 if (preProductBean.getRemainMoney() > 0) {
@@ -123,10 +129,12 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             Drawable drawable = mContext.getResources().getDrawable(R.mipmap.icon_already);
             holder.tvNumber.setText("x" + ObjectUtil.getDouble(format, "number") + "份");
             holder.tvPrice.setText("￥" + ObjectUtil.getDouble(format, "price"));
-            Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
+            if (productBean.getUrl()!=null&&!productBean.getUrl().equals("")){
+                Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
+            }
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(productBean.getSerial());
-            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + "kg";
+            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  +(ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
             if (productBean.getScale() > 0) {
                 weightContent += "超牛会员可抵扣" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")*productBean.getScale()) + "kg";
                 if (productBean.getRemainMoney() > 0) {
@@ -151,10 +159,12 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             Drawable drawable = mContext.getResources().getDrawable(R.mipmap.icon_delete);
             holder.tvNumber.setText("x" + ObjectUtil.getDouble(format, "number"));
             holder.tvPrice.setText("￥" + ObjectUtil.getDouble(format, "price"));
-            Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
+            if (productBean.getUrl()!=null&&!productBean.getUrl().equals("")){
+                Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
+            }
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(productBean.getSerial());
-            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + "kg";
+            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + (ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
             if (productBean.getScale() > 0) {
                 weightContent += "超牛会员可抵扣" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")*productBean.getScale()) + "kg";
                 if (productBean.getRemainMoney() > 0) {
@@ -175,6 +185,7 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
         }
         holder.tvComment.setOnClickListener(this);
         holder.llItem.setOnClickListener(this);
+        holder.llItem.setOnLongClickListener(this);
         holder.tvComment.setTag(position);
         holder.llItem.setTag(position);
     }
@@ -187,6 +198,13 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
     @Override
     public void onClick(View v) {
         mListener.onItemClick(v, (Integer) v.getTag());
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        myItemLongClickListener.onItemClick(v, (Integer) v.getTag());
+        return false;
+
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
@@ -213,6 +231,9 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
 
     public void setOnItemClickListener(MyItemClickListener listener) {
         this.mListener = listener;
+    }
+    public void setOnItemLongClickListene(MyItemLongClickListener myListener) {
+        this.myItemLongClickListener = myListener;
     }
 
 }

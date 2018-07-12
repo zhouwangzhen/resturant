@@ -63,7 +63,7 @@ public class RealmHelper {
      */
 
     public List<ProductBean> queryAllProduct() {
-        RealmResults<ProductBean> all = mRealm.where(ProductBean.class).findAll().sort("serial", Sort.ASCENDING);
+        RealmResults<ProductBean> all = mRealm.where(ProductBean.class).equalTo("active",1).findAll().sort("serial", Sort.ASCENDING);
         return mRealm.copyFromRealm(all);
     }
     public List<ProductBean> queryActiveAllProduct() {
@@ -99,11 +99,14 @@ public class RealmHelper {
             ProductBean productBean=mRealm.where(ProductBean.class).equalTo("objectId",id).findFirst();
             return mRealm.copyFromRealm(productBean);
         }catch (Exception e){
-            com.orhanobut.logger.Logger.d(id);
             e.printStackTrace();
         }
         return null;
 
+    }
+    public List<ProductBean> queryOtherType(int index) {
+        RealmResults<ProductBean> productBeen = mRealm.where(ProductBean.class).equalTo("store",1).equalTo("combo", index).findAll();
+        return mRealm.copyFromRealm(productBeen);
     }
     public List<ProductBean>  queryCommodityBySerial(String serial) {
         RealmResults<ProductBean> productBeans = mRealm.where(ProductBean.class).equalTo("active",1).equalTo("serial", serial).findAll();
@@ -113,7 +116,10 @@ public class RealmHelper {
         RealmResults<RuleBean> ruleBean = mRealm.where(RuleBean.class).findAll();
         return mRealm.copyFromRealm(ruleBean);
     }
-
+    public List<ProductBean> queryCookStyle() {
+        RealmResults<ProductBean> ruleBean = mRealm.where(ProductBean.class).equalTo("type",10).findAll();
+        return mRealm.copyFromRealm(ruleBean);
+    }
     public Realm getRealm() {
         return mRealm;
     }
@@ -145,4 +151,8 @@ public class RealmHelper {
         return mRealm.copyFromRealm(productBeen);
     }
 
+    public List<ProductBean> queryAdditionals() {
+        RealmResults<ProductBean> ruleBean = mRealm.where(ProductBean.class).equalTo("type",11).findAll();
+        return mRealm.copyFromRealm(ruleBean);
+    }
 }

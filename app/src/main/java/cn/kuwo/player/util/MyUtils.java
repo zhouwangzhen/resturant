@@ -157,7 +157,10 @@ public class MyUtils {
         SimpleDateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd HH:MM:SS");
         return timeformat.format(date);
     }
-
+    public static String dateFormat1(Date date) {
+        SimpleDateFormat timeformat = new SimpleDateFormat("HH:MM:SS");
+        return timeformat.format(date);
+    }
     public static String dateFormatShort(Date date) {
         SimpleDateFormat timeformat = new SimpleDateFormat("MM-dd");
         return timeformat.format(date);
@@ -186,7 +189,7 @@ public class MyUtils {
             productBeen = mRealmHleper.queryProductByBarcode(barcode);
         } else if (barcode.length() == 18) {
             productBeen = mRealmHleper.queryProductByBarcode(barcode.substring(2, 7));
-        } else if (barcode.length() == 5) {
+        } else if (barcode.length() == 5||barcode.length() == 8) {
             productBeen = mRealmHleper.queryProductByBarcode(barcode);
         }
         return productBeen;
@@ -198,5 +201,18 @@ public class MyUtils {
             totalPrice += price;
         }
         return formatDouble(totalPrice);
+    }
+    public static boolean isDoubleOrFloat(String str) {
+        Pattern pattern = Pattern.compile("^[-\\+]?[.\\d]*$");
+        return pattern.matcher(str).matches();
+    }
+    public static String filter(String character)
+    {
+        character = character.replaceAll("[^(0-9\\u4e00-\\u9fa5)]", "");
+        return character;
+    }
+    public static boolean isNumber(String str) {
+        Pattern pattern = Pattern.compile("^[0-9]*$");
+        return pattern.matcher(str).matches();
     }
 }

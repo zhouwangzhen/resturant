@@ -39,7 +39,7 @@ public class ShowFuncFragment extends DialogFragment {
     private View view;
     private GridView gvFunc;
     private Button btnClose;
-    private String[] funList = {"多桌结账", "挂账", "抹零", "打印预览订单", "整单打折"};
+    private String[] funList = {"多桌结账", "挂账", "抹零", "打印预览订单", "整单打折","周边员工专享8.8折"};
     private int mode;
 
     public ShowFuncFragment(int mode) {
@@ -126,7 +126,7 @@ public class ShowFuncFragment extends DialogFragment {
                 @Override
                 public void onClick(View v) {
                     if (mode==1&&(position==0||position==1)){
-                        if (position==0||position==1){
+                        if (position==0){
                             ToastUtil.showShort(MyApplication.getContextObject(),"尚未开放此功能");
                             return;
                         }

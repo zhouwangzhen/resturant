@@ -19,24 +19,30 @@
         android:orientation="vertical"
         android:paddingLeft="20dp">
 
-        <TextView
-            android:id="@+id/tv_commodity_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="4dp"
-            android:textColor="@color/black"
-            android:text=""
-            android:textSize="16sp"
-            android:ellipsize="end"
-            android:lines="2" />
-
-        <TextView
-            android:id="@+id/tv_weight"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:textColor="@color/material_green"
-            android:textSize="14sp" />
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/tv_commodity_name"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="4dp"
+                android:ellipsize="end"
+                android:lines="2"
+                android:text=""
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tv_weight"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:textColor="@color/material_green"
+                android:textSize="14sp" />
+        </LinearLayout>
 
 
         <LinearLayout

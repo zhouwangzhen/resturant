@@ -18,7 +18,10 @@ import android.widget.TextView;
 import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.FunctionCallback;
+import com.avos.avoscloud.GetCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
@@ -112,6 +115,16 @@ public class PayActivity extends BaseActivity {
     TextView rateReduceMoney;
     @BindView(R.id.ll_rate_reduce)
     LinearLayout llRateReduce;
+    @BindView(R.id.black_five_money)
+    TextView blackFiveMoney;
+    @BindView(R.id.ll_black_five)
+    LinearLayout llBlackFive;
+    @BindView(R.id.ll_full_reduce)
+    LinearLayout llFullReduce;
+    @BindView(R.id.ll_store_reduce)
+    LinearLayout llStoreReduce;
+    @BindView(R.id.store_reduce_rate)
+    TextView storeReduceRate;
     private OrderDetail orderDetail;
     private List<Integer> paymentTypes = new ArrayList<>();
     private JSONObject jsonReduce;
@@ -126,6 +139,7 @@ public class PayActivity extends BaseActivity {
 
     private Double whiteBarBalance;
     private Double storedBalance;
+    private Boolean paySuccess = false;
 
     @Override
     protected int getContentViewId() {
@@ -211,19 +225,29 @@ public class PayActivity extends BaseActivity {
                     mallOrder.put("store", 1);
                     mallOrder.put("outside", true);
                     mallOrder.put("commodityDetail", orderDetail.getOrders());
-                    if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null) {
+                    if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null && orderDetail.getMyReduceMoney() > 0) {
                         mallOrder.put("meatWeights", ProductUtil.listToList(orderDetail.getUseExchangeList()));
                         mallOrder.put("meatDetail", ProductUtil.listToObject(orderDetail.getUseExchangeList()));
                         mallOrder.put("useMeat", AVObject.createWithoutData("Meat", orderDetail.getUseMeatId()));
 
                     }
-                    mallOrder.put("maxMeatDeduct", orderDetail.getSvipMaxExchangeList());
-                    mallOrder.put("realMeatDeduct", orderDetail.getUseExchangeList());
+                    if (getIntent().getBooleanExtra("isHangUp", false)) {
+                        mallOrder.put("hangUp", true);
+                        mallOrder.put("message", getIntent().getStringExtra("remark"));
+                        mallOrder.put("type", 4);
+
+                    }
                     Map<String, Double> escrowDetail = ProductUtil.managerEscrow(orderDetail.getActualMoney(), escrow, orderDetail.getUserBean());
                     mallOrder.put("escrowDetail", escrowDetail);
                     mallOrder.put("type", 1);
                     jsonReduce = new JSONObject();
                     try {
+                        if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null && orderDetail.getMyReduceMoney() > 0) {
+                            jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
+                        }
+                        if (orderDetail.getBlackfiveMoney() > 0) {
+                            jsonReduce.put("周五冻肉半价优惠", orderDetail.getBlackfiveMoney());
+                        }
                         if (orderDetail.getOnlineCouponEvent() != null) {
                             jsonReduce.put(orderDetail.getOnlineCouponEvent().getContent(), orderDetail.getOnlineCouponEvent().getMoney());
                             mallOrder.put("useUserCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOnlineCouponEvent().getId()));
@@ -232,17 +256,15 @@ public class PayActivity extends BaseActivity {
                             jsonReduce.put(orderDetail.getOfflineCouponEvent().getContent(), orderDetail.getOfflineCouponEvent().getMoney());
                             mallOrder.put("useSystemCoupon", AVObject.createWithoutData("Coupon", orderDetail.getOfflineCouponEvent().getId()));
                         }
-                        if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null) {
-                            jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
-                        }
+
                         if (orderDetail.getActivityMoney() > 0) {
-                            jsonReduce.put("线下店打折优惠", orderDetail.getActivityMoney());
+                            jsonReduce.put("开业" + MyUtils.getDayRate() + "折优惠", orderDetail.getActivityMoney());
                         }
                         if (orderDetail.getFullReduceMoney() > 0) {
                             jsonReduce.put("满减优惠", orderDetail.getFullReduceMoney());
                         }
                         if (orderDetail.getRate() != 100) {
-                            String content = "整单" + orderDetail.getRate() + "折优惠";
+                            String content = orderDetail.getRateContent() + orderDetail.getRate() + "折优惠";
                             jsonReduce.put(content, orderDetail.getRateReduceMoney());
                         }
                         if (orderDetail.getDeleteoddMoney() > 0) {
@@ -252,17 +274,17 @@ public class PayActivity extends BaseActivity {
                     } catch (JSONException e1) {
                         e1.printStackTrace();
                     }
-
+                    checkExplode();
                     mallOrder.saveInBackground(new SaveCallback() {
                         @Override
                         public void done(AVException e) {
                             hideDialog();
                             if (e == null) {
+                                showDialog();
+                                paySuccess = true;
                                 Bill.printRetailBill(MyApplication.getContextObject(), orderDetail, jsonReduce, escrow, orderDetail.getUserBean());
                                 ToastUtil.showShort(MyApplication.getContextObject(), "订单结算完成");
-                                Intent intent = getIntent();
-                                setResult(1, intent);
-                                finish();
+
                             } else {
                                 ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
                             }
@@ -277,8 +299,64 @@ public class PayActivity extends BaseActivity {
         });
     }
 
+    private void checkExplode() {
+        if (!SharedHelper.readBoolean("Test")) {
+            final int explodeNumber = ProductUtil.calExplodeNumbers(orderDetail.getOrders());
+            if (explodeNumber> 0) {
+                final AVQuery<AVObject> query = new AVQuery<>("OffineControl");
+                query.whereEqualTo("store", 1);
+                query.findInBackground(new FindCallback<AVObject>() {
+                    @Override
+                    public void done(List<AVObject> list, AVException e) {
+                        if (e == null) {
+                            AVObject avObject = list.get(0);
+                            avObject.put("number", avObject.getInt("number") + explodeNumber);
+                            avObject.saveInBackground(new SaveCallback() {
+                                @Override
+                                public void done(AVException e) {
+                                    if (e != null) {
+                                        checkExplode();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+    }
+
     private void resetTable() {
-        finish();
+        ProductUtil.addExploseRecord(orderDetail.getOrders(),orderDetail.getUserBean());
+        if (getIntent().getBooleanExtra("isHangUp", false)) {
+            AVQuery<AVObject> query = new AVQuery<>("HangUpOrder");
+            query.getInBackground(getIntent().getStringExtra("hangUpId"), new GetCallback<AVObject>() {
+                @Override
+                public void done(AVObject avObject, AVException e) {
+                    hideDialog();
+                    if (e == null) {
+                        avObject.put("active", 0);
+                        avObject.saveInBackground(new SaveCallback() {
+                            @Override
+                            public void done(AVException e) {
+                                Intent intent = getIntent();
+                                setResult(1, intent);
+                                finish();
+                            }
+                        });
+                    } else {
+                        Intent intent = getIntent();
+                        setResult(1, intent);
+                        finish();
+                    }
+                }
+            });
+        } else {
+            hideDialog();
+            Intent intent = getIntent();
+            setResult(1, intent);
+            finish();
+        }
     }
 
     private void setData() {
@@ -291,6 +369,17 @@ public class PayActivity extends BaseActivity {
         storeReduceMoney.setText("-" + orderDetail.getActivityMoney());
         totalMoney.setText("￥" + orderDetail.getActualMoney());
         fullreduceMoney.setText("-" + orderDetail.getFullReduceMoney());
+        if (orderDetail.getFullReduceMoney() > 0) {
+            llFullReduce.setVisibility(View.VISIBLE);
+        } else {
+            llFullReduce.setVisibility(View.GONE);
+        }
+        if (orderDetail.getActivityMoney() > 0) {
+            llStoreReduce.setVisibility(View.VISIBLE);
+            storeReduceRate.setText("开业" + MyUtils.getDayRate() + "折优惠");
+        } else {
+            llStoreReduce.setVisibility(View.GONE);
+        }
         if (orderDetail.getOfflineCouponEvent() != null) {
             tvOfflineContent.setText(orderDetail.getOfflineCouponEvent().getContent());
             tvOfflineMoeny.setText("-" + orderDetail.getOfflineCouponEvent().getMoney());
@@ -305,12 +394,18 @@ public class PayActivity extends BaseActivity {
         } else {
             llDeleteOdd.setVisibility(View.GONE);
         }
-        if (orderDetail.getRate()!=100){
+        if (orderDetail.getBlackfiveMoney() > 0) {
+            llBlackFive.setVisibility(View.VISIBLE);
+            blackFiveMoney.setText("-" + orderDetail.getBlackfiveMoney());
+        } else {
+            llBlackFive.setVisibility(View.GONE);
+        }
+        if (orderDetail.getRate() != 100) {
             llRateReduce.setVisibility(View.VISIBLE);
-            rateReduceContent.setText("整单"+ MyUtils.formatDouble((double) orderDetail.getRate()/10)+"折优惠");
-            rateReduceMoney.setText("-"+orderDetail.getRateReduceMoney());
+            rateReduceContent.setText(orderDetail.getRateContent() + MyUtils.formatDouble((double) orderDetail.getRate() / 10) + "折优惠");
+            rateReduceMoney.setText("-" + orderDetail.getRateReduceMoney());
 
-        }else{
+        } else {
             llRateReduce.setVisibility(View.GONE);
         }
         if (orderDetail.getUserBean() != null) {
@@ -321,6 +416,7 @@ public class PayActivity extends BaseActivity {
             paymentTypes.add(5);
             paymentTypes.add(6);
             paymentTypes.add(21);
+            paymentTypes.add(22);
         }
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
 
@@ -375,6 +471,7 @@ public class PayActivity extends BaseActivity {
         paymentTypes.add(5);
         paymentTypes.add(6);
         paymentTypes.add(21);
+        paymentTypes.add(22);
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
 
     }
@@ -473,5 +570,15 @@ public class PayActivity extends BaseActivity {
     public void onPause() {
         super.onPause();
         EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (paySuccess) {
+
+        } else {
+            super.onBackPressed();
+        }
+
     }
 }

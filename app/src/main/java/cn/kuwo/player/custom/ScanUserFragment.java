@@ -34,6 +34,8 @@ import com.yzq.zxinglibrary.android.CaptureActivity;
 import com.yzq.zxinglibrary.common.Constant;
 
 import org.greenrobot.eventbus.EventBus;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -42,11 +44,18 @@ import java.util.Map;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.bean.UserBean;
+import cn.kuwo.player.util.ApiManager;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
+import cn.kuwo.player.util.DataUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.SharedHelper;
+import cn.kuwo.player.util.T;
 import cn.kuwo.player.util.ToastUtil;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -108,14 +117,16 @@ public class ScanUserFragment extends DialogFragment {
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
                 .setTipWord("查询中")
                 .create();
-        if (!CameraProvider.hasCamera()&&type==1){
+        if (!CameraProvider.hasCamera() && type == 1) {
             title.setText("扫描全民养牛会员码或刷会员卡登录");
+        }else if(type==2){
+            title.setText("操作员工扫描员工自己的条码");
         }
 
     }
 
     private void initData() {
-        if (CameraProvider.hasCamera()) {
+        if (CameraProvider.hasCamera()&&!SharedHelper.readBoolean("useGun")) {
             btnCancel.setVisibility(View.VISIBLE);
         } else {
             btnCancel.setVisibility(View.GONE);
@@ -179,21 +190,22 @@ public class ScanUserFragment extends DialogFragment {
                             Logger.d("收银员登录");
                             hideDialog();
                             if (type == 0) {
-                                if ((Boolean) object.get("test") || Integer.parseInt(object.get("clerk").toString())>0) {
+                                Logger.d(object);
+                                if ((Boolean) object.get("test") || Integer.parseInt(object.get("clerk").toString()) > 0) {
                                     SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
-                                    sharedHelper.saveBoolean("test", (Boolean) object.get("test"));
+                                    sharedHelper.saveBoolean("Test", (Boolean) object.get("test"));
                                     sharedHelper.saveBoolean("cashierLogin", true);
                                     sharedHelper.save("cashierId", object.get("objectId").toString());
                                     sharedHelper.save("mobilePhoneNumber", object.get("username").toString());
-                                    sharedHelper.save("cashierName", (object.get("realName").toString() == null ? object.get("nickName").toString() : object.get("realName").toString()));
+                                    sharedHelper.save("cashierName", (object.get("realName")== null ? object.get("nickName").toString() : object.get("realName").toString()));
                                     TextView waiterName = (TextView) getActivity().findViewById(R.id.waiter_name);
-                                    waiterName.setText("收银员：" + (object.get("realName").toString() == null ? object.get("nickName").toString() : object.get("realName").toString()));
+                                    waiterName.setText("收银员：" + (object.get("realName") == null || object.get("realName").toString().equals("") ? object.get("nickName").toString() : object.get("realName").toString()));
                                     getDialog().dismiss();
                                 }
                             }
                         } else {
                             hideDialog();
-                            ToastUtil.showShort(getContext(), e.getMessage());
+                            ToastUtil.showLong(getContext(), e.getMessage()+"网络连接失败请重试");
                         }
                     }
                 });
@@ -212,13 +224,14 @@ public class ScanUserFragment extends DialogFragment {
         }
 
     }
+
     private Runnable delayRun = new Runnable() {
         @Override
         public void run() {
             showDialog();
             editScanCode.setText("");
-            barcode=barcode.replace(";","").replace(";?","").replace(":","").replace("?","");
-            if (barcode.length()==4) {
+            barcode = barcode.replace(";", "").replace(";?", "").replace(":", "").replace("?", "");
+            if (barcode.length() == 4) {
                 barcode = barcode.trim().replace(";", "").replace("?", "");
                 AVQuery<AVObject> power = new AVQuery<>("Power");
                 power.whereEqualTo("card", barcode);
@@ -229,45 +242,78 @@ public class ScanUserFragment extends DialogFragment {
                         if (e == null) {
                             if (list.size() > 0) {
                                 final AVObject map = list.get(0).getAVObject("user");
-                                if (type == 0 && ((Boolean) map.get("test") || Integer.parseInt(map.get("clerk").toString())>0)) {//收银员登录
+                                if (type == 0 && ((Boolean) map.get("test") || Integer.parseInt(map.get("clerk").toString()) > 0)) {//收银员登录
                                     hideDialog();
                                     SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
-                                    sharedHelper.saveBoolean("test", map.getBoolean("test"));
+                                    sharedHelper.saveBoolean("Test", map.getBoolean("test"));
                                     sharedHelper.saveBoolean("cashierLogin", true);
                                     sharedHelper.save("cashierId", map.getObjectId());
                                     sharedHelper.save("mobilePhoneNumber", map.getString("username"));
-                                    sharedHelper.save("cashierName", (map.getString("realName") == null ? map.getString("nickName") : map.getString("realName")));
+                                    sharedHelper.save("cashierName", (map.getString("realName") == null || map.get("realName").toString().equals("") ? map.getString("nickName") : map.getString("realName")));
                                     TextView waiterName = (TextView) getActivity().findViewById(R.id.waiter_name);
-                                    waiterName.setText("收银员：" + (map.get("realName").toString() == null ? map.get("nickName").toString() : map.get("realName").toString()));
+                                    waiterName.setText("收银员：" + (map.getString("realName") == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString()));
                                     getDialog().dismiss();
                                 } else if (type == 1) {//获取客户信息和剩余可提牛肉数量
                                     Map<String, Object> parameters = new HashMap<String, Object>();
-                                    Logger.d(map);
                                     parameters.put("userID", map.getObjectId());
                                     AVCloud.callFunctionInBackground("svip", parameters, new FunctionCallback<Map<String, Object>>() {
                                         @Override
-                                        public void done(Map<String, Object> objectMap, AVException e) {
+                                        public void done(final Map<String, Object> objectMap, AVException e) {
                                             if (e == null) {
-                                                hideDialog();
-                                                UserBean userBean = new UserBean(
-                                                        CONST.UserCode.SCANCUSTOMER,
-                                                        map.getObjectId(),
-                                                        map.get("username").toString(),
-                                                        map.get("realName").toString() == null ? map.get("realName").toString() : map.get("nickName").toString(),
-                                                        Integer.parseInt(map.get("vip").toString()),
-                                                        MyUtils.formatDouble(Double.parseDouble(map.get("credits").toString())),
-                                                        MyUtils.formatDouble(Double.parseDouble(map.get("stored").toString())),
-                                                        MyUtils.formatDouble(Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString())),
-                                                        (Boolean) map.get("test"),
-                                                        Integer.parseInt(map.get("clerk").toString()),
-                                                        MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
-                                                        objectMap.get("meatId").toString().length()>0?objectMap.get("meatId").toString():"",
-                                                        (Boolean)objectMap.get("svip"),
-                                                        map.get("avatarurl")!=null?map.get("avatarurl").toString():null,
-                                                        (Boolean)objectMap.get("alreadySVIP")
-                                                );
-                                                EventBus.getDefault().post(userBean);
-                                                getDialog().dismiss();
+                                                Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().QueryofflineRecharge(map.getObjectId());
+                                                responseBodyCall.enqueue(new Callback<ResponseBody>() {
+                                                    @Override
+                                                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                                        if (response.code()==200||response.code()==201){
+                                                            Double nb=0.0;
+                                                            hideDialog();
+
+                                                            try {
+                                                                String responseText = DataUtil.JSONTokener(response.body().string());
+                                                                JSONObject jsonObject = new JSONObject(responseText);
+                                                                nb = jsonObject.getDouble("amount");
+                                                            } catch (Exception e1) {
+                                                                e1.printStackTrace();
+                                                            }
+                                                            String avatar=null;
+                                                            try {
+                                                                avatar = map.get("avatarurl") != null && !map.get("avatarurl").equals("") ? map.get("avatarurl").toString() : null;
+                                                            } catch (Exception e1) {
+                                                                e1.printStackTrace();
+                                                            }
+                                                            UserBean userBean = new UserBean(
+                                                                    CONST.UserCode.SCANCUSTOMER,
+                                                                    map.getObjectId(),
+                                                                    map.get("username").toString(),
+                                                                    map.get("realName") == null || map.get("realName").toString().equals("") ? map.get("realName").toString() : map.get("nickName").toString(),
+                                                                    Integer.parseInt(map.get("vip").toString()),
+                                                                    MyUtils.formatDouble(Double.parseDouble(map.get("credits").toString())),
+                                                                    MyUtils.formatDouble(Double.parseDouble(map.get("stored").toString())),
+                                                                    MyUtils.formatDouble(Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString())),
+                                                                    (Boolean) map.get("test"),
+                                                                    Integer.parseInt(map.get("clerk").toString()),
+                                                                    MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
+                                                                    objectMap.get("meatId").toString().length() > 0 ? objectMap.get("meatId").toString() : "",
+                                                                    (Boolean) objectMap.get("svip"),
+                                                                    avatar,
+                                                                    (Boolean) objectMap.get("alreadySVIP"),
+                                                                    nb
+                                                            );
+                                                            EventBus.getDefault().post(userBean);
+                                                            getDialog().dismiss();
+                                                        }else{
+                                                            hideDialog();
+                                                            T.show(response);
+                                                        }
+                                                    }
+
+                                                    @Override
+                                                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                                        hideDialog();
+                                                        ToastUtil.showShort(getContext(), t.getMessage());
+                                                    }
+                                                });
+
                                             } else {
                                                 hideDialog();
                                                 ToastUtil.showShort(MyApplication.getContextObject(), "获取用户信息错误");
@@ -277,7 +323,7 @@ public class ScanUserFragment extends DialogFragment {
 
                                 } else if (type == 2) {//获取用户信息id,username
                                     hideDialog();
-                                    UserBean userBean = new UserBean(CONST.UserCode.SCANUSER, map.getObjectId(), map.get("username").toString(), Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString()),(Boolean) map.get("test"),Integer.parseInt(map.get("clerk").toString()), map.get("realName").toString() == null ? map.get("nickName").toString() : map.get("realName").toString());
+                                    UserBean userBean = new UserBean(CONST.UserCode.SCANUSER, map.getObjectId(), map.get("username").toString(), Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString()), (Boolean) map.get("test"), Integer.parseInt(map.get("clerk").toString()), map.get("realName") == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString());
                                     EventBus.getDefault().post(userBean);
                                     getDialog().dismiss();
                                 } else {
@@ -301,44 +347,76 @@ public class ScanUserFragment extends DialogFragment {
                     @Override
                     public void done(final Map<String, Object> map, AVException e) {
                         if (e == null) {
-                            if (type == 0 && ((Boolean) map.get("test") || Integer.parseInt(map.get("clerk").toString()) == CONST.StaffCode.cashier)) {//收银员登录
+                            if (type == 0 && ((Boolean) map.get("test") || Integer.parseInt(map.get("clerk").toString()) > 0)) {//收银员登录
                                 hideDialog();
                                 SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
-                                sharedHelper.saveBoolean("test", (Boolean) map.get("test"));
+                                sharedHelper.saveBoolean("Test", (Boolean) map.get("test"));
                                 sharedHelper.saveBoolean("cashierLogin", true);
                                 sharedHelper.save("cashierId", map.get("objectId").toString());
                                 sharedHelper.save("mobilePhoneNumber", map.get("username").toString());
-                                sharedHelper.save("cashierName", (map.get("realName").toString() == null ? map.get("nickName").toString() : map.get("realName").toString()));
+                                sharedHelper.save("cashierName", (map.get("realName") == null ? map.get("nickName").toString() : map.get("realName").toString()));
                                 TextView waiterName = (TextView) getActivity().findViewById(R.id.waiter_name);
-                                waiterName.setText("收银员：" + (map.get("realName").toString() == null ? map.get("nickName").toString() : map.get("realName").toString()));
+                                waiterName.setText("收银员：" + (map.get("realName") == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString()));
                                 getDialog().dismiss();
                             } else if (type == 1) {//获取客户信息和剩余可提牛肉数量
                                 Map<String, Object> parameters = new HashMap<String, Object>();
                                 parameters.put("userID", map.get("objectId").toString());
                                 AVCloud.callFunctionInBackground("svip", parameters, new FunctionCallback<Map<String, Object>>() {
                                     @Override
-                                    public void done(Map<String, Object> objectMap, AVException e) {
+                                    public void done(final Map<String, Object> objectMap, AVException e) {
                                         if (e == null) {
-                                            hideDialog();
-                                            UserBean userBean = new UserBean(
-                                                    CONST.UserCode.SCANCUSTOMER,
-                                                    map.get("objectId").toString(),
-                                                    map.get("username").toString(),
-                                                    map.get("realName").toString() == null ? map.get("nickName").toString() : map.get("realName").toString(),
-                                                    Integer.parseInt(map.get("vip").toString()),
-                                                    MyUtils.formatDouble(Double.parseDouble(map.get("credits").toString())),
-                                                    MyUtils.formatDouble(Double.parseDouble(map.get("stored").toString())),
-                                                    MyUtils.formatDouble(Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString())),
-                                                    (Boolean) map.get("test"),
-                                                    Integer.parseInt(map.get("clerk").toString()),
-                                                    MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
-                                                    objectMap.get("meatId").toString().length()>0?objectMap.get("meatId").toString():"",
-                                                    (Boolean)objectMap.get("svip"),
-                                                     map.get("avatarurl").toString(),
-                                                    (Boolean)objectMap.get("alreadySVIP")
-                                            );
-                                            EventBus.getDefault().post(userBean);
-                                            getDialog().dismiss();
+                                            Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().QueryofflineRecharge( map.get("objectId").toString());
+                                            responseBodyCall.enqueue(new Callback<ResponseBody>() {
+                                                @Override
+                                                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                                    hideDialog();
+                                                    if (response.code()==200||response.code()==201) {
+                                                        Double nb=0.0;
+                                                        try {
+                                                            String responseText = DataUtil.JSONTokener(response.body().string());
+                                                            JSONObject jsonObject = new JSONObject(responseText);
+                                                            nb = jsonObject.getDouble("amount");
+                                                        } catch (Exception e1) {
+                                                            e1.printStackTrace();
+                                                        }
+                                                        String avatar=null;
+                                                        try {
+                                                            avatar = map.get("avatarurl") != null && !map.get("avatarurl").equals("") ? map.get("avatarurl").toString() : null;
+                                                        } catch (Exception e1) {
+                                                            e1.printStackTrace();
+                                                        }
+                                                        UserBean userBean = new UserBean(
+                                                                CONST.UserCode.SCANCUSTOMER,
+                                                                map.get("objectId").toString(),
+                                                                map.get("username").toString(),
+                                                                map.get("realName") == null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString(),
+                                                                Integer.parseInt(map.get("vip").toString()),
+                                                                MyUtils.formatDouble(Double.parseDouble(map.get("credits").toString())),
+                                                                MyUtils.formatDouble(Double.parseDouble(map.get("stored").toString())),
+                                                                MyUtils.formatDouble(Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString())),
+                                                                (Boolean) map.get("test"),
+                                                                Integer.parseInt(map.get("clerk").toString()),
+                                                                MyUtils.formatDouble(Double.parseDouble(objectMap.get("meatWeight").toString())),
+                                                                objectMap.get("meatId").toString().length() > 0 ? objectMap.get("meatId").toString() : "",
+                                                                (Boolean) objectMap.get("svip"),
+                                                                avatar,
+                                                                (Boolean) objectMap.get("alreadySVIP"),
+                                                                nb
+                                                        );
+                                                        EventBus.getDefault().post(userBean);
+                                                        getDialog().dismiss();
+                                                    }else{
+                                                        hideDialog();
+                                                        T.show(response);
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void onFailure(Call<ResponseBody> call, Throwable t) {
+
+                                                }
+                                            });
+
                                         } else {
                                             hideDialog();
                                             ToastUtil.showShort(MyApplication.getContextObject(), "获取用户信息错误");
@@ -354,8 +432,8 @@ public class ScanUserFragment extends DialogFragment {
                                         Double.parseDouble(map.get("gold").toString()) - Double.parseDouble(map.get("arrears").toString()),
                                         (Boolean) map.get("test"),
                                         Integer.parseInt(map.get("clerk").toString()),
-                                        map.get("realName").toString() == null ? map.get("nickName").toString() : map.get("realName").toString()
-                                        );
+                                        map.get("realName")== null || map.get("realName").toString().equals("") ? map.get("nickName").toString() : map.get("realName").toString()
+                                );
                                 EventBus.getDefault().post(userBean);
                                 getDialog().dismiss();
                             } else {
@@ -364,6 +442,7 @@ public class ScanUserFragment extends DialogFragment {
                             }
                         } else {
                             hideDialog();
+                            Logger.d(barcode);
                             ToastUtil.showShort(MyApplication.getContextObject(), "二维码已经失效,请刷新后再试");
                         }
                     }

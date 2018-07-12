@@ -18,12 +18,15 @@ import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FindCallback;
+import com.avos.avoscloud.GetCallback;
 import com.bigkoo.pickerview.TimePickerView;
 import com.orhanobut.logger.Logger;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -40,16 +43,27 @@ import butterknife.OnClick;
 import butterknife.Unbinder;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
+import cn.kuwo.player.api.MallGoldLogApi;
+import cn.kuwo.player.api.MallOrderApi;
 import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.custom.ShowStatisticsDialog;
 import cn.kuwo.player.print.Bill;
+import cn.kuwo.player.service.entity.NbRechargeLog;
+import cn.kuwo.player.service.presenter.NbRechargeLogPresenter;
+import cn.kuwo.player.service.view.NbRechargeLogView;
+import cn.kuwo.player.util.ApiManager;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.DateUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
-import cn.kuwo.player.util.ProductUtil;
+import cn.kuwo.player.util.RechargeUtil;
 import cn.kuwo.player.util.StatisticsUtil;
+import cn.kuwo.player.util.T;
 import cn.kuwo.player.util.ToastUtil;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class OrderListFg extends BaseFragment {
     private static String ARG_PARAM = "param_key";
@@ -69,8 +83,21 @@ public class OrderListFg extends BaseFragment {
     @BindView(R.id.state_hangup)
     TextView stateHangup;
     Unbinder unbinder1;
+    @BindView(R.id.ll_state_res)
+    LinearLayout llStateRes;
+    @BindView(R.id.ll_state_retail)
+    LinearLayout llStateRetail;
+    @BindView(R.id.ll_state_recharge)
+    LinearLayout llStateRecharge;
+    @BindView(R.id.ll_state_hangup)
+    LinearLayout llStateHangup;
+    @BindView(R.id.ll_state_nb)
+    LinearLayout llStateNb;
+    @BindView(R.id.state_nb_num)
+    TextView stateNbNum;
     private Activity mActivity;
     private String mParam;
+    private List<NbRechargeLog> nbRechargeLogs=new ArrayList<>();
     @BindView(R.id.gv_table)
     GridView gvTable;
     HashMap<String, Object> ordersDetail;
@@ -78,9 +105,13 @@ public class OrderListFg extends BaseFragment {
     List<AVObject> orders = new ArrayList<>();
     List<AVObject> findOrders = new ArrayList<>();
     List<AVObject> testUsers = new ArrayList<>();
+    List<AVObject> rechargeOrders = new ArrayList<>();
     Date currentDate;
-    private int orderType=-1;
+    private int orderType = -1;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
+
+    private NbRechargeLogPresenter nbRechargeLogPresenter = new NbRechargeLogPresenter(getContext());
+
 
     @Override
     protected int getLayoutId() {
@@ -89,28 +120,26 @@ public class OrderListFg extends BaseFragment {
 
     @Override
     public void initData() {
-        getTestUser();
+        nbRechargeLogPresenter.onCreate();
+        nbRechargeLogPresenter.attachView(mNbRechargeLog);
+        currentDate = DateUtil.getCurrentDate();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        showDate.setText(sdf.format(currentDate) + "");
+        getOrders();
     }
 
     private void setDatePickerView() {
         Calendar selectedDate = Calendar.getInstance();
         Calendar startDate = Calendar.getInstance();
-        startDate.set(2018, 5, 21);
+        startDate.set(2018, 4, 21);
         Calendar endDate = Calendar.getInstance();
         TimePickerView pvTime = new TimePickerView.Builder(getContext(), new TimePickerView.OnTimeSelectListener() {
             @Override
             public void onTimeSelect(Date date, View v) {
                 currentDate = date;
-                currentDate.setHours(0);
-                currentDate.setMinutes(0);
-                currentDate.setSeconds(0);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 showDate.setText(sdf.format(currentDate) + "");
-                try {
-                    getOrders(currentDate);
-                } catch (ParseException e1) {
-                    e1.printStackTrace();
-                }
+                getOrders();
 
             }
         }).setType(new boolean[]{true, true, true, false, false, false})
@@ -124,80 +153,38 @@ public class OrderListFg extends BaseFragment {
     }
 
     /**
-     * 获取测试用户信息
-     */
-    private void getTestUser() {
-        showDialog();
-        AVQuery<AVObject> user = new AVQuery<>("_User");
-        user.whereEqualTo("test", true);
-        user.findInBackground(new FindCallback<AVObject>() {
-            @Override
-            public void done(List<AVObject> list, AVException e) {
-                if (e == null) {
-                    testUsers = list;
-                    currentDate = DateUtil.getCurrentDate();
-                    currentDate.setHours(0);
-                    currentDate.setMinutes(0);
-                    currentDate.setSeconds(0);
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                    showDate.setText(sdf.format(currentDate) + "");
-                    try {
-                        getOrders(currentDate);
-                    } catch (ParseException e1) {
-                        e1.printStackTrace();
-                    }
-                } else {
-                    hideDialog();
-                    ToastUtil.showLong(MyApplication.getContextObject(), "网络错误");
-                }
-            }
-        });
-    }
-
-    /**
      * 获取订单信息
      */
-    private void getOrders(Date date) throws ParseException {
+    private void getOrders() {
         showDialog();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Long time = date.getTime();
-        Long nextTime = time + 24 * 60 * 60 * 1000;
-        String d = sdf.format(nextTime);
-        Date nextDate = sdf.parse(d);
-        AVObject mallOrderStatusFinsh = AVObject.createWithoutData("MallOrderStatus", CONST.OrderState.ORDER_STATUS_FINSIH);
-        AVObject mallOrderStatusRefund = AVObject.createWithoutData("MallOrderStatus", CONST.OrderState.ORDER_STATUS_CANCEL);
-        List<AVObject> orderSratus = new ArrayList<AVObject>();
-        orderSratus.add(mallOrderStatusFinsh);
-        orderSratus.add(mallOrderStatusRefund);
-        AVQuery<AVObject> mallOrder = new AVQuery<>("MallOrder");
-        mallOrder.whereEqualTo("store", CONST.STORECODE);
-        mallOrder.whereEqualTo("offline", true);
-        mallOrder.whereEqualTo("active", 1);
-//        mallOrder.whereNotContainedIn("user", testUsers);
-        mallOrder.include("user");
-        mallOrder.include("orderStatus");
-        mallOrder.include("paymentType");
-        mallOrder.include("cashier");
-        mallOrder.include("market");
-        mallOrder.include("useSystemCoupon.type");
-        mallOrder.include("useUserCoupon.type");
-        mallOrder.orderByDescending("createdAt");
-        mallOrder.addDescendingOrder("endAt");
-        mallOrder.whereGreaterThan("createdAt", date);
-        mallOrder.whereLessThan("createdAt", nextDate);
-        mallOrder.whereContainedIn("orderStatus", orderSratus);
-        mallOrder.limit(1000);
-        mallOrder.findInBackground(new FindCallback<AVObject>() {
+        nbRechargeLogPresenter.getNbRechagreLog(DateUtil.getZeroTimeStampBySecond(currentDate),
+                DateUtil.getLasterTimeStampBySecond(currentDate),
+                2,
+                0,
+                CONST.isShowTEST);
+
+    }
+
+    private void findMallGoldOrder(final Date date) {
+        MallGoldLogApi.finalAllMallGold(date).findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(List<AVObject> list, AVException e) {
-                hideDialog();
                 if (e == null) {
-                    orders = list;
-                    findOrders();
-                    statisticsData();
-                    setStateNumber();
-                } else {
-                    ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
+                    rechargeOrders = list;
+                    MallOrderApi.findMallOrder(date).findInBackground(new FindCallback<AVObject>() {
+                        @Override
+                        public void done(List<AVObject> list, AVException e) {
+                            hideDialog();
+                            if (e == null) {
+                                orders = list;
+                                findOrders();
+                                statisticsData();
+                                setStateNumber();
+                            } else {
+                                ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
+                            }
+                        }
+                    });
                 }
             }
         });
@@ -211,17 +198,18 @@ public class OrderListFg extends BaseFragment {
         if (orderTypes.containsKey(1)) {
             stateRetail.setText(orderTypes.get(1) + "笔");
         }
-        if (orderTypes.containsKey(2)) {
-            stateRecharge.setText(orderTypes.get(2) + "笔");
+        if (orderTypes.containsKey(2) || rechargeOrders.size() > 0) {
+            stateRecharge.setText((orderTypes.containsKey(2) ? orderTypes.get(2) : 0) + rechargeOrders.size() + "笔");
         }
         if (orderTypes.containsKey(3)) {
             stateHangup.setText(orderTypes.get(3) + "笔");
         }
+        stateNbNum.setText(nbRechargeLogs.size() + "笔");
 
     }
 
     private void statisticsData() {
-        ordersDetail = StatisticsUtil.TotalOrder(orders);
+        ordersDetail = StatisticsUtil.TotalOrder(orders, rechargeOrders, nbRechargeLogs);
     }
 
     public void onAttach(Context context) {
@@ -239,7 +227,7 @@ public class OrderListFg extends BaseFragment {
     }
 
 
-    @OnClick({R.id.btn_change_date, R.id.btn_print, R.id.state_res, R.id.state_retail, R.id.state_recharge, R.id.state_hangup})
+    @OnClick({R.id.btn_change_date, R.id.btn_print, R.id.ll_state_res, R.id.ll_state_retail, R.id.ll_state_recharge, R.id.ll_state_hangup, R.id.ll_state_nb})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_change_date:
@@ -249,20 +237,24 @@ public class OrderListFg extends BaseFragment {
                 ShowStatisticsDialog showStatisticsDialog = new ShowStatisticsDialog(ordersDetail, currentDate);
                 showStatisticsDialog.show(getActivity().getFragmentManager(), "showstatistic");
                 break;
-            case R.id.state_res:
-                orderType=0;
+            case R.id.ll_state_res:
+                orderType = 0;
                 findOrders();
                 break;
-            case R.id.state_retail:
-                orderType=1;
+            case R.id.ll_state_retail:
+                orderType = 1;
                 findOrders();
                 break;
-            case R.id.state_recharge:
-                orderType=2;
+            case R.id.ll_state_recharge:
+                orderType = 2;
                 findOrders();
                 break;
-            case R.id.state_hangup:
-                orderType=3;
+            case R.id.ll_state_hangup:
+                orderType = 3;
+                findOrders();
+                break;
+            case R.id.ll_state_nb:
+                orderType = 4;
                 findOrders();
                 break;
         }
@@ -270,15 +262,16 @@ public class OrderListFg extends BaseFragment {
 
     private void findOrders() {
         findOrders.removeAll(findOrders);
-        Logger.d(orders);
-        for (int i=0;i<orders.size();i++){
-            Logger.d(orders.get(i).getInt("type"));
-            Logger.d(orderType);
-            if (orders.get(i).getInt("type")==orderType||orderType==-1){
+        for (int i = 0; i < orders.size(); i++) {
+            if (orders.get(i).getInt("type") == orderType || orderType == -1) {
                 findOrders.add(orders.get(i));
+
             }
         }
-        Logger.d(findOrders.size());
+        if (orderType == 2 || orderType == -1) {
+            findOrders.addAll(rechargeOrders);
+
+        }
         orderListAdapter = new OrderListAdapter();
         gvTable.setAdapter(orderListAdapter);
     }
@@ -295,6 +288,7 @@ public class OrderListFg extends BaseFragment {
     public void onDestroyView() {
         super.onDestroyView();
         unbinder1.unbind();
+        nbRechargeLogPresenter.onStop();
     }
 
 
@@ -303,7 +297,12 @@ public class OrderListFg extends BaseFragment {
 
         @Override
         public int getCount() {
-            return findOrders.size();
+            if (orderType == 4 || orderType == -1) {
+                return findOrders.size() + nbRechargeLogs.size();
+            } else {
+                return findOrders.size();
+            }
+
         }
 
         @Override
@@ -337,78 +336,131 @@ public class OrderListFg extends BaseFragment {
             } else {
                 holder = (ViewHolder) view.getTag();
             }
-            final AVObject avObject = findOrders.get(position);
-                if (avObject.getDate("startedAt") != null) {
-                    holder.order_date.setText("用餐时间:" + DateUtil.formatDate(avObject.getDate("startedAt")) + "~" + DateUtil.formatDate(avObject.getDate("endAt")));
-                    holder.order_table_number.setText("桌号:" + avObject.getString("tableNumber"));
-                    holder.order_paysum.setText("用餐人数:" + avObject.getInt("customer"));
-                } else {
-                    holder.order_date.setText("点单时间:" + DateUtil.formatDate(avObject.getDate("createdAt")));
-                    holder.order_paysum.setText("");
-                    holder.order_table_number.setText("");
-                }
-                if (avObject.getAVObject("orderStatus").getObjectId().equals(CONST.OrderState.ORDER_STATUS_FINSIH)) {
-                    holder.order_state.setText("订单状态:已完成");
-                } else {
-                    holder.order_state.setText("订单状态:已退款");
-                }
-                if (!avObject.getAVUser("user").getObjectId().equals(CONST.ACCOUNT.SYSTEMACCOUNT)) {
-                    holder.order_memberstyle.setText("会员用户:" + avObject.getAVUser("user").getString("username"));
-                } else {
-                    holder.order_memberstyle.setText("非会员账号");
-                }
-                String commodityList = "菜品详情\n";
-                for (int i = 0; i < avObject.getList("commodityDetail").size(); i++) {
-                    HashMap<String, Object> commodityDetail = ObjectUtil.format(avObject.getList("commodityDetail").get(i));
-                    commodityList += commodityDetail.get("name").toString() + "*" + commodityDetail.get("number").toString() + "份\n";
-                }
-                if (ProductUtil.isRechargeSvipOrder(avObject)) {
-                    holder.order_state_img.setBackgroundResource(R.drawable.order_recharge);
-                } else {
-                    if (!avObject.getBoolean("hangUp")) {
-                        if (avObject.getBoolean("outside")) {
-                            holder.order_state_img.setBackgroundResource(R.drawable.order_retail);
-                        } else {
-                            holder.order_state_img.setBackgroundResource(R.drawable.order_res);
-                        }
+            if (position < findOrders.size()) {
+                final AVObject avObject = findOrders.get(position);
+                if (avObject.getClassName().equals("MallOrder")) {
+                    if (avObject.getDate("startedAt") != null) {
+                        holder.order_date.setText("用餐时间:" + DateUtil.formatDate(avObject.getDate("startedAt")) + "~" + DateUtil.formatDate(avObject.getDate("endAt")));
+                        holder.order_table_number.setText("桌号:" + avObject.getString("tableNumber"));
+                        holder.order_paysum.setText("用餐人数:" + avObject.getInt("customer"));
                     } else {
+                        holder.order_date.setText("点单时间:" + DateUtil.formatDate(avObject.getDate("createdAt")));
+                        holder.order_paysum.setText("");
+                        holder.order_table_number.setText("");
+                    }
+                    if (avObject.getAVObject("orderStatus").getObjectId().equals(CONST.OrderState.ORDER_STATUS_FINSIH)) {
+                        holder.order_state.setText("订单状态:已完成");
+                    } else {
+                        holder.order_state.setText("订单状态:已退款");
+                    }
+                    if (!avObject.getAVUser("user").getObjectId().equals(CONST.ACCOUNT.SYSTEMACCOUNT)) {
+                        holder.order_memberstyle.setText("会员用户:" + avObject.getAVUser("user").getString("username"));
+                    } else {
+                        holder.order_memberstyle.setText("非会员账号");
+                    }
+                    String commodityList = "菜品详情\n";
+                    for (int i = 0; i < avObject.getList("commodityDetail").size(); i++) {
+                        HashMap<String, Object> commodityDetail = ObjectUtil.format(avObject.getList("commodityDetail").get(i));
+                        commodityList += commodityDetail.get("name").toString() + "*" + commodityDetail.get("number").toString() + "份\n";
+                    }
+                    if (avObject.getInt("type") == 0) {
+                        holder.order_state_img.setBackgroundResource(R.drawable.order_res);
+                    } else if (avObject.getInt("type") == 1) {
+                        holder.order_state_img.setBackgroundResource(R.drawable.order_retail);
+                    } else if (avObject.getInt("type") == 2) {
+                        holder.order_state_img.setBackgroundResource(R.drawable.order_recharge);
+                    } else if (avObject.getInt("type") == 3) {
                         holder.order_state_img.setBackgroundResource(R.drawable.icon_hangup_state);
                     }
-                }
-                holder.order_detail.setText(commodityList);
-                String settleContent = "                                     结账详情\n";
-                settleContent += "订单原价:" + avObject.getDouble("paysum") + "\n";
-                JSONObject reduceDetail = new JSONObject((Map) avObject.get("reduceDetail"));
-                Iterator iterator = reduceDetail.keys();
-                while (iterator.hasNext()) {
-                    try {
-                        String key = (String) iterator.next();
-                        Double value = reduceDetail.getDouble(key);
-                        settleContent += key + ":" + "-" + value + "\n";
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    holder.order_detail.setText(commodityList);
+                    String settleContent = "                                     结账详情\n";
+                    settleContent += "订单原价:" + avObject.getDouble("paysum") + "\n";
+                    JSONObject reduceDetail = new JSONObject((Map) avObject.get("reduceDetail"));
+                    Iterator iterator = reduceDetail.keys();
+                    while (iterator.hasNext()) {
+                        try {
+                            String key = (String) iterator.next();
+                            Double value = reduceDetail.getDouble(key);
+                            settleContent += key + ":" + "-" + value + "\n";
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
-                settleContent += "优惠总价:-" + avObject.getDouble("reduce") + "\n";
-                Double meatweigth = 0.0;
-                List meatWeights = avObject.getList("meatWeights");
-                for (int i = 0; i < meatWeights.size(); i++) {
-                    meatweigth += Double.parseDouble(meatWeights.get(i).toString());
-                }
-                settleContent += "牛肉抵扣重量:" + MyUtils.formatDouble(meatweigth) + "kg\n";
-                settleContent += "实付金额:" + MyUtils.formatDouble(avObject.getDouble("paysum") - avObject.getDouble("reduce")) + "\n";
-                JSONObject escrowDetail = new JSONObject((Map) avObject.get("escrowDetail"));
-                Iterator iterator1 = escrowDetail.keys();
-                while (iterator1.hasNext()) {
-                    try {
-                        String key = (String) iterator1.next();
-                        Double value = escrowDetail.getDouble(key);
-                        settleContent += key + ":" + "-" + value + "\n";
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    settleContent += "优惠总价:-" + avObject.getDouble("reduce") + "\n";
+                    Double meatweigth = 0.0;
+                    List meatWeights = avObject.getList("meatWeights");
+                    for (int i = 0; i < meatWeights.size(); i++) {
+                        meatweigth += Double.parseDouble(meatWeights.get(i).toString());
                     }
+                    settleContent += "牛肉抵扣重量:" + MyUtils.formatDouble(meatweigth) + "kg\n";
+                    settleContent += "实付金额:" + MyUtils.formatDouble(avObject.getDouble("paysum") - avObject.getDouble("reduce")) + "\n";
+                    JSONObject escrowDetail = new JSONObject((Map) avObject.get("escrowDetail"));
+                    Iterator iterator1 = escrowDetail.keys();
+                    while (iterator1.hasNext()) {
+                        try {
+                            String key = (String) iterator1.next();
+                            Double value = escrowDetail.getDouble(key);
+                            settleContent += key + ":" + "-" + value + "\n";
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    holder.order_settle.setText(settleContent);
+
+                    holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (avObject.getInt("type") == 2) {
+                                Bill.reprintSvipBill(avObject);
+                            } else {
+                                Bill.reprintBill(MyApplication.getContextObject(), avObject);
+                            }
+
+                        }
+                    });
+                } else if (avObject.getClassName().equals("MallGoldLog")) {
+                    holder.order_state.setText("订单状态:已完成");
+                    holder.order_state_img.setBackgroundResource(R.drawable.order_recharge);
+                    holder.order_table_number.setText("");
+                    holder.order_paysum.setText("");
+                    holder.order_date.setText("充值时间:" + DateUtil.formatDate(avObject.getDate("createdAt")));
+                    holder.order_memberstyle.setText("会员用户:" + avObject.getAVObject("user").getString("username"));
+                    holder.order_detail.setText("消费金充值" + RechargeUtil.findRealMoney(avObject.getDouble("change")) + "元");
+                    String payContent = "";
+                    switch (avObject.getInt("escrow")) {
+                        case 3:
+                            payContent = "支付宝支付";
+                            break;
+                        case 4:
+                            payContent = "微信支付";
+                            break;
+                        case 5:
+                            payContent = "银行卡支付";
+                            break;
+                        case 6:
+                            payContent = "现金支付";
+                            break;
+                    }
+                    holder.order_settle.setText("支付方式:" + payContent);
+                    holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            AVQuery<AVObject> query = new AVQuery<>("_User");
+                            query.getInBackground(avObject.getString("market"), new GetCallback<AVObject>() {
+                                @Override
+                                public void done(AVObject userObject, AVException e) {
+                                    if (e == null) {
+                                        Bill.reprintRechargeBill(avObject, userObject.getString("realName") != null && !userObject.getString("realName").equals("") ? userObject.getString("realName") : userObject.getString("nickName"));
+                                    } else {
+                                        ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());
+                                    }
+                                }
+                            });
+
+
+                        }
+                    });
                 }
-                holder.order_settle.setText(settleContent);
                 holder.card_order.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -424,18 +476,53 @@ public class OrderListFg extends BaseFragment {
                 if (position != selectIndex) {
                     holder.show_detail.setVisibility(View.GONE);
                 }
-                holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (avObject.getInt("type")==2){
-                            Bill.reprintSvipBill(avObject);
-                        }else{
-                            Bill.reprintBill(MyApplication.getContextObject(), avObject);
-                        }
-
+            } else {
+                if (orderType == 4 || orderType == -1) {
+                    holder.order_state.setText("订单状态:已完成");
+                    holder.order_state_img.setBackgroundResource(R.drawable.order_nb);
+                    holder.order_paysum.setVisibility(View.GONE);
+                    holder.order_table_number.setVisibility(View.GONE);
+                    NbRechargeLog nbRechargeLog = nbRechargeLogs.get(position - findOrders.size());
+                    holder.order_date.setText("充值时间:" + DateUtil.formatDate(new Date(nbRechargeLog.getCreated_at() * 1000)));
+                    holder.order_memberstyle.setText("会员用户:" + nbRechargeLog.getTarget_user().getUsername()+"\n营业员:"+nbRechargeLog.getCashier().getReal_name()+"\n销售:"+(nbRechargeLog.getSalesman()!=null?nbRechargeLog.getSalesman().getReal_name():"无"));
+                    String payContent = "";
+                    switch (nbRechargeLog.getPayment()) {
+                        case 1:
+                            payContent = "支付宝支付";
+                            break;
+                        case 2:
+                            payContent = "微信支付";
+                            break;
+                        case 3:
+                            payContent = "银行卡支付";
+                            break;
+                        case 4:
+                            payContent = "现金支付";
+                            break;
                     }
-                });
+                    holder.order_settle.setText("支付方式:" + payContent);
+                    holder.order_detail.setText("牛币充值:" + nbRechargeLog.getAmount());
 
+                    holder.card_order.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            selectIndex = position;
+                            if (holder.show_detail.getVisibility() == View.VISIBLE) {
+                                holder.show_detail.setVisibility(View.GONE);
+                            } else {
+                                holder.show_detail.setVisibility(View.VISIBLE);
+                            }
+                            orderListAdapter.notifyDataSetChanged();
+                        }
+                    });
+                    holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+//                            Bill.rePrintNbRecharge(niuTokenOfflineOperationsBean);
+                        }
+                    });
+                }
+            }
             return view;
         }
 
@@ -454,4 +541,18 @@ public class OrderListFg extends BaseFragment {
         }
     }
 
+    private NbRechargeLogView mNbRechargeLog = new NbRechargeLogView() {
+        @Override
+        public void onSuccess(List<NbRechargeLog> nbRechargeLog) {
+            Logger.d(nbRechargeLog);
+            nbRechargeLogs=nbRechargeLog;
+            findMallGoldOrder(currentDate);
+        }
+
+        @Override
+        public void onError(String result) {
+            T.L(result);
+            hideDialog();
+        }
+    };
 }

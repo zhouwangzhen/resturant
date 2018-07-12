@@ -20,6 +20,7 @@ public class UserBean implements Serializable{
     private Boolean isSvip;
     private Boolean alreadySvip;
     private String avatar;
+    private Double nb;
 
     /**
      *
@@ -38,7 +39,7 @@ public class UserBean implements Serializable{
     /**
      * 用户扫描登录
      */
-    public UserBean(int callbackCode,String id, String username,String realName, int vip, Double credit, Double stored, Double balance,Boolean test,int clerk, Double meatWeight,String meatId,boolean isSvip,String avatar,boolean alreadySvip) {
+    public UserBean(int callbackCode,String id, String username,String realName, int vip, Double credit, Double stored, Double balance,Boolean test,int clerk, Double meatWeight,String meatId,boolean isSvip,String avatar,boolean alreadySvip,Double nb) {
         this.callbackCode = callbackCode;
         this.id = id;
         this.username = username;
@@ -54,6 +55,7 @@ public class UserBean implements Serializable{
         this.isSvip=isSvip;
         this.avatar=avatar;
         this.alreadySvip=alreadySvip;
+        this.nb=nb;
     }
 
     public String getId() {
@@ -176,6 +178,14 @@ public class UserBean implements Serializable{
         this.alreadySvip = alreadySvip;
     }
 
+    public Double getNb() {
+        return nb;
+    }
+
+    public void setNb(Double nb) {
+        this.nb = nb;
+    }
+
     @Override
     public String toString() {
         return "UserBean{" +
@@ -188,7 +198,7 @@ public class UserBean implements Serializable{
                 ", stored=" + stored +
                 ", balance=" + balance +
                 ", meatWeight=" + meatWeight +
-                ", test=" + test +
+                ", Test=" + test +
                 ", clerk=" + clerk +
                 ", meatId='" + meatId + '\'' +
                 ", isSvip=" + isSvip +

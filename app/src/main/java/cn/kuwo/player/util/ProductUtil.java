@@ -5,25 +5,32 @@ import android.widget.TextView;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RuleBean;
 import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.comparator.MapValueComparator;
+import cn.kuwo.player.event.ComboEvent;
 import cn.kuwo.player.event.OrderDetail;
 import io.realm.RealmList;
 import io.realm.RealmObject;
@@ -68,13 +75,13 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            totalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+            totalMoney += ObjectUtil.getDouble(format, "price");
         }
-        for (int j = 0; j < preOrders.size(); j++) {
-            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
-            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            totalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-        }
+//        for (int j = 0; j < preOrders.size(); j++) {
+//            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
+//            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+//            totalMoney += ObjectUtil.getDouble(format, "price");
+//        }
         return MyUtils.formatDouble(totalMoney);
     }
 
@@ -83,13 +90,14 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            totalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+            totalMoney += ObjectUtil.getDouble(format, "price");
         }
-        for (int j = 0; j < preOrders.size(); j++) {
-            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
-            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            totalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-        }
+//        for (int j = 0; j < preOrders.size(); j++) {
+//            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
+//            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+////            totalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+//            totalMoney += ObjectUtil.getDouble(format, "price");
+//        }
         return MyUtils.formatDouble(totalMoney);
     }
 
@@ -99,22 +107,31 @@ public class ProductUtil {
         List<Object> preOrders = avObject.getList("preOrder");
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() == 0) {
-                svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-            } else {
-                svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+            if (ObjectUtil.getDouble(format, "price") > 0) {
+                ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+                if (productBean.getScale() == 0) {
+                    if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                        svipTotalMoney += ProductUtil.calCommodityMoney(ObjectUtil.getString(format, "barcode")) * ObjectUtil.getDouble(format, "number");
+                    } else {
+                        svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+                    }
+
+                } else {
+                    svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+                }
             }
         }
-        for (int j = 0; j < preOrders.size(); j++) {
-            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
-            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() == 0) {
-                svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-            } else {
-                svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
-            }
-        }
+//        for (int j = 0; j < preOrders.size(); j++) {
+//            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
+//            if (ObjectUtil.getDouble(format, "price") > 0) {
+//                ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+//                if (productBean.getScale() == 0) {
+//                    svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+//                } else {
+//                    svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+//                }
+//            }
+//        }
         return MyUtils.formatDouble(svipTotalMoney);
     }
 
@@ -122,22 +139,30 @@ public class ProductUtil {
         double svipTotalMoney = 0.0;
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() == 0) {
-                svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-            } else {
-                svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+            if (ObjectUtil.getDouble(format, "price") > 0) {
+                ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+                if (productBean.getScale() == 0) {
+                    if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                        svipTotalMoney += ProductUtil.calCommodityMoney(ObjectUtil.getString(format, "barcode")) * ObjectUtil.getDouble(format, "number");
+                    } else {
+                        svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+                    }
+                } else {
+                    svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+                }
             }
         }
-        for (int j = 0; j < preOrders.size(); j++) {
-            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
-            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() == 0) {
-                svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-            } else {
-                svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
-            }
-        }
+//        for (int j = 0; j < preOrders.size(); j++) {
+//            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
+//            if (ObjectUtil.getDouble(format, "price") > 0) {
+//                ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+//                if (productBean.getScale() == 0) {
+//                    svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
+//                } else {
+//                    svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
+//                }
+//            }
+//        }
         return MyUtils.formatDouble(svipTotalMoney);
     }
 
@@ -155,11 +180,16 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() > 0) {
+            if (productBean.getScale() > 0 && ObjectUtil.getDouble(format, "price") > 0) {
                 if (prices.size() > 0 && prices.size() == orders.size()) {
                     TotalMeatReduceMoney += prices.get(i);
                 } else {
-                    TotalMeatReduceMoney += (productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number");
+                    if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                        TotalMeatReduceMoney += (ProductUtil.calCommodityMoney(ObjectUtil.getString(format, "barcode")) - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number");
+                    } else {
+                        TotalMeatReduceMoney += (productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number");
+                    }
+
                 }
 
             }
@@ -176,11 +206,16 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() > 0) {
+            if (productBean.getScale() > 0 && ObjectUtil.getDouble(format, "price") > 0) {
                 if (weights.size() > 0 && weights.size() == orders.size()) {
                     TotalMeatReduceWeight += weights.get(i) * productBean.getScale();
                 } else {
-                    TotalMeatReduceWeight += (productBean.getWeight() * productBean.getScale()) * ObjectUtil.getDouble(format, "number");
+                    if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                        TotalMeatReduceWeight += (ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) * productBean.getScale()) * ObjectUtil.getDouble(format, "number");
+                    } else {
+                        TotalMeatReduceWeight += (productBean.getWeight() * productBean.getScale()) * ObjectUtil.getDouble(format, "number");
+                    }
+
                 }
             }
         }
@@ -193,19 +228,28 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() > 0) {
+            if (productBean.getScale() > 0 && ObjectUtil.getDouble(format, "price") > 0) {
                 try {
-                    if (productBean.getCode().length()==5){
-                        format.put("meatWeight", MyUtils.formatDouble(ObjectUtil.getDouble(format,"weight") * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
-                        format.put("reduceMoeny",calReduceMoney(productBean,format));
-                    }else{
-                        format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
-                        format.put("reduceMoeny",calReduceMoney(productBean,format));
+                    if (productBean.getCode().length() == 5) {
+                        if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                            format.put("meatWeight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
+                        } else {
+                            format.put("meatWeight", MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight") * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
+                        }
+                        format.put("reduceMoeny", calReduceMoney(productBean, format));
+                    } else {
+                        if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                            format.put("meatWeight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
+                        } else {
+                            format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
+                        }
+
+                        format.put("reduceMoeny", calReduceMoney(productBean, format));
                     }
 
                 } catch (Exception e) {
                     format.put("meatWeight", 0.0);
-                    format.put("reduceMoeny",0.0);
+                    format.put("reduceMoeny", 0.0);
 
                 }
                 meatList.add(format);
@@ -215,31 +259,33 @@ public class ProductUtil {
     }
 
     /**
-     *计算商品的优惠价格
+     * 计算商品的优惠价格
      */
     private static Double calReduceMoney(ProductBean productBean, HashMap<String, Object> format) {
         Double number = ObjectUtil.getDouble(format, "number");
         Double totalMoney = ObjectUtil.getDouble(format, "price");
         double totalRemainMoney = productBean.getRemainMoney() * number;
-        return MyUtils.formatDouble(totalMoney-totalRemainMoney);
+        return MyUtils.formatDouble(totalMoney - totalRemainMoney);
     }
 
     /**
      * 计算出可扣得最大的牛肉列表
      */
     public static List<Object> canExchangeMeatList(List<Object> orders, Double hasMeatWeight, List<Double> weights) {
-        Logger.d(orders);
         List<Object> meatList = new ArrayList<>();
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-            if (productBean.getScale() > 0) {
+            if (productBean.getScale() > 0 && ObjectUtil.getDouble(format, "price") > 0) {
                 try {
                     if (weights.size() == orders.size() && weights.size() > 0) {
                         format.put("meatWeight", MyUtils.formatDouble(weights.get(i) * productBean.getScale()));
                     } else {
-                        format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
-
+                        if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                            format.put("meatWeight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
+                        } else {
+                            format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * productBean.getScale() * ObjectUtil.getDouble(format, "number")));
+                        }
                     }
                 } catch (Exception e) {
                     format.put("meatWeight", 0.0);
@@ -248,7 +294,6 @@ public class ProductUtil {
                 meatList.add(format);
             }
         }
-        Logger.d("+++++" + meatList);
         Collections.sort(meatList, new Comparator<Object>() {
             @Override
             public int compare(Object o1, Object o2) {
@@ -266,7 +311,7 @@ public class ProductUtil {
             ProductBean productBean1 = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             if (totalWeight + ObjectUtil.getDouble(format, "meatWeight") <= hasMeatWeight) {
                 totalWeight += ObjectUtil.getDouble(format, "meatWeight");
-                format.put("reduceMoeny",MyUtils.formatDouble(ObjectUtil.getDouble(format,"price")-productBean1.getRemainMoney()*ObjectUtil.getDouble(format,"number")));
+                format.put("reduceMoeny", MyUtils.formatDouble(ObjectUtil.getDouble(format, "price") - productBean1.getRemainMoney() * ObjectUtil.getDouble(format, "number")));
                 exchangeMeatList.add(format);
             } else if (totalWeight + MyUtils.formatDouble(ObjectUtil.getDouble(format, "meatWeight") / ObjectUtil.getDouble(format, "number")) <= hasMeatWeight) {
                 int number = ObjectUtil.getDouble(format, "number").intValue();
@@ -281,9 +326,15 @@ public class ProductUtil {
                 }
                 if (num > 0) {
                     format.put("number", num);
-                    format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight()*productBean.getScale() * num));
-                    format.put("reduceMoeny",MyUtils.formatDouble((productBean1.getPrice()-productBean1.getRemainMoney())*num));
-                    format.put("price",MyUtils.formatDouble((productBean1.getPrice())*num));
+
+                    if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                        format.put("meatWeight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) * productBean.getScale() * num));
+                        format.put("reduceMoeny", MyUtils.formatDouble((ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) - productBean1.getRemainMoney()) * num));
+                    } else {
+                        format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * productBean.getScale() * num));
+                        format.put("reduceMoeny", MyUtils.formatDouble((productBean1.getPrice() - productBean1.getRemainMoney()) * num));
+                    }
+                    format.put("price", MyUtils.formatDouble((productBean1.getPrice()) * num));
                     exchangeMeatList.add(format);
                 }
             } else {
@@ -298,7 +349,7 @@ public class ProductUtil {
             ProductBean productBean1 = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             if (totalWeight + ObjectUtil.getDouble(format, "meatWeight") <= hasMeatWeight) {
                 totalWeight += ObjectUtil.getDouble(format, "meatWeight");
-                format.put("reduceMoeny",MyUtils.formatDouble((ObjectUtil.getDouble(format,"price")-productBean1.getRemainMoney()*ObjectUtil.getDouble(format,"number"))));
+                format.put("reduceMoeny", MyUtils.formatDouble((ObjectUtil.getDouble(format, "price") - productBean1.getRemainMoney() * ObjectUtil.getDouble(format, "number"))));
                 exchangeMeatList.add(format);
             } else if (totalWeight + MyUtils.formatDouble(ObjectUtil.getDouble(format, "meatWeight") / ObjectUtil.getDouble(format, "number")) <= hasMeatWeight) {
                 int number = ObjectUtil.getDouble(format, "number").intValue();
@@ -312,14 +363,19 @@ public class ProductUtil {
                 }
                 if (num > 0) {
                     format.put("number", num);
-                    format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight()*productBean.getScale() * num));
-                    format.put("reduceMoeny",MyUtils.formatDouble((productBean1.getPrice()-productBean1.getRemainMoney())*num));
-                    format.put("price",MyUtils.formatDouble((productBean1.getPrice())*num));
+                    if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                        format.put("meatWeight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) * productBean.getScale() * num));
+                        format.put("reduceMoeny", MyUtils.formatDouble((ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) - productBean1.getRemainMoney()) * num));
+
+                    } else {
+                        format.put("meatWeight", MyUtils.formatDouble(productBean.getWeight() * productBean.getScale() * num));
+                        format.put("reduceMoeny", MyUtils.formatDouble((productBean1.getPrice() - productBean1.getRemainMoney()) * num));
+                    }
+                    format.put("price", MyUtils.formatDouble((productBean1.getPrice()) * num));
                     exchangeMeatList.add(format);
                 }
             }
         }
-        Logger.d(exchangeMeatList);
         return exchangeMeatList;
     }
 
@@ -329,9 +385,9 @@ public class ProductUtil {
             HashMap<String, Object> format = ObjectUtil.format(useExchangeList.get(i));
             ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             if (productBean.getScale() > 0) {
-                if(MyUtils.getProductById(ObjectUtil.getString((HashMap<String, Object>) format,"id")).getCode().length()==5){
+                if (MyUtils.getProductById(ObjectUtil.getString((HashMap<String, Object>) format, "id")).getCode().length() == 5) {
                     TotalMeatReduceMoney += (MyUtils.formatDouble(ObjectUtil.getDouble(format, "price")) - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number");
-                }else{
+                } else {
                     TotalMeatReduceMoney += (productBean.getPrice() - productBean.getRemainMoney()) * ObjectUtil.getDouble(format, "number");
                 }
 
@@ -511,7 +567,7 @@ public class ProductUtil {
 
 
         }
-        return "确认使用"+content;
+        return "确认使用" + content;
     }
 
     public static List<String> calTotalIds(List<Object> orders) {
@@ -549,8 +605,7 @@ public class ProductUtil {
     public static List<List<String>> getComboList(String comboMenu) {
         List<List<String>> comboList = new ArrayList<>();
         String[] split = comboMenu.split("\\|");
-        Logger.d(split);
-        if (comboMenu.length()>0) {
+        if (comboMenu.length() > 0) {
             for (int i = 0; i < split.length; i++) {
                 List<String> item = Arrays.asList(split[i].split("\\,"));
                 comboList.add(item);
@@ -657,7 +712,7 @@ public class ProductUtil {
     }
 
     public static Double calCommodityWeight(String barcode) {
-        if (barcode.length() == 13) {
+        if (barcode.length() != 18) {
             List<ProductBean> productBean = getProductBean(barcode);
             if (productBean.size() > 0) {
                 return productBean.get(0).getWeight();
@@ -670,6 +725,18 @@ public class ProductUtil {
         }
     }
 
+    /**
+     * 获取价格
+     */
+    public static Double getPrice(String barcode) {
+        List<ProductBean> productBean = getProductBean(barcode);
+        if (productBean.size() > 0) {
+            return productBean.get(0).getPrice();
+        } else {
+            return 0.0;
+        }
+    }
+
     public static List<ProductBean> getProductBean(String barcode) {
         RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
         List<ProductBean> productBeen = new ArrayList<ProductBean>();
@@ -679,6 +746,8 @@ public class ProductUtil {
             productBeen = mRealmHleper.queryProductByBarcode(barcode.substring(2, 7));
         } else if (barcode.length() == 5) {
             productBeen = mRealmHleper.queryProductByBarcode(barcode);
+        } else {
+            productBeen = mRealmHleper.queryProductByBarcode(barcode);
         }
         return productBeen;
     }
@@ -686,8 +755,20 @@ public class ProductUtil {
     public static Double calCommodityMoney(String barcode) {
         RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
         if (barcode.length() == 18) {
-            return MyUtils.formatDouble(Double.parseDouble(barcode.substring(7, 12).substring(0, 5).replaceAll("^[0]+", "")) / 100);
-        } else if (barcode.length() == 13) {
+            double finalPrice = 0.0;
+            double showprice = Double.parseDouble(barcode.substring(7, 12).substring(0, 5).replaceAll("^[0]+", "")) / 100;
+            double price = getPrice(barcode) * (new Double(Integer.parseInt(barcode.substring(12, 17))) / 1000);
+            if (price - showprice > 1) {
+                if (price / 1000 >= 1) {
+                    finalPrice = 1000 * Integer.parseInt((price + "").substring(0, 1)) + (new Double(Integer.parseInt(barcode.substring(7, 12))) / 100);
+                } else {
+                    finalPrice = showprice;
+                }
+            } else {
+                finalPrice = showprice;
+            }
+            return MyUtils.formatDouble(finalPrice);
+        } else if (barcode.length() == 13 || barcode.length() == 8) {
             return mRealmHleper.queryProductByBarcode(barcode).get(0).getPrice();
         } else {
             return 0.0;
@@ -737,7 +818,61 @@ public class ProductUtil {
         int number = 0;
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 5) {
+            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 3 && MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 4 && MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 11) {
+                if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                    if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+                        ++number;
+                    }
+
+                } else {
+                    ++number;
+                }
+
+            }
+        }
+        return number;
+    }
+
+    public static int MeatOfCookRoomNum(List<Object> orders) {
+        int number = 0;
+        for (int i = 0; i < orders.size(); i++) {
+            HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
+            int type = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType();
+            if (type == 3 || type == 4 || type == 5 || type == 6 || type == 7) {
+                if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+                    number++;
+                }
+            } else {
+                number++;
+            }
+        }
+
+        Logger.d(number);
+        return number;
+    }
+
+    public static int MeatOfCoolRoomNum(List<Object> orders) {
+        int number = 0;
+        for (int i = 0; i < orders.size(); i++) {
+            HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
+            int type = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType();
+            if (type == 3 || type == 4 || type == 5 || type == 6 || type == 7) {
+                if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+                    number++;
+                }
+            } else {
+                number++;
+            }
+        }
+        return number;
+    }
+
+    public static int MeatOfShowRoomNum(List<Object> orders) {
+        int number = 0;
+        for (int i = 0; i < orders.size(); i++) {
+            HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
+            int type = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType();
+            if (type == 5 || type == 6 || type == 7) {
                 ++number;
             }
         }
@@ -748,8 +883,15 @@ public class ProductUtil {
         int number = 0;
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 5) {
-                ++number;
+            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 3 || MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 4) {
+                if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                    if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+                        ++number;
+                    }
+
+                } else {
+                    ++number;
+                }
             }
         }
         return number;
@@ -764,17 +906,17 @@ public class ProductUtil {
         RealmList<String> fullReduce = ruleBean.getFullReduce();
         if (fullReduce.size() > 0) {
             int index = -1;
-            for (int i = 0; i < fullReduce.size()-1; i++) {
-                if ((Double.parseDouble(fullReduce.get(fullReduce.size()-1).split("-")[0]) < actualTotalMoneny)){
-                    index=fullReduce.size()-1;
+            for (int i = 0; i < fullReduce.size() - 1; i++) {
+                if ((Double.parseDouble(fullReduce.get(fullReduce.size() - 1).split("-")[0]) < actualTotalMoneny)) {
+                    index = fullReduce.size() - 1;
                 }
-                if (Double.parseDouble(fullReduce.get(i).split("-")[0]) < actualTotalMoneny && (Double.parseDouble(fullReduce.get(i+1).split("-")[0]) > actualTotalMoneny)) {
+                if (Double.parseDouble(fullReduce.get(i).split("-")[0]) < actualTotalMoneny && (Double.parseDouble(fullReduce.get(i + 1).split("-")[0]) > actualTotalMoneny)) {
                     index = i;
                 }
             }
             if (index != -1) {
                 return Double.parseDouble(fullReduce.get(index).split("-")[1]);
-            }else{
+            } else {
                 return 0.0;
             }
 
@@ -842,9 +984,9 @@ public class ProductUtil {
      */
     public static Boolean isRechargeSvipOrder(AVObject avObject) {
         List<String> commoditys = avObject.getList("commodity");
-        if (commoditys.size()==1){
+        if (commoditys.size() == 1) {
             String id = commoditys.get(0);
-            if (id.equals(CONST.SVIPSTYLE.DATE_12_MONTH)||id.equals(CONST.SVIPSTYLE.DATE_1_MONTH)){
+            if (id.equals(CONST.SVIPSTYLE.DATE_12_MONTH) || id.equals(CONST.SVIPSTYLE.DATE_1_MONTH)) {
                 return true;
             }
         }
@@ -852,4 +994,217 @@ public class ProductUtil {
     }
 
 
+    public static List<ProductBean> getOtherGoods(int index) {
+        RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
+        List<ProductBean> productBeen = mRealmHleper.queryOtherType(index);
+        return productBeen;
+    }
+
+    public static Double calBlackFiveReduce(boolean useMeat, List<Object> useExchangeList, List<Object> maxExchangeList, List<Object> orderList) {
+        Double forzenMoney = 0.0;
+        Double exchangeMoney = 0.0;
+        if (DateUtil.isBlackFive()) {
+            for (int i = 0; i < orderList.size(); i++) {
+                HashMap<String, Object> map = (HashMap<String, Object>) orderList.get(i);
+                if (MyUtils.getProductById(ObjectUtil.getString(map, "id")).getType() == CONST.ForzeenMeatType) {
+                    forzenMoney += ObjectUtil.getDouble(map, "price");
+                }
+            }
+            if (useMeat) {
+                for (int i = 0; i < useExchangeList.size(); i++) {
+                    HashMap<String, Object> map = (HashMap<String, Object>) useExchangeList.get(i);
+                    if (MyUtils.getProductById(ObjectUtil.getString(map, "id")).getType() == CONST.ForzeenMeatType) {
+                        exchangeMoney += ObjectUtil.getDouble(map, "price");
+                    }
+                }
+                forzenMoney = (forzenMoney - exchangeMoney) * 0.5;
+            } else {
+                forzenMoney *= 0.5;
+            }
+        }
+        return MyUtils.formatDouble(forzenMoney);
+    }
+
+    public static HashMap<String, Object> calMergeCommodity(ArrayList<String> ids, ArrayList<Integer> numbers, ArrayList<Double> weights) {
+        HashMap<String, Object> map = new HashMap<>();
+        for (int i = 0; i < ids.size(); i++) {
+            ProductBean productById = MyUtils.getProductById(ids.get(i));
+            if (productById != null) {
+                if (map.containsKey(ids.get(i))) {
+                    HashMap<String, Object> hashMap = (HashMap<String, Object>) map.get(ids.get(i));
+                    hashMap.put("number", ObjectUtil.getInt(hashMap, "number") + numbers.get(i));
+                    hashMap.put("weight", MyUtils.formatDouble(ObjectUtil.getDouble(hashMap, "weight") * numbers.get(i) + weights.get(i)));
+                } else {
+                    HashMap<String, Object> singleMap = new HashMap<>();
+                    singleMap.put("id", ids.get(i));
+                    singleMap.put("number", numbers.get(i));
+                    singleMap.put("weight", MyUtils.formatDouble(weights.get(i) * numbers.get(i)));
+                    singleMap.put("name", productById.getName());
+                    map.put(ids.get(i), singleMap);
+                }
+                Logger.d(map);
+            }
+        }
+        return map;
+    }
+
+    public static HashMap<String, Double> calOrderDifference(Map<String, Object> preInventorys, Map<String, Object> behindInventorys) {
+        Logger.d(preInventorys.size());
+        Logger.d(behindInventorys.size());
+        Iterator iter = preInventorys.entrySet().iterator();
+        Iterator iters = behindInventorys.entrySet().iterator();
+        ArrayList<Object> ids = new ArrayList<>();
+        ArrayList<Object> addIds = new ArrayList<>();
+        HashMap<String, Double> preDifference = new HashMap<>();
+        while (iter.hasNext()) {
+            Map.Entry entry = (Map.Entry) iter.next();
+            ids.add(entry.getKey().toString());
+
+        }
+        while (iters.hasNext()) {
+            Map.Entry entry1 = (Map.Entry) iters.next();
+            if (!ids.contains(entry1.getKey().toString())) {
+                addIds.add(entry1.getKey().toString());
+            }
+        }
+        for (int i = 0; i < ids.size(); i++) {
+            try {
+                JSONObject preJson = new JSONObject(preInventorys.get(ids.get(i)).toString());
+                JSONObject behindJson = new JSONObject(behindInventorys.get(ids.get(i)).toString());
+                if (preJson.getDouble("weight") != behindJson.getDouble("weight")) {
+                    preDifference.put(preJson.getString("name"), MyUtils.formatDouble(behindJson.getDouble("weight") - preJson.getDouble("weight")));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+        }
+        for (int i = 0; i < addIds.size(); i++) {
+            try {
+                JSONObject behindJson = new JSONObject(behindInventorys.get(addIds.get(i)).toString());
+                preDifference.put(behindJson.getString("name"), MyUtils.formatDouble(behindJson.getDouble("weight")));
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return preDifference;
+    }
+
+    public static Double calNoDiscountMoney(List order) {
+        double money = 0.0;
+        for (int i = 0; i < order.size(); i++) {
+            HashMap<String, Object> hashMap = (HashMap<String, Object>) order.get(i);
+            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(hashMap, "id"));
+            if (productBean.getType() == 9) {
+                money += ObjectUtil.getDouble(hashMap, "price");
+            }
+
+        }
+        return MyUtils.formatDouble(money);
+    }
+
+    public static int calExplodeNumbers(List<Object> orders) {
+        int number = 0;
+        for (int i = 0; i < orders.size(); i++) {
+            HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(i);
+            String id = ObjectUtil.getString(hashMap, "id");
+            if (id.equals(CONST.EXPLODEID)) {
+                number += ObjectUtil.getDouble(hashMap, "number").intValue();
+            }
+        }
+        return number;
+    }
+
+    public static Double calNbTotalMoney(List<Object> orders) {
+        double totalMoney = 0.0;
+        for (int i = 0; i < orders.size(); i++) {
+            HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(i);
+            totalMoney += ObjectUtil.getDouble(hashMap, "nb");
+        }
+        return MyUtils.formatDouble(totalMoney);
+    }
+
+    public static Boolean isCookCommodity(HashMap<String, Object> format) {
+        ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+        int type = productBean.getType();
+        if (type == 3 || type == 4 || type == 5 || type == 6 || type == 11) {
+            if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+                    return true;
+                }
+            }
+        } else {
+            return true;
+        }
+        return false;
+    }
+
+    public static Boolean isCoolCommodity(HashMap<String, Object> format) {
+        ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+        int type = productBean.getType();
+        if (type == 3 || type == 4 || type == 5 || type == 6 || type == 11) {
+            Logger.d(ObjectUtil.getString(format, "barcode").length());
+            Logger.d(ObjectUtil.getString(format, "cookStyle").equals(""));
+            if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+                    return true;
+                }
+            }
+        } else {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 检查爆款西冷是否可以买
+     */
+    public static boolean checkCanBuy(List<Object> orders,UserBean userBean) {
+
+        int number=0;
+        for (int i=0;i<orders.size();i++){
+            HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(i);
+            String id = ObjectUtil.getString(hashMap, "id");
+            if (id.equals(CONST.EXPLODEID)){
+                number++;
+            }
+        }
+        if (number>1){
+            T.L("每个用户每天只能买一份爆款产品");
+            return false;
+        }
+        if (userBean==null){
+            T.L("未登陆用户不可以买爆款产品");
+            return false;
+        }
+        return true;
+
+    }
+
+    public static void addExploseRecord(List<Object> orders,UserBean userBean){
+        int number=0;
+        for (int i=0;i<orders.size();i++){
+            HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(i);
+            String id = ObjectUtil.getString(hashMap, "id");
+            if (id.equals(CONST.EXPLODEID)){
+                number++;
+            }
+        }
+        if (number>0){
+            AVObject offlineExchange = new AVObject("OfflineExchange");
+            offlineExchange.put("number",number);
+            offlineExchange.put("user",AVObject.createWithoutData("_User",userBean.getId()));
+            offlineExchange.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(AVException e) {
+                    if (e==null){
+
+                    }
+                }
+            });
+        }
+
+    }
 }

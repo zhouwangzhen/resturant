@@ -8,7 +8,7 @@ public final class AppUtils {
     private static long mLastClickTime;// 用户判断多次点击的时间
     public static boolean isFastDoubleClick() {
         long time = System.currentTimeMillis();
-        if (Math.abs(time - mLastClickTime) < 500) {
+        if (Math.abs(time - mLastClickTime) < 1000) {
             return true;
         }
         mLastClickTime = time;

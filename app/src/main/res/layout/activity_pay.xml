@@ -246,7 +246,38 @@
                                         android:textSize="16sp" />
                                 </LinearLayout>
                             </LinearLayout>
+                            <LinearLayout
+                                android:id="@+id/ll_black_five"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:gravity="center_vertical"
+                                android:visibility="gone">
 
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="周五冻品半价优惠"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="10dp"
+                                    android:layout_marginLeft="10dp"
+                                    android:layout_marginRight="10dp"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_dot"
+                                    android:layerType="software" />
+
+                                <TextView
+                                    android:id="@+id/black_five_money"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="-0.0"
+                                    android:textColor="@color/slightgrey"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -312,12 +343,14 @@
                             </LinearLayout>
 
                             <LinearLayout
+                                android:id="@+id/ll_store_reduce"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="20dp"
                                 android:gravity="center_vertical">
 
                                 <TextView
+                                    android:id="@+id/store_reduce_rate"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="开业优惠"
@@ -343,6 +376,7 @@
                             </LinearLayout>
 
                             <LinearLayout
+                                android:id="@+id/ll_full_reduce"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="20dp"

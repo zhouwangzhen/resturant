@@ -3,6 +3,7 @@ package cn.kuwo.player.util;
 import android.text.TextUtils;
 
 import com.avos.avoscloud.AVObject;
+import com.orhanobut.logger.Logger;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ public class RealmUtil {
             productBean.setScale(avObject.getDouble("scale"));
             productBean.setRemainMoney(avObject.getDouble("remainMoney"));
             productBean.setActive(avObject.getInt("active"));
+            productBean.setNb(avObject.getDouble("nb"));
             productBean.setComboMenu(avObject.getString("comboMenu") == null ? "" : MyUtils.replaceBlank(avObject.getString("comboMenu").trim().replace(" ", "")));
             RealmList<String> commentsList = new RealmList<>();
             for (int k = 0; k < avObject.getList("comments").size(); k++) {
@@ -43,6 +45,7 @@ public class RealmUtil {
             }
             productBean.setGiveRule(avObject.getInt("giveRule"));
             productBean.setComments(commentsList);
+            productBean.setReviewCommodity(avObject.getString("reviewCommodity"));
             mRealmHleper.addProduct(productBean);
         }
     }

@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/blue"
+        android:gravity="center"
+        android:text="牛币充值"
+        android:textColor="@color/white" />
+
+    <LinearLayout
+        android:id="@+id/ll_no_user"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableTop="@drawable/icon_code" />
+
+        <Button
+            android:id="@+id/btn_scan_user"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="点击此按钮后扫描充值客户二维码" />
+    </LinearLayout>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="5dp"
+        app:cardElevation="4dp"
+        app:contentPadding="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_tel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="手机号：" />
+
+            <TextView
+                android:id="@+id/tv_stored"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="消费金：" />
+
+            <TextView
+                android:id="@+id/tv_balance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="白条：" />
+            <TextView
+                android:id="@+id/user_nb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="牛币：" />
+            <TextView
+                android:id="@+id/tv_meatweight"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="牛肉额度：" />
+
+            <TextView
+                android:id="@+id/tv_is_buy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="是否购买过超牛会员：" />
+
+            <TextView
+                android:id="@+id/tv_is_svip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="用户会员等级：" />
+        </LinearLayout>
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/card_recharge_money"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="5dp"
+        app:cardElevation="4dp"
+        app:contentPadding="10dp">
+
+        <RelativeLayout
+            android:id="@+id/rl_recharge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="充值金额:"
+                android:layout_centerVertical="true"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/tv_recharge_money"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:text="800个牛币"
+                android:textColor="@color/black" />
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:id="@+id/gv_payment"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="5dp"
+        app:cardElevation="4dp"
+        app:contentPadding="10dp">
+        <TextView
+            android:text="付款方式:"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"/>
+        <cn.kuwo.player.custom.FlowRadioGroup
+            android:id="@+id/rg_paystyle"
+            android:layout_marginLeft="100dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+            <RadioButton
+                android:id="@+id/pay_ali"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:padding="6dp"
+                android:text="支付宝支付"
+                android:checked="true"
+                android:textColor="#000000" />
+
+            <RadioButton
+                android:id="@+id/pay_wx"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:padding="6dp"
+                android:text="微信支付"
+                android:textColor="#000000" />
+            <RadioButton
+                android:id="@+id/pay_card"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:padding="6dp"
+                android:text="银行卡支付"
+                android:textColor="#000000" />
+            <RadioButton
+                android:id="@+id/pay_cash"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:padding="6dp"
+                android:text="现金支付"
+                android:textColor="#000000" />
+        </cn.kuwo.player.custom.FlowRadioGroup>
+    </android.support.v7.widget.CardView>
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:id="@+id/gv_paymoney"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="5dp"
+        app:cardElevation="4dp"
+        app:contentPadding="10dp">
+        <TextView
+            android:id="@+id/tv_paymoney"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/red"
+            android:textSize="28sp"
+            android:gravity="center"
+            android:text="需要支付的金额1000元"
+            android:layout_gravity="center"/>
+    </android.support.v7.widget.CardView>
+    <Button
+        android:id="@+id/btn_recharge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="去充值"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal|bottom">
+        <Button
+            android:id="@+id/btn_refrsh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:text="刷新"/>
+        <Button
+            android:id="@+id/reset_data"
+            android:padding="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:text="重置"/>
+    </RelativeLayout>
+</LinearLayout>

@@ -12,8 +12,11 @@ public class ComboEvent {
     private Double CommodityNumber;
     private Boolean isEdit;
     private int orderIndex;
+    private String barcode;
+    private String cookStyle;
+    private int OriginNumber;
 
-    public ComboEvent(ProductBean productBean, List<String> comboList,int cookSerial,String content,Double CommodityNumber,Boolean isEdit,int orderIndex) {
+    public ComboEvent(ProductBean productBean, List<String> comboList,int cookSerial,String content,Double CommodityNumber,Boolean isEdit,int orderIndex,String barcode,String cookStyle,int OriginNumber) {
         this.productBean = productBean;
         this.comboList = comboList;
         this.cookSerial = cookSerial;
@@ -21,6 +24,9 @@ public class ComboEvent {
         this.CommodityNumber = CommodityNumber;
         this.isEdit=isEdit;
         this.orderIndex=orderIndex;
+        this.barcode=barcode;
+        this.cookStyle=cookStyle;
+        this.OriginNumber=OriginNumber;
     }
 
     public ProductBean getProductBean() {
@@ -79,6 +85,30 @@ public class ComboEvent {
         this.orderIndex = orderIndex;
     }
 
+    public String getBarcode() {
+        return barcode;
+    }
+
+    public void setBarcode(String barcode) {
+        this.barcode = barcode;
+    }
+
+    public String getCookStyle() {
+        return cookStyle;
+    }
+
+    public void setCookStyle(String cookStyle) {
+        this.cookStyle = cookStyle;
+    }
+
+    public int getOriginNumber() {
+        return OriginNumber;
+    }
+
+    public void setOriginNumber(int originNumber) {
+        OriginNumber = originNumber;
+    }
+
     @Override
     public String toString() {
         return "ComboEvent{" +
@@ -88,6 +118,9 @@ public class ComboEvent {
                 ", content='" + content + '\'' +
                 ", CommodityNumber=" + CommodityNumber +
                 ", isEdit=" + isEdit +
+                ", orderIndex=" + orderIndex +
+                ", barcode='" + barcode + '\'' +
+                ", cookStyle='" + cookStyle + '\'' +
                 '}';
     }
 }

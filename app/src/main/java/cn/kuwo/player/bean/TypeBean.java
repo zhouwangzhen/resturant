@@ -39,4 +39,5 @@ public class TypeBean extends RealmObject {
                 ", store=" + store +
                 '}';
     }
+
 }

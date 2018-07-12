@@ -62,6 +62,7 @@
             android:windowSoftInputMode="stateHidden|stateAlwaysHidden"/>
         <activity android:name=".activity.SettleActivity"/>
         <activity android:name=".activity.PayActivity"/>
+        <activity android:name=".fragment.inventory.InventoryActivity"/>
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="cn.kuwo.player.fileProvider"

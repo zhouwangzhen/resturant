@@ -1,10 +1,12 @@
 package cn.kuwo.player.fragment;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,9 +16,13 @@ import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,7 +30,12 @@ import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FindCallback;
+import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import com.yzq.zxinglibrary.android.CaptureActivity;
+import com.yzq.zxinglibrary.common.Constant;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -42,9 +53,14 @@ import butterknife.Unbinder;
 import cn.kuwo.player.BuildConfig;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
+import cn.kuwo.player.api.CommodityApi;
 import cn.kuwo.player.base.BaseFragment;
+import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.util.CONST;
+import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.MyUtils;
+import cn.kuwo.player.util.RealmUtil;
+import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
 
 public class SettingFg extends BaseFragment {
@@ -53,9 +69,20 @@ public class SettingFg extends BaseFragment {
     @BindView(R.id.upgrade)
     TextView upgrade;
     Unbinder unbinder;
+    @BindView(R.id.change_commodity_name)
+    TextView changeCommodityName;
+    @BindView(R.id.change_commodity_price)
+    TextView changeCommodityPrice;
+    Unbinder unbinder1;
+    @BindView(R.id.cb_carema)
+    CheckBox cbCarema;
+    @BindView(R.id.rl_carema_choose)
+    RelativeLayout rlCaremaChoose;
+    private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private Activity mActivity;
     private String mParam;
     private Context context;
+    private AVObject CommodityAVObject = null;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -70,7 +97,169 @@ public class SettingFg extends BaseFragment {
 
     @Override
     public void initData() {
-        context=MyApplication.getContextObject();
+        context = MyApplication.getContextObject();
+        findChangeCommodity();
+        setChooseCarema();
+    }
+
+    private void setChooseCarema() {
+        if (CameraProvider.hasCamera()) {
+            rlCaremaChoose.setVisibility(View.VISIBLE);
+            if (SharedHelper.readBoolean("useGun")){
+                cbCarema.setChecked(true);
+            }else{
+                cbCarema.setChecked(false);
+            }
+        } else {
+            rlCaremaChoose.setVisibility(View.GONE);
+        }
+        cbCarema.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked){
+                    SharedHelper.saveBoolean("useGun",true);
+                }else{
+                    SharedHelper.saveBoolean("useGun",false);
+                }
+            }
+        });
+    }
+
+    private void findChangeCommodity() {
+        showDialog();
+        AVQuery<AVObject> query = new AVQuery<>("OfflineCommodity");
+        query.whereEqualTo("objectId", "5b225b9fee920a003b2ca0a3");
+        query.findInBackground(new FindCallback<AVObject>() {
+            @Override
+            public void done(List<AVObject> list, AVException e) {
+                hideDialog();
+                if (e == null) {
+                    if (list.size() > 0) {
+                        CommodityAVObject = list.get(0);
+                        changeCommodityName.setText(CommodityAVObject.getString("name"));
+                        changeCommodityPrice.setText(CommodityAVObject.getDouble("price") + "");
+                        setListener();
+                    }
+                } else {
+                    Logger.d(e.getMessage());
+                }
+            }
+        });
+    }
+
+    private void setListener() {
+        changeCommodityName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
+                builder.setTitle("修改商品名称")
+                        .setPlaceholder("在此修改商品名称")
+                        .setInputType(InputType.TYPE_CLASS_TEXT)
+                        .setCanceledOnTouchOutside(false)
+                        .setDefaultText(changeCommodityName.getText().toString().trim())
+                        .addAction("取消", new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .addAction("确定", new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                final String text = builder.getEditText().getText().toString();
+                                if (text != null && text.length() > 0) {
+                                    dialog.dismiss();
+                                    if (CommodityAVObject != null) {
+                                        showDialog();
+                                        CommodityAVObject.put("name", text);
+                                        CommodityAVObject.saveInBackground(new SaveCallback() {
+                                            @Override
+                                            public void done(AVException e) {
+                                                hideDialog();
+                                                if (e == null) {
+                                                    showDialog();
+                                                    CommodityApi.getOfflineCommodity().findInBackground(new FindCallback<AVObject>() {
+                                                        @Override
+                                                        public void done(final List<AVObject> list, AVException e) {
+                                                            hideDialog();
+                                                            if (e == null) {
+                                                                RealmUtil.setProductBeanRealm(list);
+                                                            }
+                                                        }
+                                                    });
+                                                    ToastUtil.showLong(MyApplication.getContextObject(), "修改成功");
+                                                    changeCommodityName.setText(text);
+                                                } else {
+                                                    ToastUtil.showLong(MyApplication.getContextObject(), e.getMessage());
+                                                }
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    Toast.makeText(getActivity(), "请输入商品名称", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        })
+                        .create(mCurrentDialogStyle).show();
+            }
+            });
+            changeCommodityPrice.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
+                builder.setTitle("修改商品价格")
+                        .setPlaceholder("在此修改商品价格")
+                        .setInputType(InputType.TYPE_CLASS_TEXT)
+                        .setCanceledOnTouchOutside(false)
+                        .setDefaultText(changeCommodityPrice.getText().toString().trim())
+                        .addAction("取消", new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .addAction("确定", new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                final String text = builder.getEditText().getText().toString();
+                                if (text != null && text.length() > 0 && MyUtils.isDoubleOrFloat(text) && Double.parseDouble(text) > 0) {
+                                    dialog.dismiss();
+                                    if (CommodityAVObject != null) {
+                                        showDialog();
+                                        CommodityAVObject.put("price", Double.parseDouble(text));
+                                        CommodityAVObject.put("actualprice", Double.parseDouble(text));
+                                        CommodityAVObject.put("nb",Double.parseDouble(text));
+                                        CommodityAVObject.saveInBackground(new SaveCallback() {
+                                            @Override
+                                            public void done(AVException e) {
+                                                hideDialog();
+                                                if (e == null) {
+                                                    showDialog();
+                                                    CommodityApi.getOfflineCommodity().findInBackground(new FindCallback<AVObject>() {
+                                                        @Override
+                                                        public void done(final List<AVObject> list, AVException e) {
+                                                            hideDialog();
+                                                            if (e == null) {
+                                                                RealmUtil.setProductBeanRealm(list);
+                                                            }
+                                                        }
+                                                    });
+                                                    ToastUtil.showLong(MyApplication.getContextObject(), "修改成功");
+                                                    changeCommodityPrice.setText(text);
+                                                } else {
+                                                    ToastUtil.showLong(MyApplication.getContextObject(), e.getMessage());
+                                                }
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    Toast.makeText(getActivity(), "请输入商品价格", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        })
+                        .create(mCurrentDialogStyle).show();
+            }
+        });
     }
 
     public void onAttach(Context context) {
@@ -104,7 +293,7 @@ public class SettingFg extends BaseFragment {
                     if (list.size() > 0 && MyUtils.getVersionCode(MyApplication.getContextObject()) < list.get(0).getInt("version") && list.get(0).getAVFile("upgrade") != null) {
                         String upgradeUrl = list.get(0).getAVFile("upgrade").getUrl();
                         ShowDialog(upgradeUrl);
-                    }else{
+                    } else {
                         ToastUtil.showShort(MyApplication.getContextObject(), "已经是最新版本");
                     }
                 } else {
@@ -116,11 +305,11 @@ public class SettingFg extends BaseFragment {
     }
 
     private void ShowDialog(final String upgradeUrl) {
-        new android.app.AlertDialog.Builder(getContext())
+        new AlertDialog.Builder(getContext())
                 .setTitle(R.string.app_name)
                 .setMessage("您的版本过低，请去更新最新版本，如不更新将无法继续使用")
                 .setPositiveButton("更新",
-                        new android.app.AlertDialog.OnClickListener() {
+                        new AlertDialog.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                     requestWritePermission(upgradeUrl);
@@ -135,7 +324,7 @@ public class SettingFg extends BaseFragment {
                             }
                         })
                 .setNegativeButton(android.R.string.no,
-                        new android.app.AlertDialog.OnClickListener() {
+                        new AlertDialog.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int i) {
                                 dialog.dismiss();
@@ -233,7 +422,7 @@ public class SettingFg extends BaseFragment {
 
     private void requestWritePermission(String upgradeUrl) {
         int permissionCheck = ContextCompat.checkSelfPermission(MyApplication.getContextObject(), "android.permission.WRITE_EXTERNAL_STORAGE");
-        if (permissionCheck == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
                 startDownloadApk(upgradeUrl);
             } else {
@@ -241,7 +430,22 @@ public class SettingFg extends BaseFragment {
             }
         } else {
             Toast.makeText(MyApplication.getContextObject(), "请设置读写存储权限", Toast.LENGTH_SHORT).show();
-            ActivityCompat.requestPermissions((Activity)mActivity, new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 100);
+            ActivityCompat.requestPermissions((Activity) mActivity, new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 100);
         }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
+            savedInstanceState) {
+        // TODO: inflate a fragment view
+        View rootView = super.onCreateView(inflater, container, savedInstanceState);
+        unbinder1 = ButterKnife.bind(this, rootView);
+        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder1.unbind();
     }
 }

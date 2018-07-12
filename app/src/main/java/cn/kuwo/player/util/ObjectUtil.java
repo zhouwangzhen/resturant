@@ -105,8 +105,27 @@ public class ObjectUtil {
             params.put("price", MyUtils.formatDouble(prices.get(i)));
             params.put("weight", MyUtils.formatDouble(weights.get(i)));
             params.put("number", 1);
+            if (productBean.getType()==6||productBean.getType()==7){
+                params.put("nb", MyUtils.formatDouble(prices.get(i)*CONST.NB.MEATDiSCOUNT));
+            }else if(productBean.getType()==9){
+                params.put("nb", MyUtils.formatDouble(prices.get(i)));
+            }else{
+                params.put("nb", MyUtils.formatDouble(prices.get(i)*CONST.NB.OTHERDISCOUNT));
+            }
             orders.add(params);
         }
         return orders;
+    }
+    public  static Object deepClone(Object obj) {
+        try {// 将对象写到流里
+            ByteArrayOutputStream bo = new ByteArrayOutputStream();
+            ObjectOutputStream oo = new ObjectOutputStream(bo);
+            oo.writeObject(obj);// 从流里读出来
+            ByteArrayInputStream bi = new ByteArrayInputStream(bo.toByteArray());
+            ObjectInputStream oi = new ObjectInputStream(bi);
+            return (oi.readObject());
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
