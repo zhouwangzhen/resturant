@@ -32,6 +32,7 @@ public class StatisticsUtil {
         capitalDetail.put("招商信用卡", 0.0);
         capitalDetail.put("浦发信用卡", 0.0);
         capitalDetail.put("牛币", 0.0);
+        capitalDetail.put("互动吧", 0.0);
         for (AVObject recharge : rechargeOrders) {
             switch (recharge.getInt("escrow")) {
                 case 3:
@@ -153,6 +154,9 @@ public class StatisticsUtil {
                 case 25:
                     capitalDetail.put("牛币", MyUtils.formatDouble(capitalDetail.get("牛币") + actualMoney));
                     break;
+                case 26:
+                    capitalDetail.put("互动吧", MyUtils.formatDouble(capitalDetail.get("互动吧") + actualMoney));
+                    break;
 
             }
         }
@@ -177,6 +181,7 @@ public class StatisticsUtil {
         Double DZDPMoney = 0.0;
         Double nbRechargeMoney = 0.0;
         Double nbTotalMoney=0.0;
+        Double DZDPCommodityMoney=0.0;
         int dinnerPeople = 0;
         int retail = 0;
         int restaurarnt = 0;
@@ -200,8 +205,13 @@ public class StatisticsUtil {
         for (AVObject order : orders) {
             if (order.getAVObject("orderStatus").getObjectId().equals(CONST.OrderState.ORDER_STATUS_FINSIH)) {
                 Double actualMoney = order.getDouble("paysum") - order.getDouble("reduce");
-                online += order.getDouble("actuallyPaid");
-                offline += actualMoney - order.getDouble("actuallyPaid");
+                if (order.getInt("escrow")==25){
+                    online+=actualMoney;
+                }else{
+                    online += order.getDouble("actuallyPaid");
+                    offline += actualMoney - order.getDouble("actuallyPaid");
+                }
+
                 if (order.getInt("type") == 0) {
                     restaurarnt++;
                     dinnerPeople += order.getInt("customer");
@@ -221,10 +231,8 @@ public class StatisticsUtil {
                         }
                         if (DateUtil.getZeroTimeStamp(new Date())>1531238400000l){
                             DZDPMoney += MyUtils.formatDouble(85 * number);
-                            offline += MyUtils.formatDouble(85 * number);
                         }else{
                             DZDPMoney += MyUtils.formatDouble(68 * number);
-                            offline += MyUtils.formatDouble(68 * number);
                         }
 
                     }
@@ -255,6 +263,15 @@ public class StatisticsUtil {
                             weights.put(name, MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")));
                         }
                     }
+                    if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_1_id)){
+                        DZDPCommodityMoney+=CONST.DZDP.menu_1_price*ObjectUtil.getDouble(format,"number");
+                    }else if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_2_id)){
+                        DZDPCommodityMoney+=CONST.DZDP.menu_2_price*ObjectUtil.getDouble(format,"number");
+                    }else if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_3_id)){
+                        DZDPCommodityMoney+=CONST.DZDP.menu_3_price*ObjectUtil.getDouble(format,"number");
+                    }
+
+
                 }
                 if (order.getAVObject("useSystemCoupon") != null) {
                     String name = order.getAVObject("useSystemCoupon").getAVObject("type").getString("name");
@@ -299,7 +316,7 @@ public class StatisticsUtil {
         offline += nbRechargeMoney;
         detail.put("onlineMoney", MyUtils.formatDouble(online) + "元");
         detail.put("offlineMoney", MyUtils.formatDouble(offline) + "元");
-        detail.put("totalMoney", MyUtils.formatDouble(offline + online) + "元");
+        detail.put("totalMoney", MyUtils.formatDouble(offline + online+DZDPCommodityMoney+DZDPMoney) + "元");
         detail.put("DZDPMoney", DZDPMoney + "元");
         detail.put("member", member + "单");
         detail.put("noMember", noMember + "单");
@@ -321,6 +338,8 @@ public class StatisticsUtil {
         detail.put("storedRechargeNumber", recharge + "单");
         detail.put("svipMoney", MyUtils.formatDouble(svipMoney) + "元");
         detail.put("nbTotalMoney", MyUtils.formatDouble(nbTotalMoney) + "元");
+        detail.put("DZDPCommodityMoney", MyUtils.formatDouble(DZDPCommodityMoney) + "元");
+        detail.put("DZDPTotalMoney", MyUtils.formatDouble(DZDPCommodityMoney+DZDPMoney) + "元");
 
 //        Logger.d(detail);
         return detail;

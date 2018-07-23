@@ -43,7 +43,12 @@ public class DataUtil {
             hashMap.put("weight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(event.getBarcode()) * event.getCommodityNumber()));
             if (mode == 0) {
                 hashMap.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()));
-                hashMap.put("nb", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber() * CONST.NB.MEATDiSCOUNT));
+                if (productBean.getType()==6||productBean.getType()==7){
+                    hashMap.put("nb", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber() * CONST.NB.MEATDiSCOUNT));
+                }else{
+                    hashMap.put("nb", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber() * CONST.NB.OTHERDISCOUNT));
+                }
+
             } else {
                 hashMap.put("price", 0);
                 hashMap.put("nb", 0);
@@ -52,7 +57,18 @@ public class DataUtil {
             hashMap.put("weight", MyUtils.formatDouble(productBean.getWeight() * event.getCommodityNumber()));
             if (mode == 0) {
                 hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
-                hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()));
+                if (productBean.getSerial()==null){
+                    if (productBean.getType()==6||productBean.getType()==7){
+                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()*CONST.NB.MEATDiSCOUNT));
+                    }else if(productBean.getType()==9){
+                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()));
+                    }else{
+                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()*CONST.NB.OTHERDISCOUNT));
+                    }
+                }else{
+                    hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()));
+                }
+
             } else {
                 hashMap.put("price", 0);
                 hashMap.put("nb", 0);
@@ -282,7 +298,7 @@ public class DataUtil {
             hashMap.put("nb", 338);
         }else{
             hashMap.put("price", MyUtils.formatDouble(98*v));
-            hashMap.put("nb", MyUtils.formatDouble(338));
+            hashMap.put("nb", MyUtils.formatDouble(98*v));
         }
         avObject.put("order", orders);
         avObject.saveInBackground(new SaveCallback() {

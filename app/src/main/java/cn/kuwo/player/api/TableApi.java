@@ -2,7 +2,10 @@ package cn.kuwo.player.api;
 
 import android.widget.TextView;
 
+import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.SaveCallback;
+import com.orhanobut.logger.Logger;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,7 +45,45 @@ public class TableApi {
         List oldOrders = tableAVObject.getList("order");
         newOrders.addAll(oldOrders);
         for (int i = 0; i < preOrders.size(); i++) {
-            newOrders.add(preOrders.get(i));
+            HashMap<String, Object> hashMap = (HashMap<String, Object>) preOrders.get(i);
+            String id = ObjectUtil.getString(hashMap, "id");
+            if (MyUtils.getProductById(id).isMerge()) {
+                boolean isExist = false;
+                for (int j = 0; j < oldOrders.size(); j++) {
+                    HashMap<String, Object> hashMap1 = (HashMap<String, Object>) oldOrders.get(i);
+                    String oldId = ObjectUtil.getString(hashMap1, "id");
+                    if (oldId.equals(id)) {
+                        Logger.d("已经存在");
+                        isExist = true;
+                        hashMap1.put("number",ObjectUtil.getDouble(hashMap1,"number")+ObjectUtil.getDouble(hashMap,"number"));
+                        hashMap1.put("weight",ObjectUtil.getDouble(hashMap1,"weight")+ObjectUtil.getDouble(hashMap,"weight"));
+                        hashMap1.put("price",ObjectUtil.getDouble(hashMap1,"price")+ObjectUtil.getDouble(hashMap,"price"));
+                        hashMap1.put("nb",ObjectUtil.getDouble(hashMap1,"nb")+ObjectUtil.getDouble(hashMap,"nb"));
+                        break;
+                    }
+                }
+                if (!isExist) {
+                    newOrders.add(preOrders.get(i));
+                }
+            } else {
+                newOrders.add(preOrders.get(i));
+            }
+        }
+        for (int k=0;k<newOrders.size();k++){
+            HashMap<String, Object> hashMap = (HashMap<String, Object>) newOrders.get(k);
+            if (ObjectUtil.getString(hashMap,"id").equals(CONST.ACTIVITYCOMMODITY.GROUPPAYBILL)){
+                Double number = ObjectUtil.getDouble(hashMap, "number");
+                if (number == 1) {
+                    hashMap.put("price", 270.4);
+                    hashMap.put("nb", 270.4);
+                } else if (number == 2 || number == 3) {
+                    hashMap.put("price", 338);
+                    hashMap.put("nb", 338);
+                }else{
+                    hashMap.put("price", MyUtils.formatDouble(98*number));
+                    hashMap.put("nb", MyUtils.formatDouble(98*number));
+                }
+            }
         }
         tableAVObject.put("order", newOrders);
         tableAVObject.put("preOrder", new List[0]);
@@ -52,6 +93,7 @@ public class TableApi {
         if (tableAVObject.getInt("customer") == 0) {
             tableAVObject.put("customer", 1);
         }
+
         return tableAVObject;
     }
 
@@ -96,20 +138,20 @@ public class TableApi {
             orders.remove(position);
         } else {
             commodity.put("number", ObjectUtil.getDouble(commodity, "number") - refundNumber >= 0 ? ObjectUtil.getDouble(commodity, "number") - refundNumber : 0);
-            if (ObjectUtil.getString(commodity,"barcode").length()==18){
-                if (ObjectUtil.getDouble(commodity, "price")>0){
-                    commodity.put("price",ObjectUtil.getDouble(commodity, "number") >= 0 ? MyUtils.formatDouble(ProductUtil.calCommodityMoney(ObjectUtil.getString(commodity,"barcode"))*ObjectUtil.getDouble(commodity, "number")) : 0);
+            if (ObjectUtil.getString(commodity, "barcode").length() == 18) {
+                if (ObjectUtil.getDouble(commodity, "price") > 0) {
+                    commodity.put("price", ObjectUtil.getDouble(commodity, "number") >= 0 ? MyUtils.formatDouble(ProductUtil.calCommodityMoney(ObjectUtil.getString(commodity, "barcode")) * ObjectUtil.getDouble(commodity, "number")) : 0);
                 }
-                if (ObjectUtil.getDouble(commodity,"nb")>0){
-                    commodity.put("nb",ObjectUtil.getDouble(commodity, "number")  >= 0 ? MyUtils.formatDouble((ObjectUtil.getDouble(commodity,"price")/(ObjectUtil.getDouble(commodity, "number")))* (ObjectUtil.getDouble(commodity, "number"))) : 0);
+                if (ObjectUtil.getDouble(commodity, "nb") > 0) {
+                    commodity.put("nb", ObjectUtil.getDouble(commodity, "number") >= 0 ? MyUtils.formatDouble((ObjectUtil.getDouble(commodity, "price") / (ObjectUtil.getDouble(commodity, "number"))) * (ObjectUtil.getDouble(commodity, "number"))) : 0);
                 }
 
-            }else{
-                if (ObjectUtil.getDouble(commodity, "price")>0){
-                    commodity.put("price",ObjectUtil.getDouble(commodity, "number")  >= 0 ?MyUtils.formatDouble(productBean.getPrice()*(ObjectUtil.getDouble(commodity, "number"))): 0);
+            } else {
+                if (ObjectUtil.getDouble(commodity, "price") > 0) {
+                    commodity.put("price", ObjectUtil.getDouble(commodity, "number") >= 0 ? MyUtils.formatDouble(productBean.getPrice() * (ObjectUtil.getDouble(commodity, "number"))) : 0);
                 }
-                if (ObjectUtil.getDouble(commodity,"nb")>0){
-                    commodity.put("nb",ObjectUtil.getDouble(commodity, "number")  >= 0 ? MyUtils.formatDouble(productBean.getNb()* (ObjectUtil.getDouble(commodity, "number"))) : 0);
+                if (ObjectUtil.getDouble(commodity, "nb") > 0) {
+                    commodity.put("nb", ObjectUtil.getDouble(commodity, "number") >= 0 ? MyUtils.formatDouble(productBean.getNb() * (ObjectUtil.getDouble(commodity, "number"))) : 0);
                 }
 
             }
@@ -133,4 +175,5 @@ public class TableApi {
 //        }
         return tableAVObject;
     }
+
 }

@@ -69,7 +69,7 @@ import static android.app.Activity.RESULT_OK;
  * Created by lovely on 2018/6/27
  */
 public class NbFg extends BaseFragment {
-    private static String ARG_PARAM = "param_key";
+    private static String ARG_PARAM = "userId";
     @BindView(R.id.btn_scan_user)
     Button btnScanUser;
     @BindView(R.id.ll_no_user)
@@ -128,8 +128,8 @@ public class NbFg extends BaseFragment {
     private int escrow = 3;
     private int REQUEST_CODE_SCAN = 111;
     private int REQUEST_CODE_SCAN_USER = 112;
-    private Double rechargeMoney = 800.0;
-    private Double paySumMoney = 1000.0;
+    private Double rechargeMoney = 2000.0;
+    private Double paySumMoney = 2000.0;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
 
     @Override
@@ -139,6 +139,8 @@ public class NbFg extends BaseFragment {
 
     @Override
     public void initData() {
+        Logger.d(mParam);
+        setUserInfo();
         rgPaystyle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -158,6 +160,13 @@ public class NbFg extends BaseFragment {
                 }
             }
         });
+    }
+
+    private void setUserInfo() {
+        if (!mParam.equals("")){
+            userId=mParam;
+            freshUserInfo();
+        }
     }
 
     public void onAttach(Context context) {
@@ -222,6 +231,7 @@ public class NbFg extends BaseFragment {
                                     @Override
                                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                                         if (response.code() == 200 || response.code() == 201) {
+                                            llNoUser.setVisibility(View.GONE);
                                             tvTel.setText("用户手机号:" + avObject.getString("username"));
                                             Double storedBalance = MyUtils.formatDouble(avObject.getDouble("stored"));
                                             tvStored.setText("消费金:" + storedBalance);
@@ -300,9 +310,9 @@ public class NbFg extends BaseFragment {
         marketId = "";
         username = "";
         escrow = 3;
-        rechargeMoney = 800.0;
-        paySumMoney = 1000.0;
-        tvRechargeMoney.setText("1000个牛币");
+        rechargeMoney = 2000.0;
+        paySumMoney = 2000.0;
+        tvRechargeMoney.setText("2000个牛币");
         tvPaymoney.setText("需要支付的金额"+tvPaymoney+"元");
         rgPaystyle.check(R.id.pay_ali);
     }
@@ -489,27 +499,27 @@ public class NbFg extends BaseFragment {
     }
 
     private void judgeCouponGive() {
-        if (paySumMoney==1000){
-            AVObject coupon = new AVObject("Coupon");
-            coupon.put("type",AVObject.createWithoutData("CouponType","5b39958a9f5454003a7c5aa4"));
-            coupon.put("username",username);
-            coupon.put("from","牛爸餐厅充值派发");
-            coupon.put("gold",200);
-            coupon.put("start",new Date());
-            coupon.put("active",1);
-            coupon.put("range",AVObject.createWithoutData("CouponRange","58edc6c8b123db43cc355905"));
-            coupon.put("end",new Date(System.currentTimeMillis()+1000*60*60*24*2));
-            coupon.saveInBackground(new SaveCallback() {
-                @Override
-                public void done(AVException e) {
-                    if (e==null){
-                        Logger.d("保存成功");
-                    }else{
-                        Logger.d(e.getMessage());
-                    }
-                }
-            });
-        }
+//        if (paySumMoney==1000){
+//            AVObject coupon = new AVObject("Coupon");
+//            coupon.put("type",AVObject.createWithoutData("CouponType","5b39958a9f5454003a7c5aa4"));
+//            coupon.put("username",username);
+//            coupon.put("from","牛爸餐厅充值派发");
+//            coupon.put("gold",200);
+//            coupon.put("start",new Date());
+//            coupon.put("active",1);
+//            coupon.put("range",AVObject.createWithoutData("CouponRange","58edc6c8b123db43cc355905"));
+//            coupon.put("end",new Date(System.currentTimeMillis()+1000*60*60*24*2));
+//            coupon.saveInBackground(new SaveCallback() {
+//                @Override
+//                public void done(AVException e) {
+//                    if (e==null){
+//                        Logger.d("保存成功");
+//                    }else{
+//                        Logger.d(e.getMessage());
+//                    }
+//                }
+//            });
+//        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -546,9 +556,9 @@ public class NbFg extends BaseFragment {
 
     private void showSimpleBottomSheetList() {
         new QMUIBottomSheet.BottomListSheetBuilder(getActivity())
-                .addItem("充值800个牛币")
                 .addItem("充值2000个牛币")
                 .addItem("充值5000个牛币(赠送200牛币)")
+                .addItem("充值10000个牛币(赠送1000牛币)")
                 .setTitle("选择充值牛币的数量")
                 .setOnSheetItemClickListener(new QMUIBottomSheet.BottomListSheetBuilder.OnSheetItemClickListener() {
                     @Override
@@ -556,22 +566,22 @@ public class NbFg extends BaseFragment {
                         dialog.dismiss();
                         switch (position) {
                             case 0:
-                                rechargeMoney = 800.0;
-                                paySumMoney = 1000.0;
-                                tvRechargeMoney.setText("1000个牛币");
-                                tvPaymoney.setText("需要支付的金额1000元");
-                                break;
-                            case 1:
                                 rechargeMoney = 2000.0;
                                 paySumMoney = 2000.0;
                                 tvRechargeMoney.setText("2000个牛币");
                                 tvPaymoney.setText("需要支付的金额2000元");
                                 break;
-                            case 2:
+                            case 1:
                                 rechargeMoney = 5200.0;
                                 paySumMoney = 5000.0;
                                 tvRechargeMoney.setText("5200个牛币");
                                 tvPaymoney.setText("需要支付的金额5000元");
+                                break;
+                            case 2:
+                                rechargeMoney = 11000.0;
+                                paySumMoney = 10000.0;
+                                tvRechargeMoney.setText("11000个牛币");
+                                tvPaymoney.setText("需要支付的金额10000元");
                                 break;
                             default:
                                 break;

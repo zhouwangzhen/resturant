@@ -62,16 +62,6 @@
                 android:textSize="12sp" />
 
             <TextView
-                android:id="@+id/table_svip_price"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentRight="true"
-                android:text=""
-                android:textColor="@color/red"
-                android:layout_marginBottom="30dp"
-                android:textSize="12sp" />
-            <TextView
                 android:id="@+id/table_date"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -81,7 +71,7 @@
                 android:textSize="12sp" />
 
             <TextView
-                android:id="@+id/table_time"
+                android:id="@+id/table_nb"
                 android:textColor="@color/blue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

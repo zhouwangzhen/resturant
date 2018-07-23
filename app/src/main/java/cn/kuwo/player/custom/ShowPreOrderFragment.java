@@ -109,7 +109,7 @@ public class ShowPreOrderFragment extends DialogFragment {
                                 ToastUtil.showShort(MyApplication.getContextObject(), "下单成功");
                                 FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
                                 ft.replace(R.id.fragment_content, OrderFg.newInstance(tableAVObject.getObjectId(), true), "order").commit();
-                                ProductUtil.saveOperateLog(0, preOrders, tableAVObject);
+//                                ProductUtil.saveOperateLog(0, preOrders, tableAVObject);
                             } else {
                                 hideDialog();
                                 ToastUtil.showShort(MyApplication.getContextObject(), e.getMessage());

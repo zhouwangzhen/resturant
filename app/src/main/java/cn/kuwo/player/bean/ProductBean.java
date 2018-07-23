@@ -27,9 +27,11 @@ public class ProductBean extends RealmObject implements Serializable {
     private String comboMenu;//套餐内容
     private int active;//是否显示
     private RealmList<String> comments;//备注提示
-    private int giveRule;
+    private int giveRule;//不同类型的会员赠送规则
     private Double nb;//牛币
     private String reviewCommodity;//大众点评赠送的商品
+    private boolean merge;//是否可以合并
+
 
     public String getCode() {
         return code;
@@ -215,6 +217,14 @@ public class ProductBean extends RealmObject implements Serializable {
         this.reviewCommodity = reviewCommodity;
     }
 
+    public boolean isMerge() {
+        return merge;
+    }
+
+    public void setMerge(boolean merge) {
+        this.merge = merge;
+    }
+
     @Override
     public String toString() {
         return "ProductBean{" +
@@ -241,6 +251,7 @@ public class ProductBean extends RealmObject implements Serializable {
                 ", giveRule=" + giveRule +
                 ", nb=" + nb +
                 ", reviewCommodity='" + reviewCommodity + '\'' +
+                ", merge=" + merge +
                 '}';
     }
 }

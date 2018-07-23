@@ -1,6 +1,8 @@
 package cn.kuwo.player.util;
 
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -12,7 +14,7 @@ public class QueryUtil {
         int number = 0;
         for (Object o : orders) {
             HashMap<String, Object> map = (HashMap<String, Object>) o;
-            if (ObjectUtil.getString(map, "id").equals(CONST.MACHINEID)) {
+            if (Arrays.asList(CONST.COUNTIDS).contains(ObjectUtil.getString(map, "id"))){
                 number += ObjectUtil.getDouble(map, "number").intValue();
             }
         }

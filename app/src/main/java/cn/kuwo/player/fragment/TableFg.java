@@ -97,10 +97,12 @@ public class TableFg extends BaseFragment {
             }
         });
     }
+
     public void onAttach(Context context) {
         super.onAttach(context);
         mActivity = (Activity) context;
     }
+
     private void fetchTable() {
         final AVQuery<AVObject> table = new AVQuery<>("Table");
         table.orderByAscending("tableNumber");
@@ -129,8 +131,9 @@ public class TableFg extends BaseFragment {
         });
         subscribeQuery(table);
     }
+
     private void subscribeQuery(AVQuery<AVObject> query) {
-         avLiveQuery = AVLiveQuery.initWithQuery(query);
+        avLiveQuery = AVLiveQuery.initWithQuery(query);
         avLiveQuery.setEventHandler(new AVLiveQueryEventHandler() {
             @Override
             public void onObjectUpdated(AVObject avObject, List<String> updateKeyList) {
@@ -144,6 +147,7 @@ public class TableFg extends BaseFragment {
             }
         });
     }
+
     private void setListener() {
         radioBigTable.setChecked(true);
         rgChooseTableStyle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -213,16 +217,15 @@ public class TableFg extends BaseFragment {
         public View getView(final int i, View view, ViewGroup parent) {
             final ViewHolder holder;
             if (view == null) {
-                view=getLayoutInflater().inflate(R.layout.adapter_table,null);
+                view = getLayoutInflater().inflate(R.layout.adapter_table, null);
                 holder = new ViewHolder();
-                holder.tableNumber = (TextView) view.findViewById(R.id.table_number);
-                holder.tableCommodity = (TextView) view.findViewById(R.id.table_commodity);
-                holder.tablePrice = (TextView) view.findViewById(R.id.table_price);
-                holder.tableSvipPrice = (TextView) view.findViewById(R.id.table_svip_price);
-                holder.tablePeople = (TextView) view.findViewById(R.id.table_people);
-                holder.tableDate = (TextView) view.findViewById(R.id.table_date);
-                holder.tableTime = (TextView) view.findViewById(R.id.table_time);
-                holder.cv_table = (CardView) view.findViewById(R.id.cv_table);
+                holder.tableNumber = view.findViewById(R.id.table_number);
+                holder.tableCommodity =  view.findViewById(R.id.table_commodity);
+                holder.tablePrice = view.findViewById(R.id.table_price);
+                holder.tablePeople = view.findViewById(R.id.table_people);
+                holder.tableDate =  view.findViewById(R.id.table_date);
+                holder.tableNb =  view.findViewById(R.id.table_nb);
+                holder.cv_table = view.findViewById(R.id.cv_table);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
@@ -232,22 +235,16 @@ public class TableFg extends BaseFragment {
             if (avObject.getInt("customer") != 0) {
                 holder.tableNumber.setBackgroundResource(R.drawable.shape_red_circle);
                 holder.tablePrice.setText("￥" + ProductUtil.calculateTotalMoney(avObject));
-                holder.tableSvipPrice.setText("超牛价钱￥" + ProductUtil.calculateMinMoney(avObject));
                 holder.tableCommodity.setText(avObject.getList("order").size() + avObject.getList("preOrder").size() + "道菜品");
                 holder.tablePeople.setText(avObject.getInt("customer") + "人");
-                try {
-                    holder.tableDate.setText(DateUtil.formatDate(avObject.getDate("startedAt")));
-                    holder.tableTime.setText("牛币价格￥"+ProductUtil.calNbTotalMoney(avObject.getList("order")));
-                } catch (Exception e) {
-                    ToastUtil.showShort(MyApplication.getContextObject(), "获取牛币价格");
-                }
-
+                holder.tableDate.setText(DateUtil.formatDate(avObject.getDate("startedAt")));
+                holder.tableNb.setText("牛币价格￥" + ProductUtil.calNbTotalMoney(avObject.getList("order")));
             } else {
                 holder.tableNumber.setBackgroundResource(R.drawable.shape_green_circle);
                 holder.tableCommodity.setText("空闲");
                 holder.tablePeople.setText(avObject.getInt("accommodate") + "人桌");
                 holder.tableDate.setText("");
-                holder.tableTime.setText("");
+                holder.tableNb.setText("");
             }
             holder.cv_table.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -264,10 +261,9 @@ public class TableFg extends BaseFragment {
             TextView tableNumber;
             TextView tableCommodity;
             TextView tablePrice;
-            TextView tableSvipPrice;
             TextView tablePeople;
             TextView tableDate;
-            TextView tableTime;
+            TextView tableNb;
             CardView cv_table;
         }
     }

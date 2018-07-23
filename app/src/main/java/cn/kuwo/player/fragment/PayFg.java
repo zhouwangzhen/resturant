@@ -467,6 +467,7 @@ public class PayFg extends BaseFragment {
             paymentTypes.add(6);
             paymentTypes.add(21);
             paymentTypes.add(22);
+            paymentTypes.add(26);
 
         }
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
@@ -532,6 +533,7 @@ public class PayFg extends BaseFragment {
         paymentTypes.add(6);
         paymentTypes.add(21);
         paymentTypes.add(22);
+        paymentTypes.add(26);
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
     }
 

@@ -19,6 +19,8 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.orhanobut.logger.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -141,7 +143,7 @@ public class RetailActivity extends BaseActivity {
                 }
             }
         });
-        if (CameraProvider.hasCamera()){
+        if (CameraProvider.hasCamera()) {
             scanMeatcode.setInputType(InputType.TYPE_NULL);
         }
         submitOrder.setOnClickListener(new View.OnClickListener() {
@@ -187,6 +189,9 @@ public class RetailActivity extends BaseActivity {
                     case R.id.goods_operator:
                         LoadingGoods(6);
                         break;
+                    case R.id.goods_other:
+                        LoadingGoods(7);
+                        break;
 
                 }
             }
@@ -230,7 +235,7 @@ public class RetailActivity extends BaseActivity {
             noInfo.setVisibility(View.GONE);
             flTotal.setVisibility(View.VISIBLE);
         }
-        recycleScan.scrollBy(0,100*codes.size());
+        recycleScan.scrollBy(0, 100 * codes.size());
     }
 
     private void deleteData(int postion) {
@@ -275,6 +280,11 @@ public class RetailActivity extends BaseActivity {
                     deleteData(postion);
                 }
             });
+        }else if(resultCode==2){
+            Intent intent = getIntent();
+            intent.putExtra("userId",data.getStringExtra("userId"));
+            setResult(2, intent);
+            finish();
         }
     }
 

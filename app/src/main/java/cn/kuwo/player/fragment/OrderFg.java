@@ -119,6 +119,8 @@ public class OrderFg extends BaseFragment {
     TextView userNb;
     @BindView(R.id.nb_money)
     TextView nbMoney;
+    @BindView(R.id.user_charge_nb)
+    TextView userChargeNb;
     private int REQUEST_CODE_SCAN = 111;
     private static String ARG_PARAM = "param_table_id";
     private static String ARG_PARAM1 = "param_save_data";
@@ -134,8 +136,6 @@ public class OrderFg extends BaseFragment {
     RecyclerView recycleScanGood;
     @BindView(R.id.total_money)
     TextView totalMoney;
-    @BindView(R.id.min_money)
-    TextView minMoney;
     @BindView(R.id.total_number)
     TextView totalNumber;
     @BindView(R.id.order_change_table)
@@ -312,35 +312,20 @@ public class OrderFg extends BaseFragment {
                             userTel.setText("用户手机号:" + userObject.getString("username"));
                             userStored.setText("消费金:" + storedBalance);
                             userWhitebar.setText("白条:" + whiteBarBalance);
-                            Map<String, Object> parameter = new HashMap<String, Object>();
-                            parameter.put("userID", avObject.getAVObject("user").getObjectId());
-                            AVCloud.callFunctionInBackground("svip", parameter, new FunctionCallback<Map<String, Object>>() {
-                                @Override
-                                public void done(Map<String, Object> objectMap, AVException e) {
-                                    try {
-                                        if (e == null) {
-                                            hideDialog();
-                                            userMeatweight.setText("牛肉额度:" + objectMap.get("meatWeight").toString() + "kg");
-                                            userId = avObject.getObjectId();
-                                            if ((Boolean) objectMap.get("svip")) {
-                                                svipAvatar.setVisibility(View.VISIBLE);
-                                                userType.setText("超牛会员");
-                                            } else {
-                                                svipAvatar.setVisibility(View.GONE);
-                                                userType.setText("普通会员");
-                                            }
-                                            signUser.setText("退出登录");
-                                        } else {
-                                            userMeatweight.setText("牛肉额度:" + "0.0" + "kg");
-                                            hideDialog();
-                                            ToastUtil.showShort(getContext(), "获取超牛信息错误");
-                                        }
-                                    } catch (Exception e1) {
-                                        hideDialog();
-                                        e1.printStackTrace();
-                                    }
+                            try {
+                                if (e == null) {
+                                    hideDialog();
+                                    userId = avObject.getObjectId();
+                                    signUser.setText("退出登录");
+                                } else {
+                                    userMeatweight.setText("牛肉额度:" + "0.0" + "kg");
+                                    hideDialog();
+                                    ToastUtil.showShort(getContext(), "获取超牛信息错误");
                                 }
-                            });
+                            } catch (Exception e1) {
+                                hideDialog();
+                                e1.printStackTrace();
+                            }
                         } else {
                             hideDialog();
                             llShowMember.setVisibility(View.INVISIBLE);
@@ -461,8 +446,7 @@ public class OrderFg extends BaseFragment {
             }
         });
         totalMoney.setText("￥" + ProductUtil.calculateTotalMoney(orders, preOrders) + "元");
-        minMoney.setText("￥" + ProductUtil.calculateMinMoney(orders, preOrders) + "元");
-        nbMoney.setText(ProductUtil.calNbTotalMoney(orders)+"牛币");
+        nbMoney.setText(ProductUtil.calNbTotalMoney(orders) + "牛币");
         totalNumber.setText(preOrders.size() + orders.size() + "");
     }
 
@@ -578,7 +562,7 @@ public class OrderFg extends BaseFragment {
     }
 
 
-    @OnClick({R.id.order_change_table, R.id.sign_user, R.id.btn_to_pay, R.id.btn_place_order, R.id.btn_to_clear})
+    @OnClick({R.id.order_change_table, R.id.sign_user, R.id.btn_to_pay, R.id.btn_place_order, R.id.btn_to_clear, R.id.user_charge_nb})
     public void onViewClicked(View view) {
         try {
             switch (view.getId()) {
@@ -812,6 +796,13 @@ public class OrderFg extends BaseFragment {
                                 .create(mCurrentDialogStyle).show();
                     }
                     break;
+                case R.id.user_charge_nb:
+                    if (tableAVObject.getAVObject("user")!=null){
+                        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                        NbFg nbFg = NbFg.newInstance(tableAVObject.getAVObject("user").getObjectId());
+                        ft.replace(R.id.fragment_content, nbFg, "nb").commit();
+                    }
+                    break;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -850,54 +841,35 @@ public class OrderFg extends BaseFragment {
                     public void done(final Map<String, Object> object, AVException e) {
                         if (e == null) {
                             showDialog();
-                            Map<String, Object> parameter = new HashMap<String, Object>();
-                            parameter.put("userID", object.get("objectId").toString());
-                            AVCloud.callFunctionInBackground("svip", parameter, new FunctionCallback<Map<String, Object>>() {
-                                @Override
-                                public void done(Map<String, Object> objectMap, AVException e) {
-                                    if (e == null) {
-                                        hideDialog();
-                                        llShowMember.setVisibility(View.VISIBLE);
-                                        Double whiteBarBalance = MyUtils.formatDouble(Double.parseDouble(object.get("gold").toString()) - Double.parseDouble(object.get("arrears").toString()));
-                                        Double storedBalance = MyUtils.formatDouble(Double.parseDouble(object.get("stored").toString()));
-                                        if (object.get("avatarurl") != null && !object.get("avatarurl").equals("")) {
-                                            Glide.with(MyApplication.getContextObject()).load(object.get("avatarurl").toString()).into(userAvatar);
-                                        }
-                                        userTel.setText("用户手机号:" + object.get("username").toString());
-                                        userStored.setText("消费金:" + storedBalance);
-                                        userWhitebar.setText("白条:" + whiteBarBalance);
-                                        userMeatweight.setText("牛肉额度:" + objectMap.get("meatWeight").toString() + "kg");
-                                        userId = object.get("objectId").toString();
-                                        if (tableAVObject != null) {
-                                            tableAVObject.put("user", AVObject.createWithoutData("_User", userId));
-                                            if (tableAVObject.get("startedAt") == null) {
-                                                tableAVObject.put("startedAt", new Date());
-                                            }
-                                            tableAVObject.put("preOrder", preOrders);
-                                            tableAVObject.saveInBackground(new SaveCallback() {
-                                                @Override
-                                                public void done(AVException e) {
-                                                    if (e != null) {
-                                                        ToastUtil.showShort(getContext(), e.getMessage());
-                                                    }
-                                                }
-                                            });
-                                        }
-                                        if ((Boolean) objectMap.get("svip")) {
-                                            svipAvatar.setVisibility(View.VISIBLE);
-                                            userType.setText("超牛会员");
-                                            isSvip = true;
-                                        } else {
-                                            svipAvatar.setVisibility(View.GONE);
-                                            userType.setText("普通会员");
-                                        }
-                                        signUser.setText("退出登录");
-                                    } else {
-                                        hideDialog();
-                                        ToastUtil.showShort(getContext(), e.getMessage());
-                                    }
+
+                            hideDialog();
+                            llShowMember.setVisibility(View.VISIBLE);
+                            Double whiteBarBalance = MyUtils.formatDouble(Double.parseDouble(object.get("gold").toString()) - Double.parseDouble(object.get("arrears").toString()));
+                            Double storedBalance = MyUtils.formatDouble(Double.parseDouble(object.get("stored").toString()));
+                            if (object.get("avatarurl") != null && !object.get("avatarurl").equals("")) {
+                                Glide.with(MyApplication.getContextObject()).load(object.get("avatarurl").toString()).into(userAvatar);
+                            }
+                            userTel.setText("用户手机号:" + object.get("username").toString());
+                            userStored.setText("消费金:" + storedBalance);
+                            userWhitebar.setText("白条:" + whiteBarBalance);
+                            userId = object.get("objectId").toString();
+                            if (tableAVObject != null) {
+                                tableAVObject.put("user", AVObject.createWithoutData("_User", userId));
+                                if (tableAVObject.get("startedAt") == null) {
+                                    tableAVObject.put("startedAt", new Date());
                                 }
-                            });
+                                tableAVObject.put("preOrder", preOrders);
+                                tableAVObject.saveInBackground(new SaveCallback() {
+                                    @Override
+                                    public void done(AVException e) {
+                                        if (e != null) {
+                                            ToastUtil.showShort(getContext(), e.getMessage());
+                                        }
+                                    }
+                                });
+                            }
+                            signUser.setText("退出登录");
+
 
                         } else {
                             hideDialog();
@@ -924,7 +896,6 @@ public class OrderFg extends BaseFragment {
                         isSvip,
                         userId,
                         mode));
-//                DataUtil.additionalCharge(preOrders, event, mode, false,event.getOriginNumber());
                 setView();
                 refreshList();
             } else {
@@ -942,7 +913,7 @@ public class OrderFg extends BaseFragment {
                     if (tableAVObject.getInt("customer") == 0) {
                         tableAVObject.put("customer", 1);
                     }
-                    tableAVObject.put("preOrder",preOrders);
+                    tableAVObject.put("preOrder", preOrders);
                     tableAVObject.saveInBackground(new SaveCallback() {
                         @Override
                         public void done(AVException e) {
@@ -1021,4 +992,5 @@ public class OrderFg extends BaseFragment {
         unbinder1 = ButterKnife.bind(this, rootView);
         return rootView;
     }
+
 }

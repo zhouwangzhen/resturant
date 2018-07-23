@@ -15,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -43,7 +42,6 @@ import com.yzq.zxinglibrary.common.Constant;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -75,7 +73,6 @@ import cn.kuwo.player.custom.CommomDialog;
 import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.custom.ShowCouponFragment;
 import cn.kuwo.player.custom.ShowFuncFragment;
-import cn.kuwo.player.custom.ShowReduceListFragment;
 import cn.kuwo.player.custom.ShowWholeSaleFragment;
 import cn.kuwo.player.event.CouponEvent;
 import cn.kuwo.player.event.OrderDetail;
@@ -131,18 +128,8 @@ public class SettleFg extends BaseFragment {
     Unbinder unbinder;
     @BindView(R.id.orgin_price)
     TextView orginPrice;
-    @BindView(R.id.cb_use_svip)
-    CheckBox cbUseSvip;
-    @BindView(R.id.svip_all_reduce)
-    TextView svipAllReduce;
-    @BindView(R.id.min_pay_money)
-    TextView minPayMoney;
     @BindView(R.id.store_reduce_money)
     TextView storeReduceMoney;
-    @BindView(R.id.my_svip_reduce_money)
-    TextView mySvipReduceMoney;
-    @BindView(R.id.my_svip_reduce_weight)
-    TextView mySvipReduceWeight;
     @BindView(R.id.tv_offline_moeny)
     TextView tvOfflineMoeny;
     @BindView(R.id.ll_offline_moeny)
@@ -155,10 +142,6 @@ public class SettleFg extends BaseFragment {
     TextView tvOnlineContent;
     @BindView(R.id.tv_offline_content)
     TextView tvOfflineContent;
-    @BindView(R.id.ll_max_reduce)
-    LinearLayout llMaxReduce;
-    @BindView(R.id.ll_my_reduce)
-    LinearLayout llMyReduce;
     @BindView(R.id.pay_content)
     TextView payContent;
     @BindView(R.id.table_number)
@@ -191,6 +174,14 @@ public class SettleFg extends BaseFragment {
     TextView nbPrice;
     @BindView(R.id.ll_no_nb)
     LinearLayout llNoNb;
+    @BindView(R.id.user_charge_nb)
+    TextView userChargeNb;
+    @BindView(R.id.charge_deduce)
+    TextView chargeDeduce;
+    @BindView(R.id.ll_charge_deduce)
+    LinearLayout llChargeDeduce;
+    @BindView(R.id.cb_use_svip)
+    CheckBox cbUseSvip;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private int REQUEST_CODE_SCAN = 111;
     private int REQUEST_FUNC = 100;
@@ -257,71 +248,47 @@ public class SettleFg extends BaseFragment {
                         Map<String, Object> parameter = new HashMap<String, Object>();
                         parameter.put("userID", avObject.getAVObject("user").getObjectId());
                         userId = avObject.getAVObject("user").getObjectId();
-                        AVCloud.callFunctionInBackground("svip", parameter, new FunctionCallback<Map<String, Object>>() {
+                        Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().QueryofflineRecharge(avObject.getAVObject("user").getObjectId());
+                        responseBodyCall.enqueue(new Callback<ResponseBody>() {
                             @Override
-                            public void done(final Map<String, Object> objectMap, AVException e) {
-                                if (e == null) {
-                                    Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().QueryofflineRecharge(avObject.getAVObject("user").getObjectId());
-                                    responseBodyCall.enqueue(new Callback<ResponseBody>() {
-                                        @Override
-                                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                                            if (response.code() == 200 || response.code() == 200) {
-                                                try {
-                                                    String responseText = DataUtil.JSONTokener(response.body().string());
-                                                    JSONObject jsonObject = new JSONObject(responseText);
-                                                    nb = jsonObject.getDouble("amount");
-                                                    userNb.setText("牛币:" + nb);
-                                                    hideDialog();
-                                                    AVObject userObject = tableAVObject.getAVObject("user");
-                                                    llShowMember.setVisibility(View.VISIBLE);
-                                                    Double whiteBarBalance = MyUtils.formatDouble(MyUtils.formatDouble(userObject.getDouble("gold")) - MyUtils.formatDouble(userObject.getDouble("arrears")));
-                                                    Double storedBalance = MyUtils.formatDouble(userObject.getDouble("stored"));
-                                                    AVFile avatar = (AVFile) userObject.get("avatar");
-                                                    if (avatar != null) {
-                                                        Glide.with(MyApplication.getContextObject()).load(avatar.getUrl()).into(userAvatar);
-                                                    }
-                                                    userTel.setText("用户手机号:" + userObject.getString("username"));
-                                                    userStored.setText("消费金:" + storedBalance);
-                                                    userWhitebar.setText("白条:" + whiteBarBalance);
-                                                    userMeatweight.setText("牛肉额度:" + objectMap.get("meatWeight").toString() + "kg");
-                                                    hasMeatWeight = Double.parseDouble(objectMap.get("meatWeight").toString());
-                                                    useMeatId = objectMap.get("meatId").toString().length() > 0 ? objectMap.get("meatId").toString() : "";
-                                                    if ((Boolean) objectMap.get("svip")) {
-                                                        svipAvatar.setVisibility(View.VISIBLE);
-                                                        userType.setText("超牛会员");
-                                                        isSvip = true;
-                                                    } else {
-                                                        svipAvatar.setVisibility(View.GONE);
-                                                        userType.setText("普通会员");
-                                                        isSvip = false;
-                                                    }
-                                                    signUser.setText("退出登录");
-                                                    fetchCommodity(tableAVObject);
-                                                } catch (Exception e1) {
-                                                    hideDialog();
-                                                    ToastUtil.showShort(getContext(), e1.getMessage());
-                                                    e1.printStackTrace();
-                                                }
-
-                                            } else {
-                                                hideDialog();
-                                                T.show(response);
-                                            }
-
+                            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                if (response.code() == 200 || response.code() == 200) {
+                                    try {
+                                        String responseText = DataUtil.JSONTokener(response.body().string());
+                                        JSONObject jsonObject = new JSONObject(responseText);
+                                        nb = jsonObject.getDouble("amount");
+                                        userNb.setText("牛币:" + nb);
+                                        hideDialog();
+                                        AVObject userObject = tableAVObject.getAVObject("user");
+                                        llShowMember.setVisibility(View.VISIBLE);
+                                        Double whiteBarBalance = MyUtils.formatDouble(MyUtils.formatDouble(userObject.getDouble("gold")) - MyUtils.formatDouble(userObject.getDouble("arrears")));
+                                        Double storedBalance = MyUtils.formatDouble(userObject.getDouble("stored"));
+                                        AVFile avatar = (AVFile) userObject.get("avatar");
+                                        if (avatar != null) {
+                                            Glide.with(MyApplication.getContextObject()).load(avatar.getUrl()).into(userAvatar);
                                         }
-
-                                        @Override
-                                        public void onFailure(Call<ResponseBody> call, Throwable t) {
-                                            hideDialog();
-                                            ToastUtil.showShort(getContext(), t.getMessage() + "网络异常,请刷新重试");
-                                        }
-                                    });
+                                        userTel.setText("用户手机号:" + userObject.getString("username"));
+                                        userStored.setText("消费金:" + storedBalance);
+                                        userWhitebar.setText("白条:" + whiteBarBalance);
+                                        signUser.setText("退出登录");
+                                        fetchCommodity(tableAVObject);
+                                    } catch (Exception e1) {
+                                        hideDialog();
+                                        ToastUtil.showShort(getContext(), e1.getMessage());
+                                        e1.printStackTrace();
+                                    }
 
                                 } else {
                                     hideDialog();
-                                    fetchCommodity(tableAVObject);
-                                    ToastUtil.showShort(getContext(), e.getMessage());
+                                    T.show(response);
                                 }
+
+                            }
+
+                            @Override
+                            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                hideDialog();
+                                ToastUtil.showShort(getContext(), t.getMessage() + "网络异常,请刷新重试");
                             }
                         });
                     } else {
@@ -335,13 +302,6 @@ public class SettleFg extends BaseFragment {
                     hideDialog();
                 }
 
-            }
-        });
-        cbUseSvip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                deleteoddMoney = 0.0;
-                refreshList();
             }
         });
         setListener();
@@ -425,15 +385,6 @@ public class SettleFg extends BaseFragment {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-//        showGoodAdapter = new ShowGoodAdapter(getContext(), tableAVObject, orders);
-//        recycleScanGood.setAdapter(showGoodAdapter);
-//        showGoodAdapter.setOnItemClickListener(new MyItemClickListener() {
-//            @Override
-//            public void onItemClick(View view, int postion) {
-//                Logger.d(postion);
-//                T.L(postion+"");
-//            }
-//        });
         refreshList();
 
     }
@@ -471,7 +422,7 @@ public class SettleFg extends BaseFragment {
         showGoodAdapter.setOnItemClickListener(new MyItemClickListener() {
             @Override
             public void onItemClick(View view, int postion) {
-                    changeCommodity(postion);
+                changeCommodity(postion);
             }
         });
         totalNumber.setText(orders.size() + "");
@@ -482,55 +433,9 @@ public class SettleFg extends BaseFragment {
         if (nb >= nbTotalMoney && tableAVObject.get("user") != null) {
             chooseNb.setVisibility(View.VISIBLE);
         }
-        if (isNbPay) {
-            cbUseSvip.setVisibility(View.GONE);
-            cbUseSvip.setChecked(false);
-        } else {
-            cbUseSvip.setVisibility(View.GONE);
-        }
         if (!isNbPay) {
-            if (tableAVObject.getAVObject("user") != null) {
-                cbUseSvip.setVisibility(View.VISIBLE);
-            } else {
-                cbUseSvip.setVisibility(View.GONE);
-            }
             meatReduceMoney = ProductUtil.calMeatduceMoney(orders, prices);
             meatReduceWeight = ProductUtil.calMeatduceWeight(orders, weights);
-            svipAllReduce.setText(meatReduceWeight + "kg");
-            if (tableAVObject.getAVObject("user") != null) {
-                if (hasMeatWeight >= meatReduceWeight) {//用户牛肉大于等于可兑换的牛肉重量
-                    mySvipReduceWeight.setText(meatReduceWeight + "kg");
-                    mySvipReduceMoney.setText("-" + meatReduceMoney);
-                    myMeatReduceWeight = meatReduceWeight;
-                    myMeatReduceMoney = meatReduceMoney;
-                    List<Object> centerOrder = new ArrayList<>();
-                    try {
-                        centerOrder = ObjectUtil.deepCopy(orders);
-                    } catch (Exception e) {
-                        centerOrder = new ArrayList<>();
-                        e.printStackTrace();
-                    }
-                    useExchangeList = ProductUtil.canExchangeMeatList(centerOrder, hasMeatWeight, weights);
-                } else {
-                    List<Object> centerOrder = new ArrayList<>();
-                    try {
-                        centerOrder = ObjectUtil.deepCopy(orders);
-                    } catch (Exception e) {
-                        centerOrder = new ArrayList<>();
-                        e.printStackTrace();
-                    }
-                    useExchangeList = ProductUtil.canExchangeMeatList(centerOrder, hasMeatWeight, weights);
-                    Logger.d(useExchangeList);
-                    myMeatReduceWeight = ProductUtil.calculateTotalWeight(useExchangeList);
-                    myMeatReduceMoney = ProductUtil.calculateTotalMoney(useExchangeList);
-                    mySvipReduceWeight.setText(myMeatReduceWeight + "kg");
-                    mySvipReduceMoney.setText("-" + myMeatReduceMoney);
-                }
-
-            } else {
-                mySvipReduceWeight.setText("0.0kg");
-                mySvipReduceMoney.setText("-0.0");
-            }
             if (onlineCouponEvent != null) {
                 onlineCouponMoney = onlineCouponEvent.getMoney();
                 tvOnlineMoeny.setText("-" + onlineCouponMoney);
@@ -541,25 +446,15 @@ public class SettleFg extends BaseFragment {
                 tvOfflineMoeny.setText("-" + offlineCouponMoney);
                 tvOfflineContent.setText(offlineCouponEvent.getContent() + "*" + offlineCouponNumber + "张");
             }
-            if (cbUseSvip.isChecked()) {
-                if (tableAVObject.getAVObject("user") != null) {
-                    activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - myMeatReduceMoney - offlineCouponMoney - onlineCouponMoney - noDiscountMoney) * (1 - MyUtils.getDayRate()));
-                    if (activityReduceMoney < 0) activityReduceMoney = 0.0;
-                }
-                actualTotalMoneny = originTotalMoneny - offlineCouponMoney - onlineCouponMoney - activityReduceMoney - myMeatReduceMoney;
-                if (actualTotalMoneny < 0) actualTotalMoneny = 0.0;
-                totalMoney.setText("￥" + actualTotalMoneny + "元");
-                storeReduceMoney.setText("-" + activityReduceMoney);
-            } else {
-                if (tableAVObject.getAVObject("user") != null) {
-                    activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - offlineCouponMoney - onlineCouponMoney - noDiscountMoney) * (1 - MyUtils.getDayRate()));
-                    if (activityReduceMoney < 0) activityReduceMoney = 0.0;
-                }
-                actualTotalMoneny = originTotalMoneny - offlineCouponMoney - onlineCouponMoney - activityReduceMoney;
-                if (actualTotalMoneny < 0) actualTotalMoneny = 0.0;
-                totalMoney.setText("￥" + actualTotalMoneny + "元");
-                storeReduceMoney.setText("-" + activityReduceMoney);
+
+            if (tableAVObject.getAVObject("user") != null) {
+                activityReduceMoney = MyUtils.formatDouble((originTotalMoneny - offlineCouponMoney - onlineCouponMoney - noDiscountMoney) * (1 - MyUtils.getDayRate()));
+                if (activityReduceMoney < 0) activityReduceMoney = 0.0;
             }
+            actualTotalMoneny = originTotalMoneny - offlineCouponMoney - onlineCouponMoney - activityReduceMoney;
+            if (actualTotalMoneny < 0) actualTotalMoneny = 0.0;
+            totalMoney.setText("￥" + actualTotalMoneny + "元");
+            storeReduceMoney.setText("-" + activityReduceMoney);
 
             fullReduceMoney = MyUtils.formatDouble(ProductUtil.calFullReduceMoney(actualTotalMoneny) > actualTotalMoneny ? actualTotalMoneny : ProductUtil.calFullReduceMoney(actualTotalMoneny));
             fullreduceMoney.setText("-" + fullReduceMoney);
@@ -596,7 +491,6 @@ public class SettleFg extends BaseFragment {
             }
             actualTotalMoneny = MyUtils.formatDouble(actualTotalMoneny) >= 0 ? MyUtils.formatDouble(actualTotalMoneny) : 0.0;
             totalMoney.setText("￥" + actualTotalMoneny + "元");
-            minPayMoney.setText("-" + meatReduceMoney);
         } else {
             actualTotalMoneny = nbTotalMoney;
             totalMoney.setText("￥" + actualTotalMoneny + "牛币");
@@ -618,7 +512,7 @@ public class SettleFg extends BaseFragment {
         unbinder.unbind();
     }
 
-    @OnClick({R.id.sign_user, R.id.btn_pay, R.id.ll_max_reduce, R.id.ll_my_reduce, R.id.more_fuc, R.id.choose_nb})
+    @OnClick({R.id.sign_user, R.id.btn_pay, R.id.more_fuc, R.id.choose_nb, R.id.user_charge_nb})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.sign_user:
@@ -689,14 +583,6 @@ public class SettleFg extends BaseFragment {
 
                 }
                 break;
-            case R.id.ll_max_reduce:
-                ShowReduceListFragment showReduceListFragment = new ShowReduceListFragment(ProductUtil.calExchangeMeatList(orders), 0);
-                showReduceListFragment.show(getFragmentManager(), "showreducelist");
-                break;
-            case R.id.ll_my_reduce:
-                showReduceListFragment = new ShowReduceListFragment(useExchangeList, 1);
-                showReduceListFragment.show(getFragmentManager(), "showreducelist");
-                break;
             case R.id.more_fuc:
                 ShowFuncFragment showFuncFragment = new ShowFuncFragment(0);
                 showFuncFragment.setTargetFragment(this, REQUEST_FUNC);
@@ -713,6 +599,13 @@ public class SettleFg extends BaseFragment {
                 isNbPay = !isNbPay;
                 refreshList();
                 break;
+            case R.id.user_charge_nb:
+                if (tableAVObject.getAVObject("user") != null) {
+                    FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                    NbFg nbFg = NbFg.newInstance(tableAVObject.getAVObject("user").getObjectId());
+                    ft.replace(R.id.fragment_content, nbFg, "nb").commit();
+                }
+                break;
         }
     }
 
@@ -721,7 +614,7 @@ public class SettleFg extends BaseFragment {
         PayFg payFg = PayFg.newInstance("");
         Bundle bundle = new Bundle();
         OrderDetail orderDetail = new OrderDetail(tableAVObject, hasMeatWeight, originTotalMoneny,
-                actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, cbUseSvip.isChecked(),
+                actualTotalMoneny, meatReduceWeight, meatReduceMoney, myMeatReduceWeight, myMeatReduceMoney, false,
                 onlineCouponEvent, offlineCouponEvent, offlineCouponNumber, activityReduceMoney, isSvip, useExchangeList, useMeatId, ProductUtil.calExchangeMeatList(orders), orders, selectTableIds, selectTableNumber, fullReduceMoney, isHangUp, deleteoddMoney,
                 orderRate, rateReduceRemark, ratereduceMoney);
         bundle.putSerializable("table", (Serializable) orderDetail);
@@ -764,54 +657,33 @@ public class SettleFg extends BaseFragment {
                     @Override
                     public void done(final Map<String, Object> object, AVException e) {
                         if (e == null) {
-                            showDialog();
-                            Map<String, Object> parameter = new HashMap<String, Object>();
-                            parameter.put("userID", object.get("objectId").toString());
-                            AVCloud.callFunctionInBackground("svip", parameter, new FunctionCallback<Map<String, Object>>() {
-                                @Override
-                                public void done(Map<String, Object> objectMap, AVException e) {
-                                    if (e == null) {
-                                        hideDialog();
-                                        Logger.d("用户登录");
-                                        llShowMember.setVisibility(View.VISIBLE);
-                                        Double whiteBarBalance = MyUtils.formatDouble(Double.parseDouble(object.get("gold").toString()) - Double.parseDouble(object.get("arrears").toString()));
-                                        Double storedBalance = MyUtils.formatDouble(Double.parseDouble(object.get("stored").toString()));
-                                        if (object.get("avatarurl") != null && !object.get("avatarurl").equals("")) {
-                                            Glide.with(MyApplication.getContextObject()).load(object.get("avatarurl").toString()).into(userAvatar);
-                                        }
-                                        userTel.setText("用户手机号:" + object.get("username").toString());
-                                        userStored.setText("消费金:" + storedBalance);
-                                        userWhitebar.setText("白条:" + whiteBarBalance);
-                                        userMeatweight.setText("牛肉额度:" + objectMap.get("meatWeight").toString() + "kg");
-                                        userId = object.get("objectId").toString();
-                                        if (tableAVObject != null) {
-                                            tableAVObject.put("user", AVObject.createWithoutData("_User", userId));
-                                            tableAVObject.saveInBackground(new SaveCallback() {
-                                                @Override
-                                                public void done(AVException e) {
-                                                    if (e != null) {
-                                                        ToastUtil.showShort(getContext(), e.getMessage());
-                                                    } else {
-                                                        initData();
-                                                    }
-                                                }
-                                            });
-                                        }
-                                        if ((Boolean) objectMap.get("svip")) {
-                                            svipAvatar.setVisibility(View.VISIBLE);
-                                            userType.setText("超牛会员");
+                            hideDialog();
+                            Logger.d("用户登录");
+                            llShowMember.setVisibility(View.VISIBLE);
+                            Double whiteBarBalance = MyUtils.formatDouble(Double.parseDouble(object.get("gold").toString()) - Double.parseDouble(object.get("arrears").toString()));
+                            Double storedBalance = MyUtils.formatDouble(Double.parseDouble(object.get("stored").toString()));
+                            if (object.get("avatarurl") != null && !object.get("avatarurl").equals("")) {
+                                Glide.with(MyApplication.getContextObject()).load(object.get("avatarurl").toString()).into(userAvatar);
+                            }
+                            userTel.setText("用户手机号:" + object.get("username").toString());
+                            userStored.setText("消费金:" + storedBalance);
+                            userWhitebar.setText("白条:" + whiteBarBalance);
+                            userId = object.get("objectId").toString();
+                            if (tableAVObject != null) {
+                                tableAVObject.put("user", AVObject.createWithoutData("_User", userId));
+                                tableAVObject.saveInBackground(new SaveCallback() {
+                                    @Override
+                                    public void done(AVException e) {
+                                        if (e != null) {
+                                            ToastUtil.showShort(getContext(), e.getMessage());
                                         } else {
-                                            svipAvatar.setVisibility(View.GONE);
-                                            userType.setText("普通会员");
+                                            initData();
                                         }
-                                        initData();
-                                        signUser.setText("退出登录");
-                                    } else {
-                                        hideDialog();
-                                        ToastUtil.showShort(getContext(), e.getMessage());
                                     }
-                                }
-                            });
+                                });
+                            }
+                            initData();
+                            signUser.setText("退出登录");
 
                         } else {
                             hideDialog();
@@ -891,13 +763,6 @@ public class SettleFg extends BaseFragment {
                     }
                 });
             }
-            if (userBean.getSvip()) {
-                svipAvatar.setVisibility(View.VISIBLE);
-                userType.setText("超牛会员");
-            } else {
-                svipAvatar.setVisibility(View.GONE);
-                userType.setText("普通会员");
-            }
             signUser.setText("退出登录");
 
         }
@@ -933,15 +798,15 @@ public class SettleFg extends BaseFragment {
                 deleteoddMoney = 0.0;
                 refreshList();
                 break;
+            case 6://充值1000抹零200
+                T.L("餐饮订单不可以使用");
+                break;
         }
 
     }
 
     private void printPreOrder() {
         LinkedHashMap<String, Double> reduceMap = new LinkedHashMap<>();
-        if (meatReduceMoney > 0 && cbUseSvip.isChecked()) {
-            reduceMap.put("牛肉抵扣金额", meatReduceMoney);
-        }
         if (offlineCouponMoney > 0) {
             reduceMap.put(offlineCouponEvent.getContent() + "*" + offlineCouponNumber + "张", MyUtils.formatDouble(offlineCouponMoney));
         }
@@ -1237,7 +1102,7 @@ public class SettleFg extends BaseFragment {
         showDialog();
         Map<String, Object> parameters = new HashMap<String, Object>();
         if (tableAVObject.getAVObject("user") != null) {
-            parameters.put("paymentType", "59794daf128fe10056f43170");
+            parameters.put("paymentType", CONST.MALLPAYMENTTYPE.NB_PAY);
             parameters.put("customerId", tableAVObject.getAVObject("user").getObjectId());
             final List order = tableAVObject.getList("order");
             final List<String> ids = ProductUtil.calTotalIds(order);
@@ -1291,10 +1156,13 @@ public class SettleFg extends BaseFragment {
                     } else {
                         hideDialog();
                         finishOrder();
+                        Logger.d(e.getMessage());
                         ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙请重试" + e.getMessage());
                     }
                 }
             });
+        }else{
+
         }
     }
 
@@ -1389,48 +1257,15 @@ public class SettleFg extends BaseFragment {
      * 判断是否是大众点评商品
      */
     private void changeCommodity(final int postion) {
-        final HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(orders.size()-postion-1);
+        final HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(orders.size() - postion - 1);
         ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(hashMap, "id"));
-        if (productBean.getReviewCommodity()!=null){
-        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
-        builder.setTitle("当前商品"+productBean.getName()+"*"+ObjectUtil.getDouble(hashMap,"number")+"份"+"==>可大众点评购券抵扣("+MyUtils.getProductById(productBean.getReviewCommodity()).getName()+")\n请选择抵扣数量")
-                .setPlaceholder("在此输入抵扣")
-                .setInputType(InputType.TYPE_CLASS_TEXT)
-                .setCanceledOnTouchOutside(false)
-                .setDefaultText("" + ObjectUtil.getDouble(hashMap,"number").intValue())
-                .addAction("取消", new QMUIDialogAction.ActionListener() {
-                    @Override
-                    public void onClick(QMUIDialog dialog, int index) {
-                        dialog.dismiss();
-                    }
-                })
-                .addAction("确定", new QMUIDialogAction.ActionListener() {
-                    @Override
-                    public void onClick(QMUIDialog dialog, int index) {
-                        String text = builder.getEditText().getText().toString();
-                        if (text != null && text.length() > 0&&MyUtils.isNumber(text)&&ObjectUtil.getDouble(hashMap,"number")>=Double.parseDouble(text) ) {
-                            try {
-                                DataUtil.changeDZDPCommodity(tableAVObject,orders,postion,Double.parseDouble(text));
-                                dialog.dismiss();
-                                refreshList();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                Toast.makeText(getActivity(), "请输入正确金额", Toast.LENGTH_SHORT).show();
-                            }
-
-                        } else {
-                            Toast.makeText(getActivity(), "请输入正确金额", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                })
-                .create(mCurrentDialogStyle).show();
-        }else if (productBean.getSerial().equals("110")){
+        if (productBean.getReviewCommodity() != null) {
             final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
-            builder.setTitle("修改你组团我买单的人数")
-                    .setPlaceholder("在此输入人数")
+            builder.setTitle("当前商品" + productBean.getName() + "*" + ObjectUtil.getDouble(hashMap, "number") + "份" + "==>可大众点评购券抵扣(" + MyUtils.getProductById(productBean.getReviewCommodity()).getName() + ")\n请选择抵扣数量")
+                    .setPlaceholder("在此输入抵扣")
                     .setInputType(InputType.TYPE_CLASS_TEXT)
                     .setCanceledOnTouchOutside(false)
-                    .setDefaultText("" + ObjectUtil.getDouble(hashMap,"number").intValue())
+                    .setDefaultText("" + ObjectUtil.getDouble(hashMap, "number").intValue())
                     .addAction("取消", new QMUIDialogAction.ActionListener() {
                         @Override
                         public void onClick(QMUIDialog dialog, int index) {
@@ -1441,9 +1276,42 @@ public class SettleFg extends BaseFragment {
                         @Override
                         public void onClick(QMUIDialog dialog, int index) {
                             String text = builder.getEditText().getText().toString();
-                            if (text != null && text.length() > 0&&MyUtils.isNumber(text)&&ObjectUtil.getDouble(hashMap,"number")>=Double.parseDouble(text)&&Double.parseDouble(text)>0 ) {
+                            if (text != null && text.length() > 0 && MyUtils.isNumber(text) && ObjectUtil.getDouble(hashMap, "number") >= Double.parseDouble(text)) {
                                 try {
-                                    DataUtil.changeGroupNumber(tableAVObject,orders,postion,Double.parseDouble(text));
+                                    DataUtil.changeDZDPCommodity(tableAVObject, orders, postion, Double.parseDouble(text));
+                                    dialog.dismiss();
+                                    refreshList();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(getActivity(), "请输入正确金额", Toast.LENGTH_SHORT).show();
+                                }
+
+                            } else {
+                                Toast.makeText(getActivity(), "请输入正确金额", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    })
+                    .create(mCurrentDialogStyle).show();
+        } else if (productBean.getSerial().equals("110")) {
+            final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
+            builder.setTitle("修改你组团我买单的人数")
+                    .setPlaceholder("在此输入人数")
+                    .setInputType(InputType.TYPE_CLASS_TEXT)
+                    .setCanceledOnTouchOutside(false)
+                    .setDefaultText("" + ObjectUtil.getDouble(hashMap, "number").intValue())
+                    .addAction("取消", new QMUIDialogAction.ActionListener() {
+                        @Override
+                        public void onClick(QMUIDialog dialog, int index) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .addAction("确定", new QMUIDialogAction.ActionListener() {
+                        @Override
+                        public void onClick(QMUIDialog dialog, int index) {
+                            String text = builder.getEditText().getText().toString();
+                            if (text != null && text.length() > 0 && MyUtils.isNumber(text) && ObjectUtil.getDouble(hashMap, "number") >= Double.parseDouble(text) && Double.parseDouble(text) > 0) {
+                                try {
+                                    DataUtil.changeGroupNumber(tableAVObject, orders, postion, Double.parseDouble(text));
                                     dialog.dismiss();
                                     refreshList();
                                 } catch (Exception e) {

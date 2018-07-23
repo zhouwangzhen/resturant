@@ -18,7 +18,7 @@ public class LoginUtil {
         SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
         boolean sessionToken = sharedHelper.read("sessionToken").equals("");
         boolean isLogin = (AVUser.getCurrentUser()!= null);
-        if (sessionToken&&isLogin){
+        if (!sessionToken&&isLogin){
         }else{
             AVUser.logInInBackground(SYSTEMACCOUNT, SYSTEMPASSWORD, new LogInCallback<AVUser>() {
                 @Override

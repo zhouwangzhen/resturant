@@ -62,6 +62,7 @@ import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.RealmUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
+import cn.kuwo.player.util.UpgradeUtil;
 
 public class SettingFg extends BaseFragment {
     private static String ARG_PARAM = "param_key";
@@ -81,7 +82,7 @@ public class SettingFg extends BaseFragment {
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private Activity mActivity;
     private String mParam;
-    private Context context;
+    private Context mContext;
     private AVObject CommodityAVObject = null;
     private Handler mHandler = new Handler() {
         @Override
@@ -97,7 +98,6 @@ public class SettingFg extends BaseFragment {
 
     @Override
     public void initData() {
-        context = MyApplication.getContextObject();
         findChangeCommodity();
         setChooseCarema();
     }
@@ -264,6 +264,7 @@ public class SettingFg extends BaseFragment {
 
     public void onAttach(Context context) {
         super.onAttach(context);
+        mContext = context;
         mActivity = (Activity) context;
         mParam = getArguments().getString(ARG_PARAM);  //获取参数
     }
@@ -278,161 +279,9 @@ public class SettingFg extends BaseFragment {
 
     @OnClick(R.id.upgrade)
     public void onViewClicked() {
-        upgrade();
+        UpgradeUtil.checkInfo(mContext);
     }
 
-    private void upgrade() {
-        showDialog();
-        AVQuery<AVObject> query = new AVQuery<>("OffineControl");
-        query.whereEqualTo("store", CONST.STORECODE);
-        query.findInBackground(new FindCallback<AVObject>() {
-            @Override
-            public void done(List<AVObject> list, AVException e) {
-                hideDialog();
-                if (e == null) {
-                    if (list.size() > 0 && MyUtils.getVersionCode(MyApplication.getContextObject()) < list.get(0).getInt("version") && list.get(0).getAVFile("upgrade") != null) {
-                        String upgradeUrl = list.get(0).getAVFile("upgrade").getUrl();
-                        ShowDialog(upgradeUrl);
-                    } else {
-                        ToastUtil.showShort(MyApplication.getContextObject(), "已经是最新版本");
-                    }
-                } else {
-                    ToastUtil.showShort(MyApplication.getContextObject(), "网络错误");
-                }
-            }
-        });
-
-    }
-
-    private void ShowDialog(final String upgradeUrl) {
-        new AlertDialog.Builder(getContext())
-                .setTitle(R.string.app_name)
-                .setMessage("您的版本过低，请去更新最新版本，如不更新将无法继续使用")
-                .setPositiveButton("更新",
-                        new AlertDialog.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    requestWritePermission(upgradeUrl);
-                                } else {
-                                    if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                                        startDownloadApk(upgradeUrl);
-                                    } else {
-                                        Toast.makeText(MyApplication.getContextObject(), "请确认外部存储可用", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-
-                            }
-                        })
-                .setNegativeButton(android.R.string.no,
-                        new AlertDialog.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int i) {
-                                dialog.dismiss();
-                            }
-                        })
-                .setCancelable(false)
-                .create()
-                .show();
-    }
-
-    private void startDownloadApk(final String url) {
-        mProgressDialog = new ProgressDialog(getContext(), android.R.style.Theme_Material_Light_Dialog);
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.setTitle("正在下载中");
-        mProgressDialog.setMax(100);
-        mProgressDialog.setCanceledOnTouchOutside(false);
-        mProgressDialog.show();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    downLoadFile(url);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
-
-    /**
-     * 下载文件
-     *
-     * @return
-     * @throws IOException
-     */
-    private File downLoadFile(String upgradeUrl) throws IOException {
-        URL url = new URL(upgradeUrl);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setConnectTimeout(10000);
-        InputStream is = conn.getInputStream();
-        final File file = new File(Environment.getExternalStorageDirectory(), "app.apk");
-        FileOutputStream fos = new FileOutputStream(file);
-        BufferedInputStream bis = new BufferedInputStream(is);
-        byte[] buffer = new byte[1024];
-        int len;
-        int current = 0;
-        int total = conn.getContentLength();
-        float percent;
-        while ((len = bis.read(buffer)) != -1) {
-            fos.write(buffer, 0, len);
-            current += len;
-            //获取当前下载量
-            percent = (float) current / (float) total;
-            mProgressDialog.setProgress((int) (percent * 100));
-        }
-        fos.close();
-        bis.close();
-        is.close();
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mProgressDialog.dismiss();
-                installApk(file);
-            }
-        });
-        return file;
-    }
-
-    /**
-     * `
-     * 安装apk
-     *
-     * @param file
-     */
-    private void installApk(File file) {
-        Intent intent = new Intent();
-        //执行动作
-        intent.setAction(Intent.ACTION_VIEW);
-        Uri contentUri;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            contentUri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileProvider", file);
-            intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
-        } else {
-            contentUri = Uri.fromFile(file);
-            intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
-
-        }
-
-        startActivity(intent);
-    }
-
-    private void requestWritePermission(String upgradeUrl) {
-        int permissionCheck = ContextCompat.checkSelfPermission(MyApplication.getContextObject(), "android.permission.WRITE_EXTERNAL_STORAGE");
-        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                startDownloadApk(upgradeUrl);
-            } else {
-                Toast.makeText(MyApplication.getContextObject(), "请确认外部存储可用", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(MyApplication.getContextObject(), "请设置读写存储权限", Toast.LENGTH_SHORT).show();
-            ActivityCompat.requestPermissions((Activity) mActivity, new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 100);
-        }
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle

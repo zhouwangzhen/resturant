@@ -37,6 +37,7 @@ import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
+import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 
@@ -92,6 +93,7 @@ import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.RealmUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
+import cn.kuwo.player.util.UpgradeUtil;
 import io.sentry.Sentry;
 import io.sentry.android.AndroidSentryClientFactory;
 import io.sentry.event.BreadcrumbBuilder;
@@ -110,7 +112,6 @@ public class MainActivity extends BaseActivity {
     FrameLayout fragmentContent;
     @BindView(R.id.menu_update_info)
     TextView menuUpdateInfo;
-    private int REQUEST_CODE_SCAN = 111;
     @BindView(R.id.menu_retail)
     TextView menuRetail;
     @BindView(R.id.menu_table)
@@ -138,14 +139,7 @@ public class MainActivity extends BaseActivity {
     private AVQuery<AVObject> table;
     NetWorkStateReceiver netWorkStateReceiver;
     ShowNoNetFragment showNoNetFragment = null;
-    ProgressDialog mProgressDialog;
     private Context mContext;
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-        }
-    };
 
     @Override
     protected int getContentViewId() {
@@ -155,8 +149,8 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void initData() {
-        mContext=this;
-        setSentry();
+        mContext = this;
+        test();
         LoginUtil.checkSystemLogin();
         checkCashierLogin();
         checkLocalStorageCommodity();
@@ -170,9 +164,8 @@ public class MainActivity extends BaseActivity {
                 if (e == null) {
                     final AVObject avObject = list.get(0);
                     hideDialog();
-                    if ( MyUtils.getVersionCode(MyApplication.getContextObject()) <avObject.getInt("version") && avObject.getAVFile("upgrade") != null) {
-                        String upgradeUrl = avObject.getAVFile("upgrade").getUrl();
-                        ShowDialog(upgradeUrl);
+                    if (MyUtils.getVersionCode(MyApplication.getContextObject()) < avObject.getInt("version") && avObject.getAVFile("upgrade") != null) {
+                       UpgradeUtil.checkInfo(mContext);
                     }
                 } else {
                     hideDialog();
@@ -180,14 +173,6 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
-
-    private void setSentry() {
-        Sentry.init(new AndroidSentryClientFactory(mContext));
-        String sentryDsn = "http://afd0d53d341a4658b44f6437aa0639ae:68cce1a109524b65bebbe592e98daf07@sentry.aobeef.cn/3";
-        Sentry.init(sentryDsn, new AndroidSentryClientFactory(mContext));
-        Sentry.init(new AndroidSentryClientFactory(mContext));
-    }
-
 
     /**
      * 系统账号登录
@@ -247,7 +232,8 @@ public class MainActivity extends BaseActivity {
         menuRetail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, RetailActivity.class));
+                Intent intent = new Intent(MainActivity.this, RetailActivity.class);
+                startActivityForResult(intent, 2);
             }
         });
     }
@@ -290,13 +276,14 @@ public class MainActivity extends BaseActivity {
                 switchFragment("stored");
                 break;
             case R.id.menu_inventory:
-                startActivity(new Intent(MainActivity.this, InventoryActivity.class));
+                Intent intent = new Intent(MainActivity.this, InventoryActivity.class);
+                startActivity(intent);
                 break;
             case R.id.menu_nb:
                 switchFragment("nb");
                 break;
             case R.id.menu_update_info:
-                checkInfo();
+                UpgradeUtil.checkInfo(this);
                 break;
         }
     }
@@ -308,39 +295,48 @@ public class MainActivity extends BaseActivity {
     public void switchFragment(String tag) {
         resetState();
         ft = getSupportFragmentManager().beginTransaction();
-        if (tag == "commodity") {
-            setSelectState(menuCommodity, R.drawable.icon_menu);
-            CommodityFg commodityFg = CommodityFg.newInstance("");
-            ft.replace(R.id.fragment_content, commodityFg, "commodity").commit();
-        } else if (tag == "table") {
-            setSelectState(menuTable, R.drawable.icon_table);
-            TableFg tableFg = TableFg.newInstance("");
-            ft.replace(R.id.fragment_content, tableFg, "table").commit();
-            remainTable.setTextColor(getResources().getColor(R.color.white));
-        } else if (tag == "netconnect") {
-            setSelectState(menuPrint, R.drawable.icon_print);
-            NetConnectFg netConnectFg = NetConnectFg.newInstance("");
-            ft.replace(R.id.fragment_content, netConnectFg, "netconnect").commit();
-        } else if (tag == "svip") {
-            setSelectState(menuSvip, R.drawable.icon_svip_sel);
-            SvipFg svipFg = SvipFg.newInstance("");
-            ft.replace(R.id.fragment_content, svipFg, "svip").commit();
-        } else if (tag == "order") {
-            setSelectState(menuOrder, R.drawable.icon_order);
-            OrderListFg orderListFg = OrderListFg.newInstance("");
-            ft.replace(R.id.fragment_content, orderListFg, "orderlist").commit();
-        } else if (tag == "setting") {
-            setSelectState(menuUpdate, R.drawable.icon_update);
-            SettingFg settingFg = SettingFg.newInstance("");
-            ft.replace(R.id.fragment_content, settingFg, "setting").commit();
-        } else if (tag == "stored") {
-            setSelectState(menuStored, R.drawable.icon_recharge_nor);
-            StoredFg storedFg = StoredFg.newInstance("");
-            ft.replace(R.id.fragment_content, storedFg, "stored").commit();
-        } else if (tag == "nb") {
-            setSelectState(menuNb, R.drawable.icon_recharge_nor);
-            NbFg nbFg = NbFg.newInstance("");
-            ft.replace(R.id.fragment_content, nbFg, "nb").commit();
+        switch (tag) {
+            case "commodity":
+                setSelectState(menuCommodity, R.drawable.icon_menu);
+                CommodityFg commodityFg = CommodityFg.newInstance("");
+                ft.replace(R.id.fragment_content, commodityFg, "commodity").commit();
+                break;
+            case "table":
+                setSelectState(menuTable, R.drawable.icon_table);
+                TableFg tableFg = TableFg.newInstance("");
+                ft.replace(R.id.fragment_content, tableFg, "table").commit();
+                remainTable.setTextColor(getResources().getColor(R.color.white));
+                break;
+            case "netconnect":
+                setSelectState(menuPrint, R.drawable.icon_print);
+                NetConnectFg netConnectFg = NetConnectFg.newInstance("");
+                ft.replace(R.id.fragment_content, netConnectFg, "netconnect").commit();
+                break;
+            case "svip":
+                setSelectState(menuSvip, R.drawable.icon_svip_sel);
+                SvipFg svipFg = SvipFg.newInstance("");
+                ft.replace(R.id.fragment_content, svipFg, "svip").commit();
+                break;
+            case "order":
+                setSelectState(menuOrder, R.drawable.icon_order);
+                OrderListFg orderListFg = OrderListFg.newInstance("");
+                ft.replace(R.id.fragment_content, orderListFg, "orderlist").commit();
+                break;
+            case "setting":
+                setSelectState(menuUpdate, R.drawable.icon_update);
+                SettingFg settingFg = SettingFg.newInstance("");
+                ft.replace(R.id.fragment_content, settingFg, "setting").commit();
+                break;
+            case "stored":
+                setSelectState(menuStored, R.drawable.icon_recharge_nor);
+                StoredFg storedFg = StoredFg.newInstance("");
+                ft.replace(R.id.fragment_content, storedFg, "stored").commit();
+                break;
+            case "nb":
+                setSelectState(menuNb, R.drawable.icon_recharge_nor);
+                NbFg nbFg = NbFg.newInstance("");
+                ft.replace(R.id.fragment_content, nbFg, "nb").commit();
+                break;
         }
 
     }
@@ -385,7 +381,6 @@ public class MainActivity extends BaseActivity {
             public void done(List<AVObject> list, AVException e) {
                 if (e != null) {
                     ErrorUtil.NETERROR();
-
                 }
             }
         });
@@ -445,7 +440,6 @@ public class MainActivity extends BaseActivity {
                 if (e == null) {
                     RealmUtil.setRuleBeanRealm(list);
                 }
-
             }
         });
     }
@@ -557,174 +551,16 @@ public class MainActivity extends BaseActivity {
     private void test() {
     }
 
-    private void checkInfo() {
-        showDialog();
-        AVQuery<AVObject> query = new AVQuery<>("OffineControl");
-        query.whereEqualTo("store", CONST.STORECODE);
-        query.findInBackground(new FindCallback<AVObject>() {
-            @Override
-            public void done(List<AVObject> list, AVException e) {
-                if (e == null) {
-                    final AVObject avObject = list.get(0);
-                    final SharedHelper sharedHelper = new SharedHelper(mContext);
-                    if (!avObject.getString("updateDate").equals(sharedHelper.read("updateDate"))) {
-                        CommodityApi.getOfflineCommodity().findInBackground(new FindCallback<AVObject>() {
-                            @Override
-                            public void done(final List<AVObject> list, AVException e) {
-                                if (e == null) {
-                                    RealmUtil.setProductBeanRealm(list);
-                                    sharedHelper.save("updateDate", avObject.getString("updateDate"));
-                                    checkVersion(avObject);
-                                }else{
-                                    hideDialog();
-                                }
-                            }
-                        });
-                    }else{
-                        checkVersion(avObject);
-                    }
-                } else {
-                    hideDialog();
-                }
-            }
-        });
-    }
 
-    private void checkVersion(AVObject avObject) {
-        hideDialog();
-        if ( MyUtils.getVersionCode(MyApplication.getContextObject()) <avObject.getInt("version") && avObject.getAVFile("upgrade") != null) {
-            String upgradeUrl = avObject.getAVFile("upgrade").getUrl();
-            ShowDialog(upgradeUrl);
-        } else {
-            ToastUtil.showShort(MyApplication.getContextObject(), "已经是最新最新数据");
-        }
-    }
-    private void ShowDialog(final String upgradeUrl) {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.app_name)
-                .setMessage("您的版本过低，请去更新最新版本，如不更新将无法继续使用")
-                .setPositiveButton("更新",
-                        new AlertDialog.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    requestWritePermission(upgradeUrl);
-                                } else {
-                                    if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                                        startDownloadApk(upgradeUrl);
-                                    } else {
-                                        Toast.makeText(MyApplication.getContextObject(), "请确认外部存储可用", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-
-                            }
-                        })
-                .setNegativeButton(android.R.string.no,
-                        new AlertDialog.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int i) {
-                                dialog.dismiss();
-                            }
-                        })
-                .setCancelable(false)
-                .create()
-                .show();
-    }
-    private void startDownloadApk(final String url) {
-        mProgressDialog = new ProgressDialog(this, android.R.style.Theme_Material_Light_Dialog);
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.setTitle("正在下载中");
-        mProgressDialog.setMax(100);
-        mProgressDialog.setCanceledOnTouchOutside(false);
-        mProgressDialog.show();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    downLoadFile(url);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
-
-    /**
-     * 下载文件
-     *
-     * @return
-     * @throws IOException
-     */
-    private File downLoadFile(String upgradeUrl) throws IOException {
-        URL url = new URL(upgradeUrl);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setConnectTimeout(10000);
-        InputStream is = conn.getInputStream();
-        final File file = new File(Environment.getExternalStorageDirectory(), "app.apk");
-        FileOutputStream fos = new FileOutputStream(file);
-        BufferedInputStream bis = new BufferedInputStream(is);
-        byte[] buffer = new byte[1024];
-        int len;
-        int current = 0;
-        int total = conn.getContentLength();
-        float percent;
-        while ((len = bis.read(buffer)) != -1) {
-            fos.write(buffer, 0, len);
-            current += len;
-            //获取当前下载量
-            percent = (float) current / (float) total;
-            mProgressDialog.setProgress((int) (percent * 100));
-        }
-        fos.close();
-        bis.close();
-        is.close();
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mProgressDialog.dismiss();
-                installApk(file);
-            }
-        });
-        return file;
-    }
-
-    /**
-     * `
-     * 安装apk
-     *
-     * @param file
-     */
-    private void installApk(File file) {
-        Intent intent = new Intent();
-        //执行动作
-        intent.setAction(Intent.ACTION_VIEW);
-        Uri contentUri;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            contentUri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileProvider", file);
-            intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
-        } else {
-            contentUri = Uri.fromFile(file);
-            intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
-
-        }
-
-        startActivity(intent);
-    }
-
-    private void requestWritePermission(String upgradeUrl) {
-        int permissionCheck = ContextCompat.checkSelfPermission(MyApplication.getContextObject(), "android.permission.WRITE_EXTERNAL_STORAGE");
-        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                startDownloadApk(upgradeUrl);
-            } else {
-                Toast.makeText(MyApplication.getContextObject(), "请确认外部存储可用", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(MyApplication.getContextObject(), "请设置读写存储权限", Toast.LENGTH_SHORT).show();
-            ActivityCompat.requestPermissions((Activity) this, new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 100);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == 2) {
+            resetState();
+            setSelectState(menuNb, R.drawable.icon_recharge_nor);
+            NbFg nbFg = NbFg.newInstance(data.getStringExtra("userId"));
+            ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.fragment_content, nbFg, "nb").commit();
         }
     }
 }

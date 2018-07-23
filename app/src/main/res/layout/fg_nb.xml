@@ -115,7 +115,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
-                android:text="800个牛币"
+                android:text="2000个牛币"
                 android:textColor="@color/black" />
         </RelativeLayout>
     </android.support.v7.widget.CardView>
@@ -192,7 +192,7 @@
             android:textColor="@color/red"
             android:textSize="28sp"
             android:gravity="center"
-            android:text="需要支付的金额1000元"
+            android:text="需要支付的金额2000元"
             android:layout_gravity="center"/>
     </android.support.v7.widget.CardView>
     <Button

@@ -46,6 +46,7 @@ public class RealmUtil {
             productBean.setGiveRule(avObject.getInt("giveRule"));
             productBean.setComments(commentsList);
             productBean.setReviewCommodity(avObject.getString("reviewCommodity"));
+            productBean.setMerge(avObject.getBoolean("merge"));
             mRealmHleper.addProduct(productBean);
         }
     }
