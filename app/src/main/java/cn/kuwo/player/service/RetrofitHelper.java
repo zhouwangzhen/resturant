@@ -31,7 +31,7 @@ public class RetrofitHelper {
 
     private void resetApp() {
         mRetrofit=new Retrofit.Builder()
-                .baseUrl(CONST.APIURL.DOMAIN + CONST.APIURL.ROUTER)
+                .baseUrl(CONST.APIURL.DOMAIN+ CONST.APIURL.ROUTER)
                 .client(ClientUtil.getUnsafeOkHttpClient())
                 .addConverterFactory(factory)
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())

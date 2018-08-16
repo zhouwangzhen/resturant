@@ -192,6 +192,12 @@ public class RetailActivity extends BaseActivity {
                     case R.id.goods_other:
                         LoadingGoods(7);
                         break;
+                    case R.id.nb_card:
+                        LoadingGoods(8);
+                        break;
+                    case R.id.goods_bbq:
+                        LoadingGoods(9);
+                        break;
 
                 }
             }

@@ -104,6 +104,7 @@
                 android:gravity="center_vertical"
                 android:padding="10dp"
                 android:text="充值超牛会员"
+                android:visibility="gone"
                 android:textColor="@color/purple" />
 
 
@@ -170,6 +171,17 @@
                 android:gravity="center_vertical"
                 android:padding="10dp"
                 android:text="库存盘点"
+                android:visibility="gone"
+                android:textColor="@color/purple" />
+            <TextView
+                android:id="@+id/menu_activity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/icon_inventory"
+                android:drawablePadding="10dp"
+                android:gravity="center_vertical"
+                android:padding="10dp"
+                android:text="辅助功能"
                 android:textColor="@color/purple" />
             <TextView
                 android:id="@+id/menu_update_info"

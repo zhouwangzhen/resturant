@@ -11,6 +11,8 @@ import android.widget.Toast;
 
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
+import java.nio.file.Path;
+
 import butterknife.ButterKnife;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.util.AppUtils;
@@ -69,8 +71,12 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     public void hideDialog() {
-        if (tipDialog!=null){
-            tipDialog.dismiss();
+        try {
+            if (tipDialog != null) {
+                tipDialog.dismiss();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
 
     }

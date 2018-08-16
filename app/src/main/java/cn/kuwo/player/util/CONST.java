@@ -6,7 +6,7 @@ public class CONST {
     public static final class APIURL {
         public static final String DOMAIN="https://api.aobeef.cn";
         public static final String PREDOMAIN="https://preleaseapi.aobeef.cn";
-        public static final String HOST="http://192.168.1.66:5000";
+        public static final String HOST="http://192.168.1.83:5000";
         public static final String ROUTER="/api/v1/";
     }
     public static final class NB {

@@ -1,33 +1,19 @@
 package cn.kuwo.player;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVLiveQuery;
@@ -36,24 +22,17 @@ import com.avos.avoscloud.AVLiveQuerySubscribeCallback;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.CountCallback;
+import com.avos.avoscloud.DeleteCallback;
 import com.avos.avoscloud.FindCallback;
-import com.avos.avoscloud.SaveCallback;
-import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -78,7 +57,7 @@ import cn.kuwo.player.fragment.SettingFg;
 import cn.kuwo.player.fragment.StoredFg;
 import cn.kuwo.player.fragment.SvipFg;
 import cn.kuwo.player.fragment.TableFg;
-import cn.kuwo.player.fragment.inventory.InventoryActivity;
+import cn.kuwo.player.fragment.activities.EventsActivity;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.receiver.NetWorkStateReceiver;
 import cn.kuwo.player.receiver.USBBroadcastReceiver;
@@ -92,12 +71,9 @@ import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.RealmUtil;
 import cn.kuwo.player.util.SharedHelper;
+import cn.kuwo.player.util.T;
 import cn.kuwo.player.util.ToastUtil;
 import cn.kuwo.player.util.UpgradeUtil;
-import io.sentry.Sentry;
-import io.sentry.android.AndroidSentryClientFactory;
-import io.sentry.event.BreadcrumbBuilder;
-import io.sentry.event.UserBuilder;
 
 public class MainActivity extends BaseActivity {
     @BindView(R.id.menu_stored)
@@ -136,6 +112,8 @@ public class MainActivity extends BaseActivity {
     QMUIRadiusImageView waiterAvatar;
     @BindView(R.id.waiter_name)
     TextView waiterName;
+    @BindView(R.id.menu_activity)
+    TextView menuActivity;
     private AVQuery<AVObject> table;
     NetWorkStateReceiver netWorkStateReceiver;
     ShowNoNetFragment showNoNetFragment = null;
@@ -165,7 +143,7 @@ public class MainActivity extends BaseActivity {
                     final AVObject avObject = list.get(0);
                     hideDialog();
                     if (MyUtils.getVersionCode(MyApplication.getContextObject()) < avObject.getInt("version") && avObject.getAVFile("upgrade") != null) {
-                       UpgradeUtil.checkInfo(mContext);
+                        UpgradeUtil.checkInfo(mContext);
                     }
                 } else {
                     hideDialog();
@@ -247,7 +225,7 @@ public class MainActivity extends BaseActivity {
         ft.replace(R.id.fragment_content, tableFg, "table").commitAllowingStateLoss();
     }
 
-    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored, R.id.menu_inventory, R.id.menu_nb, R.id.menu_update_info})
+    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored, R.id.menu_activity, R.id.menu_nb, R.id.menu_update_info})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.ll_table:
@@ -275,8 +253,8 @@ public class MainActivity extends BaseActivity {
             case R.id.menu_stored:
                 switchFragment("stored");
                 break;
-            case R.id.menu_inventory:
-                Intent intent = new Intent(MainActivity.this, InventoryActivity.class);
+            case R.id.menu_activity:
+                Intent intent = new Intent(MainActivity.this, EventsActivity.class);
                 startActivity(intent);
                 break;
             case R.id.menu_nb:
@@ -549,6 +527,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void test() {
+
     }
 
 

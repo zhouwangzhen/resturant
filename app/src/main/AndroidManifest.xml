@@ -63,6 +63,7 @@
         <activity android:name=".activity.SettleActivity"/>
         <activity android:name=".activity.PayActivity"/>
         <activity android:name=".fragment.inventory.InventoryActivity"/>
+        <activity android:name=".fragment.activities.EventsActivity"/>
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="cn.kuwo.player.fileProvider"

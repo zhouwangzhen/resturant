@@ -36,6 +36,7 @@ import com.yzq.zxinglibrary.common.Constant;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
@@ -246,8 +247,94 @@ public class SettleActivity extends BaseActivity {
                 refreshList();
             }
         });
+        if(isHangUp){
+            if(getIntent().getStringExtra("userId")!=null){
+                userId = getIntent().getStringExtra("userId");
+                getUserInfo(getIntent().getStringExtra("userId"));
+            }
+        }
         setData();
         setListener();
+    }
+
+    private void getUserInfo(final String userId) {
+        showDialog();
+        AVQuery<AVObject> query = new AVQuery<>("_User");
+        query.getInBackground(userId, new GetCallback<AVObject>() {
+            @Override
+            public void done(final AVObject avObject, AVException e) {
+                if (e==null){
+                    Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().QueryofflineRecharge(userId);
+                    responseBodyCall.enqueue(new Callback<ResponseBody>() {
+                        @Override
+                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                            hideDialog();
+                            if (response.code()==200){
+
+                                try {
+                                    String responseText = DataUtil.JSONTokener(response.body().string());
+                                    JSONObject jsonObject = null;
+                                    jsonObject = new JSONObject(responseText);
+                                    nb = jsonObject.getDouble("amount");
+
+
+                                userBean=new UserBean(CONST.UserCode.SCANCUSTOMER,
+                                        avObject.getObjectId(),
+                                        avObject.getString("username"),
+                                        avObject.getString("realName") == null ? avObject.getString("nickName") : avObject.getString("realName"),
+                                        avObject.getInt("vip"),
+                                        avObject.getDouble("credits"),
+                                        avObject.getDouble("stored"),
+                                        MyUtils.formatDouble(avObject.getDouble("gold")-avObject.getDouble("arrears")),
+                                        avObject.getBoolean("test"),
+                                        avObject.getInt("clerk"),
+                                        0.0,
+                                        null,
+                                        false,
+                                        avObject.getString("avatar"),
+                                        false,
+                                        nb);
+                                    userNb.setText("牛币:" + nb);
+                                    llShowMember.setVisibility(View.VISIBLE);
+                                    if (userBean.getAvatar() != null && !userBean.getAvatar().equals("")) {
+                                        Glide.with(MyApplication.getContextObject()).load(userBean.getAvatar()).into(userAvatar);
+                                    }
+                                    userTel.setText("用户手机号:" + userBean.getUsername());
+                                    userStored.setText("消费金:" + userBean.getStored());
+                                    userWhitebar.setText("白条:" + userBean.getBalance());
+                                    userMeatweight.setText("牛肉额度:" + userBean.getMeatWeight() + "kg");
+                                    userMeatweight.setText("牛肉额度:" + userBean.getMeatWeight() + "kg");
+                                    hasMeatWeight = userBean.getMeatWeight();
+                                    useMeatId = userBean.getMeatId();
+                                    if (userBean.getSvip()) {
+                                        svipAvatar.setVisibility(View.VISIBLE);
+                                        userType.setText("超牛会员");
+                                        isSvip = true;
+                                    } else {
+                                        svipAvatar.setVisibility(View.GONE);
+                                        userType.setText("普通会员");
+                                        isSvip = false;
+                                    }
+                                    signUser.setText("退出登录");
+                                    setData();
+                                } catch (Exception e1) {
+                                    e1.printStackTrace();
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                hideDialog();
+                        }
+                    });
+
+                }else{
+                    hideDialog();
+                    Logger.d(e.getMessage());
+                }
+            }
+        });
     }
 
     /**
@@ -438,7 +525,6 @@ public class SettleActivity extends BaseActivity {
             fullReduceMoney = MyUtils.formatDouble(ProductUtil.calFullReduceMoney(actualTotalMoneny) > actualTotalMoneny ? actualTotalMoneny : ProductUtil.calFullReduceMoney(actualTotalMoneny));
             fullreduceMoney.setText("-" + fullReduceMoney);
             actualTotalMoneny -= fullReduceMoney;
-
             if (orderRate != 100) {
                 llRateReduce.setVisibility(View.VISIBLE);
                 ratereduceMoney = MyUtils.formatDouble(((double) actualTotalMoneny) * (100 - orderRate) / 100);
@@ -464,15 +550,7 @@ public class SettleActivity extends BaseActivity {
             totalMoney.setText("￥" + actualTotalMoneny + "元");
             minPayMoney.setText("-" + meatReduceMoney);
         } else {
-            if (nbTotalMoney>0) {
-                if (nbTotalMoney >= 200) {
-                    chargeReduceMoney = 200.0;
-                } else {
-                    chargeReduceMoney = nbTotalMoney;
-                }
-            }
-            chargeDeduce.setText("-"+chargeReduceMoney);
-            actualTotalMoneny = nbTotalMoney-chargeReduceMoney;
+            actualTotalMoneny = nbTotalMoney;
             totalMoney.setText("￥" + actualTotalMoneny + "牛币");
         }
     }

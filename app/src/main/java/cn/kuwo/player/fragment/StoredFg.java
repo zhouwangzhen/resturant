@@ -414,10 +414,10 @@ public class StoredFg extends BaseFragment {
 
     private void showSimpleBottomSheetList() {
         new QMUIBottomSheet.BottomListSheetBuilder(getActivity())
-                .addItem("充值500得550")
-                .addItem("充值2000得2500")
-                .addItem("充值6000得8000")
-                .addItem("充值10000得15000")
+                .addItem("充值500")
+                .addItem("充值2000")
+                .addItem("充值6000")
+                .addItem("充值10000")
                 .setTitle("选择充值金额")
                 .setOnSheetItemClickListener(new QMUIBottomSheet.BottomListSheetBuilder.OnSheetItemClickListener() {
                     @Override

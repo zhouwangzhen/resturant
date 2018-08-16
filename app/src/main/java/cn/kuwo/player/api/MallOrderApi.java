@@ -26,7 +26,7 @@ public class MallOrderApi {
             AVObject mallOrderStatusRefund = AVObject.createWithoutData("MallOrderStatus", CONST.OrderState.ORDER_STATUS_CANCEL);
             List<AVObject> orderSratus = new ArrayList<AVObject>();
             orderSratus.add(mallOrderStatusFinsh);
-            orderSratus.add(mallOrderStatusRefund);
+//            orderSratus.add(mallOrderStatusRefund);
             AVQuery<AVObject> mallOrder = new AVQuery<>("MallOrder");
             mallOrder.whereEqualTo("store", CONST.STORECODE);
             mallOrder.whereEqualTo("offline", true);

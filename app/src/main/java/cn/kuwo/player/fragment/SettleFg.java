@@ -258,7 +258,6 @@ public class SettleFg extends BaseFragment {
                                         JSONObject jsonObject = new JSONObject(responseText);
                                         nb = jsonObject.getDouble("amount");
                                         userNb.setText("牛币:" + nb);
-                                        hideDialog();
                                         AVObject userObject = tableAVObject.getAVObject("user");
                                         llShowMember.setVisibility(View.VISIBLE);
                                         Double whiteBarBalance = MyUtils.formatDouble(MyUtils.formatDouble(userObject.getDouble("gold")) - MyUtils.formatDouble(userObject.getDouble("arrears")));
@@ -272,8 +271,10 @@ public class SettleFg extends BaseFragment {
                                         userWhitebar.setText("白条:" + whiteBarBalance);
                                         signUser.setText("退出登录");
                                         fetchCommodity(tableAVObject);
+                                        hideDialog();
                                     } catch (Exception e1) {
                                         hideDialog();
+                                        Logger.d(e1.getMessage());
                                         ToastUtil.showShort(getContext(), e1.getMessage());
                                         e1.printStackTrace();
                                     }
