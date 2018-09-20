@@ -184,6 +184,16 @@
                 android:text="辅助功能"
                 android:textColor="@color/purple" />
             <TextView
+                android:id="@+id/menu_credit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/icon_inventory"
+                android:drawablePadding="10dp"
+                android:gravity="center_vertical"
+                android:padding="10dp"
+                android:text="周年庆活动"
+                android:textColor="@color/purple" />
+            <TextView
                 android:id="@+id/menu_update_info"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

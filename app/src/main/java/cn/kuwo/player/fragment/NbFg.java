@@ -139,7 +139,6 @@ public class NbFg extends BaseFragment {
 
     @Override
     public void initData() {
-        Logger.d(mParam);
         setUserInfo();
         rgPaystyle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override

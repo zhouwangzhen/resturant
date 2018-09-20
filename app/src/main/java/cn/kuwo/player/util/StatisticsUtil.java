@@ -269,6 +269,12 @@ public class StatisticsUtil {
                         DZDPCommodityMoney+=CONST.DZDP.menu_2_price*ObjectUtil.getDouble(format,"number");
                     }else if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_3_id)){
                         DZDPCommodityMoney+=CONST.DZDP.menu_3_price*ObjectUtil.getDouble(format,"number");
+                    }else  if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_4_id)){
+                        DZDPCommodityMoney+=CONST.DZDP.menu_4_price*ObjectUtil.getDouble(format,"number");
+                    }else if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_5_id)){
+                        DZDPCommodityMoney+=CONST.DZDP.menu_5_price*ObjectUtil.getDouble(format,"number");
+                    }else if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_6_id)){
+                        DZDPCommodityMoney+=CONST.DZDP.menu_6_price*ObjectUtil.getDouble(format,"number");
                     }
 
 
@@ -304,6 +310,7 @@ public class StatisticsUtil {
                 } else {
                     orderTypes.put(order.getInt("type"), 1);
                 }
+
             }
         }
         List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(numbers.entrySet());
@@ -332,6 +339,7 @@ public class StatisticsUtil {
         detail.put("offlineCoupon", offlineCoupon);
         detail.put("onlineCoupon", onlineCoupon);
         detail.put("orderTypes", orderTypes);
+        capitalDetail.put("大众点评",MyUtils.formatDouble(DZDPCommodityMoney+DZDPMoney));
         detail.put("capitalDetail", capitalDetail);
         detail.put("dinnerPeople", dinnerPeople + "人");
         detail.put("rechargeMoney", MyUtils.formatDouble(rechargeMoney));
@@ -340,8 +348,6 @@ public class StatisticsUtil {
         detail.put("nbTotalMoney", MyUtils.formatDouble(nbTotalMoney) + "元");
         detail.put("DZDPCommodityMoney", MyUtils.formatDouble(DZDPCommodityMoney) + "元");
         detail.put("DZDPTotalMoney", MyUtils.formatDouble(DZDPCommodityMoney+DZDPMoney) + "元");
-
-//        Logger.d(detail);
         return detail;
     }
 }

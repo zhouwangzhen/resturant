@@ -73,12 +73,9 @@ public class TableApi {
             HashMap<String, Object> hashMap = (HashMap<String, Object>) newOrders.get(k);
             if (ObjectUtil.getString(hashMap,"id").equals(CONST.ACTIVITYCOMMODITY.GROUPPAYBILL)){
                 Double number = ObjectUtil.getDouble(hashMap, "number");
-                if (number == 1) {
-                    hashMap.put("price", 270.4);
-                    hashMap.put("nb", 270.4);
-                } else if (number == 2 || number == 3) {
-                    hashMap.put("price", 338);
-                    hashMap.put("nb", 338);
+                if (number == 1||number == 2 || number == 3) {
+                    hashMap.put("price", 368);
+                    hashMap.put("nb", 368);
                 }else{
                     hashMap.put("price", MyUtils.formatDouble(98*number));
                     hashMap.put("nb", MyUtils.formatDouble(98*number));

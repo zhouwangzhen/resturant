@@ -108,7 +108,6 @@ public class OrderListFg extends BaseFragment {
     List<AVObject> rechargeOrders = new ArrayList<>();
     Date currentDate;
     private int orderType = -1;
-    private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
 
     private NbRechargeLogPresenter nbRechargeLogPresenter = new NbRechargeLogPresenter(getContext());
 
@@ -194,15 +193,23 @@ public class OrderListFg extends BaseFragment {
         HashMap<Integer, Integer> orderTypes = (HashMap<Integer, Integer>) ordersDetail.get("orderTypes");
         if (orderTypes.containsKey(0)) {
             stateRes.setText(orderTypes.get(0) + "笔");
+        }else{
+            stateRes.setText("0笔");
         }
         if (orderTypes.containsKey(1)) {
             stateRetail.setText(orderTypes.get(1) + "笔");
+        }else{
+            stateRetail.setText( "0笔");
         }
         if (orderTypes.containsKey(2) || rechargeOrders.size() > 0) {
             stateRecharge.setText((orderTypes.containsKey(2) ? orderTypes.get(2) : 0) + rechargeOrders.size() + "笔");
+        }else{
+            stateRecharge.setText("0笔");
         }
         if (orderTypes.containsKey(3)) {
             stateHangup.setText(orderTypes.get(3) + "笔");
+        }else {
+            stateHangup.setText(0+ "笔");
         }
         stateNbNum.setText(nbRechargeLogs.size() + "笔");
 
@@ -544,7 +551,6 @@ public class OrderListFg extends BaseFragment {
     private NbRechargeLogView mNbRechargeLog = new NbRechargeLogView() {
         @Override
         public void onSuccess(List<NbRechargeLog> nbRechargeLog) {
-            Logger.d(nbRechargeLog);
             nbRechargeLogs=nbRechargeLog;
             findMallGoldOrder(currentDate);
         }

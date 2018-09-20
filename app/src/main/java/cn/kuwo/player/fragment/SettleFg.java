@@ -1326,6 +1326,42 @@ public class SettleFg extends BaseFragment {
                         }
                     })
                     .create(mCurrentDialogStyle).show();
+        } else{
+            if (ObjectUtil.getDouble(hashMap,"price")!=0) {
+                final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getActivity());
+                builder.setTitle("将此菜转为赠送菜品,输入赠送数量")
+                        .setInputType(InputType.TYPE_CLASS_TEXT)
+                        .setCanceledOnTouchOutside(false)
+                        .setDefaultText("" + ObjectUtil.getDouble(hashMap, "number").intValue())
+                        .addAction("取消", new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .addAction("确定", new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                String text = builder.getEditText().getText().toString();
+                                if (text != null && text.length() > 0 && MyUtils.isNumber(text) && ObjectUtil.getDouble(hashMap, "number") >= Double.parseDouble(text) && Double.parseDouble(text) > 0) {
+                                    try {
+                                        DataUtil.addHangUpOrder(tableAVObject, orders, postion, Double.parseDouble(text));
+                                        dialog.dismiss();
+                                        refreshList();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        Toast.makeText(getActivity(), "输入有误", Toast.LENGTH_SHORT).show();
+                                    }
+
+                                } else {
+                                    Toast.makeText(getActivity(), "请输入正确数量", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        })
+                        .create(mCurrentDialogStyle).show();
+            }else{
+                T.L("金额为0元不可操作");
+            }
         }
     }
 }

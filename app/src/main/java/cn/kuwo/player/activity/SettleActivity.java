@@ -475,6 +475,7 @@ public class SettleActivity extends BaseActivity {
                 llBlackFive.setVisibility(View.VISIBLE);
                 blackFiveMoney.setText("-" + blackfiveMoney);
             } else {
+                blackfiveMoney=0.0;
                 blackFiveMoney.setText("0.0");
                 llBlackFive.setVisibility(View.GONE);
             }

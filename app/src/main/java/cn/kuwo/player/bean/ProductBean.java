@@ -31,6 +31,7 @@ public class ProductBean extends RealmObject implements Serializable {
     private Double nb;//牛币
     private String reviewCommodity;//大众点评赠送的商品
     private boolean merge;//是否可以合并
+    private int classify;//点餐分类
 
 
     public String getCode() {
@@ -225,6 +226,14 @@ public class ProductBean extends RealmObject implements Serializable {
         this.merge = merge;
     }
 
+    public int getClassify() {
+        return classify;
+    }
+
+    public void setClassify(int classify) {
+        this.classify = classify;
+    }
+
     @Override
     public String toString() {
         return "ProductBean{" +
@@ -252,6 +261,7 @@ public class ProductBean extends RealmObject implements Serializable {
                 ", nb=" + nb +
                 ", reviewCommodity='" + reviewCommodity + '\'' +
                 ", merge=" + merge +
+                ", classify=" + classify +
                 '}';
     }
 }

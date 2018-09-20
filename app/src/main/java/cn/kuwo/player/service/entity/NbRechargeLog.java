@@ -227,6 +227,22 @@ public class NbRechargeLog {
 
 
     public static class MessageBean {
+        private String gift_reason;
+
+        public String getGift_reason() {
+            return gift_reason;
+        }
+
+        public void setGift_reason(String gift_reason) {
+            this.gift_reason = gift_reason;
+        }
+
+        @Override
+        public String toString() {
+            return "MessageBean{" +
+                    "gift_reason='" + gift_reason + '\'' +
+                    '}';
+        }
     }
 
     public static class TargetUserBean {

@@ -29,6 +29,17 @@ public interface RetrofitService {
                                        @Field("payment_num") int payment,
                                        @Field("store_num") int store,
                                        @Field("gift_type_num") int gift_type_num);
+    @FormUrlEncoded
+    @POST("services/niu_token/offline_operation/recharge")
+    Call<ResponseBody> nbCompense(@Field("target_user_id") String targetUserId,
+                                  @Field("salesman_id") String salesmanId,
+                                  @Field("cashier_id") String cashierId,
+                                  @Field("amount") Double amount,
+                                  @Field("acctually_paid") Double acctually_paid,
+                                  @Field("payment_num") int payment,
+                                  @Field("store_num") int store,
+                                  @Field("gift_type_num") int gift_type_num,
+                                  @Field("gift_reason") String message);
 
     @FormUrlEncoded
     @POST("services/niu_token/offline_query/user_amount")

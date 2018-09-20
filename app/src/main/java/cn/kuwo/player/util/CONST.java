@@ -87,6 +87,17 @@ public class CONST {
         public static final String menu_3_id="5b4f13750b616000311b9605";
         public static final Double menu_3_price=38.0;
 
+        public static final String menu_4_name="尊享单人西冷套餐(大众点评专享)";
+        public static final String menu_4_id="5b949fbc9f54540039683493";
+        public static final Double menu_4_price=179.0;
+
+        public static final String menu_5_name="尊贵单人西冷套餐(三人同行两人免单)(大众点评专享)";
+        public static final String menu_5_id="5b94a1849f54540039685b83";
+        public static final Double menu_5_price=368.0;
+
+        public static final String menu_6_name="午市商务单人套餐(大众点评专享)";
+        public static final String menu_6_id="5b94a086fb4ffe005c6930a6";
+        public static final Double menu_6_price=48.0;
 
     }
 

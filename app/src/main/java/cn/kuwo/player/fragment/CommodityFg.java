@@ -130,6 +130,7 @@ public class CommodityFg extends BaseFragment {
                         productBean.setActive(avObject.getInt("active"));
                         productBean.setNb(avObject.getDouble("nb"));
                         productBean.setComboMenu(avObject.getString("comboMenu") == null ? "" : MyUtils.replaceBlank(avObject.getString("comboMenu").trim().replace(" ", "")));
+                        productBean.setClassify(avObject.getInt("classify"));
                         RealmList<String> commentsList = new RealmList<>();
                         for (int k = 0; k < avObject.getList("comments").size(); k++) {
                             commentsList.add(avObject.getList("comments").get(k).toString());

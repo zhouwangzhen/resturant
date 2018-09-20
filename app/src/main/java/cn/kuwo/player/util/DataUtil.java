@@ -2,6 +2,8 @@ package cn.kuwo.player.util;
 
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.GetCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 
@@ -10,6 +12,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -101,7 +104,6 @@ public class DataUtil {
                                        Boolean isSvip,
                                        String userId,
                                        int mode) {
-        Logger.d(event.getOrderIndex());
         if (event.getOrderIndex() != -1) {
             Logger.d(event);
             if (event.getCommodityNumber() > 0) {
@@ -223,9 +225,6 @@ public class DataUtil {
                         HashMap<String, Object> map = (HashMap<String, Object>) o;
                         if (ObjectUtil.getString(map, "id").equals(CONST.MACHINEID)) {
                             if (ObjectUtil.getDouble(map, "price") != 0) {
-                                Logger.d(ObjectUtil.getDouble(map, "price"));
-                                Logger.d(event.getCommodityNumber());
-                                Logger.d((OriginNumber - event.getCommodityNumber() * 30));
                                 double price = ObjectUtil.getDouble(map, "price") - ((OriginNumber - event.getCommodityNumber()) * 30);
                                 map.put("price", MyUtils.formatDouble(price > 0 ? price : 0));
                             }
@@ -290,12 +289,9 @@ public class DataUtil {
 
     public static void changeGroupNumber(AVObject avObject, List<Object> orders, int postion, double v) {
         HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(orders.size() - postion - 1);
-        if (v == 1) {
-            hashMap.put("price", 270.4);
-            hashMap.put("nb", 270.4);
-        } else if (v == 2 || v == 3) {
-            hashMap.put("price", 338);
-            hashMap.put("nb", 338);
+        if (v == 1||v == 2 || v == 3) {
+            hashMap.put("price", 368);
+            hashMap.put("nb", 368);
         }else{
             hashMap.put("price", MyUtils.formatDouble(98*v));
             hashMap.put("nb", MyUtils.formatDouble(98*v));
@@ -307,5 +303,77 @@ public class DataUtil {
                 Logger.d("修改成功");
             }
         });
+    }
+    public static void changeAnniversaryNumber(AVObject avObject, List<Object> orders, int postion) {
+        HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(orders.size() - postion - 1);
+        hashMap.put("price",0);
+        hashMap.put("nb", 0);
+        avObject.put("order", orders);
+        avObject.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(AVException e) {
+                Logger.d("修改成功");
+            }
+        });
+    }
+    public static void addHangUpOrder(AVObject avObject, List<Object> orders, int postion, double v) {
+        HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(orders.size() - postion - 1);
+        final HashMap<String,Object> hashMap1=(HashMap<String,Object>)hashMap.clone();
+        HashMap<String,Object> hashMap2=(HashMap<String,Object>)hashMap.clone();
+        HashMap<String,Object> OriginHashMap=(HashMap<String,Object>)hashMap.clone();
+        hashMap.put("price",MyUtils.formatDouble(ObjectUtil.getDouble(hashMap, "price")/ObjectUtil.getDouble(hashMap, "number")*(ObjectUtil.getDouble(hashMap, "number")-v)));
+        hashMap.put("nb", MyUtils.formatDouble(ObjectUtil.getDouble(hashMap, "nb")/ObjectUtil.getDouble(hashMap, "number")*(ObjectUtil.getDouble(hashMap, "number")-v)));
+        hashMap.put("weight", MyUtils.formatDouble(ObjectUtil.getDouble(hashMap, "weight")/ObjectUtil.getDouble(hashMap, "number")*(ObjectUtil.getDouble(hashMap, "number")-v)));
+        hashMap.put("discountNumber",v);
+        hashMap.put("number",MyUtils.formatDouble(ObjectUtil.getDouble(hashMap, "number")-v));
+        ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(hashMap, "id"));
+        hashMap1.put("price",MyUtils.formatDouble(productBean.getPrice()*v));
+        hashMap1.put("nb",MyUtils.formatDouble(productBean.getNb()*v));
+        hashMap1.put("weight",MyUtils.formatDouble(productBean.getWeight()*v));
+        hashMap1.put("number",MyUtils.formatDouble(v));
+        hashMap1.put("reason",DateUtil.formatLongDate(new Date())+","+SharedHelper.read("cashierName"));
+        hashMap2.put("price",0.0);
+        hashMap2.put("nb",0.0);
+        hashMap2.put("mode",2);
+        hashMap2.put("number",v);
+        hashMap2.put("reason",DateUtil.formatLongDate(new Date())+","+SharedHelper.read("cashierName"));
+        if ((Double)hashMap.get("number")<=0.0){
+            orders.remove(orders.size() - postion - 1);
+        }
+        orders.add(hashMap2);
+        avObject.put("order",orders);
+        avObject.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(AVException e) {
+                if (e==null){
+                    T.L("修改成功");
+                    AVQuery<AVObject> query = new AVQuery<>("Table");
+                    query.getInBackground("5b868f57a22b9d0037dbcc33", new GetCallback<AVObject>() {
+                        @Override
+                        public void done(AVObject avObject, AVException e) {
+                            if (e==null){
+                                List<Object> newOrders=avObject.getList("order");
+                                newOrders.add(hashMap1);
+                                if (avObject.getInt("customer") == 0){
+                                    avObject.put("customer",2);
+                                    avObject.put("startedAt",new Date());
+                                }
+                                avObject.put("order",newOrders);
+                                avObject.saveInBackground(new SaveCallback() {
+                                    @Override
+                                    public void done(AVException e) {
+                                        if (e==null){
+                                            T.L("挂账成功");
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+
+            }
+        });
+
     }
 }

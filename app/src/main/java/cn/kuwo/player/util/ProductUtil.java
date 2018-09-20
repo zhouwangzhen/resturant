@@ -847,10 +847,9 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             int type = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType();
-            if (type == 3 || type == 4 || type == 5 || type == 6 || type == 7) {
-                if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+            Logger.d(type);
+            if (type == 3 || type == 4 || type == 5 || type == 6 || type == 7|| type == 9) {
                     number++;
-                }
             } else if (type == 11 || type == 12) {
 
             } else {
@@ -1150,12 +1149,10 @@ public class ProductUtil {
         int type = productBean.getType();
         if (type == 3 || type == 4 || type == 5 || type == 6) {
             if (ObjectUtil.getString(format, "barcode").length() == 18) {
-                if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
                     return true;
-                }
             } else if (type == 5) {
                 String serial = productBean.getSerial();
-                if (serial.equals("501") || serial.equals("502") && serial.equals("503")) {
+                if (null!=serial) {
                     return true;
                 }
             }

@@ -65,6 +65,7 @@ import cn.kuwo.player.adapter.ScanGoodAdapter;
 import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.UserBean;
+import cn.kuwo.player.custom.CommodityTypeFragment;
 import cn.kuwo.player.custom.RefundFragment;
 import cn.kuwo.player.custom.ScanCommodityFragment;
 import cn.kuwo.player.custom.ScanUserFragment;
@@ -121,6 +122,8 @@ public class OrderFg extends BaseFragment {
     TextView nbMoney;
     @BindView(R.id.user_charge_nb)
     TextView userChargeNb;
+    @BindView(R.id.btn_choose_commodity)
+    Button btnChooseCommodity;
     private int REQUEST_CODE_SCAN = 111;
     private static String ARG_PARAM = "param_table_id";
     private static String ARG_PARAM1 = "param_save_data";
@@ -562,7 +565,7 @@ public class OrderFg extends BaseFragment {
     }
 
 
-    @OnClick({R.id.order_change_table, R.id.sign_user, R.id.btn_to_pay, R.id.btn_place_order, R.id.btn_to_clear, R.id.user_charge_nb})
+    @OnClick({R.id.order_change_table, R.id.sign_user, R.id.btn_to_pay, R.id.btn_place_order, R.id.btn_to_clear, R.id.user_charge_nb, R.id.btn_choose_commodity})
     public void onViewClicked(View view) {
         try {
             switch (view.getId()) {
@@ -797,11 +800,15 @@ public class OrderFg extends BaseFragment {
                     }
                     break;
                 case R.id.user_charge_nb:
-                    if (tableAVObject.getAVObject("user")!=null){
+                    if (tableAVObject.getAVObject("user") != null) {
                         FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
                         NbFg nbFg = NbFg.newInstance(tableAVObject.getAVObject("user").getObjectId());
                         ft.replace(R.id.fragment_content, nbFg, "nb").commit();
                     }
+                    break;
+                case R.id.btn_choose_commodity:
+                    CommodityTypeFragment commodityTypeFragment = new CommodityTypeFragment();
+                    commodityTypeFragment.show(getActivity().getSupportFragmentManager(),"orderbyname");
                     break;
             }
         } catch (Exception e) {
