@@ -1,34 +1,32 @@
 package cn.kuwo.player.fragment;
 
-import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
-import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FindCallback;
+import com.facebook.drawee.backends.pipeline.Fresco;
 import com.orhanobut.logger.Logger;
-import com.qmuiteam.qmui.widget.QMUIEmptyView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import butterknife.Unbinder;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
-import cn.kuwo.player.adapter.OffineAdapter;
+import cn.kuwo.player.adapter.LeftMenuAdapter;
+import cn.kuwo.player.adapter.RightMenuAdapter;
 import cn.kuwo.player.api.CommodityApi;
 import cn.kuwo.player.api.CommodityTypeApi;
 import cn.kuwo.player.api.RuleApi;
@@ -36,72 +34,144 @@ import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RuleBean;
 import cn.kuwo.player.bean.TypeBean;
-import cn.kuwo.player.custom.ShowActivityFragment;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.ToastUtil;
 import io.realm.RealmList;
 
-public class CommodityFg extends BaseFragment {
-    private static String ARG_PARAM = "param_key";
-    @BindView(R.id.rule_content)
-    TextView ruleContent;
+/**
+ * Created by lovely on 2018/9/22
+ */
+public class CommodityClassifyFg extends BaseFragment {
+    @BindView(R.id.lv_menu)
+    ListView lvMenu;
+    @BindView(R.id.lv_classify)
+    ListView lvClassify;
+    @BindView(R.id.tv_commodity_classify_tile)
+    TextView tvCommodityClassifyTile;
     Unbinder unbinder;
-    @BindView(R.id.ll_current_activity)
-    LinearLayout llCurrentActivity;
-    Unbinder unbinder1;
-    private Activity mActivity;
-    private String mParam;
-    @BindView(R.id.offinelist)
-    RecyclerView offinelist;
     @BindView(R.id.btn_refrsh)
     Button btnRefrsh;
-    @BindView(R.id.emptyView)
-    QMUIEmptyView emptyView;
     private RealmHelper mRealmHleper;
-    private OffineAdapter offineAdapter;
 
-    public static CommodityFg newInstance() {
-        return new CommodityFg();
-    }
+    private LeftMenuAdapter leftMenuAdapter;
+    private RightMenuAdapter rightMenuAdapter;
+
+    private List<TypeBean> typeBeans = new ArrayList<>();
+    private List<ProductBean> productBeans = new ArrayList<>();
+
+    private int selectIndex = 0;
 
     @Override
     protected int getLayoutId() {
-        return R.layout.fg_commodity;
-    }
-
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        mActivity = (Activity) context;
-        mParam = getArguments().getString(ARG_PARAM);  //获取参数
+        return R.layout.fg_commodity_classify;
     }
 
     @Override
     public void initData() {
-        mRealmHleper = new RealmHelper(MyApplication.getContextObject());
-        List<RuleBean> ruleBeans = mRealmHleper.queryAllRule();
-        if (ruleBeans.size() > 0) {
-            RuleBean ruleBean = ruleBeans.get(0);
-            String ruleInfo = "";
-            if (ruleBean.getAllDiscount() != 1) {
-                ruleInfo += "全场" + MyUtils.formatDouble(ruleBean.getAllDiscount() * 10) + "折优惠";
+        setData();
+        btnRefrsh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loadType();
             }
-            ruleContent.setText(ruleInfo);
-        }
-        final List<ProductBean> productBeans = mRealmHleper.queryAllProduct();
-        final List<TypeBean> typeBeans = mRealmHleper.queryAllType();
-        showDialog();
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MyApplication.getContextObject(), LinearLayout.VERTICAL, false);
-        offinelist.setLayoutManager(linearLayoutManager);
-        offineAdapter = new OffineAdapter(MyApplication.getContextObject(), productBeans, typeBeans, getActivity().getFragmentManager());
-        offinelist.setAdapter(offineAdapter);
-        hideDialog();
+        });
+    }
 
+    private void setData() {
+        Fresco.initialize(getContext());
+        leftMenuAdapter = new LeftMenuAdapter(getContext(), typeBeans);
+        lvMenu.setAdapter(leftMenuAdapter);
+        rightMenuAdapter = new RightMenuAdapter(getContext(), productBeans, typeBeans);
+        lvClassify.setAdapter(rightMenuAdapter);
+        lvMenu.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                leftMenuAdapter.setSelectItem(position);
+                leftMenuAdapter.notifyDataSetInvalidated();
+                tvCommodityClassifyTile.setText(typeBeans.get(position).getName());
+                lvClassify.setSelection(position);
+            }
+        });
+        lvClassify.setOnScrollListener(new AbsListView.OnScrollListener() {
+            private int scrollState;
+
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                this.scrollState = scrollState;
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
+                    return;
+                }
+                int current = firstVisibleItem;
+                if (selectIndex != current && current >= 0) {
+                    selectIndex = current;
+                    tvCommodityClassifyTile.setText(typeBeans.get(selectIndex).getName());
+                    leftMenuAdapter.setSelectItem(selectIndex);
+                    leftMenuAdapter.notifyDataSetInvalidated();
+                }
+            }
+        });
+        fetchCommodity();
     }
 
 
+    private void fetchCommodity() {
+        mRealmHleper = new RealmHelper(MyApplication.getContextObject());
+        typeBeans.clear();
+        productBeans.clear();
+        typeBeans.addAll(mRealmHleper.queryAllType());
+        productBeans.addAll(mRealmHleper.queryAllProduct());
+        if (typeBeans.size()>0){
+            tvCommodityClassifyTile.setText(typeBeans.get(0).getName());
+            leftMenuAdapter.notifyDataSetChanged();
+            rightMenuAdapter.notifyDataSetChanged();
+        }
+
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View rootView = super.onCreateView(inflater, container, savedInstanceState);
+        unbinder = ButterKnife.bind(this, rootView);
+        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
+    }
+
+    public void loadType() {
+        showDialog();
+        CommodityTypeApi.getCommodityType().findInBackground(new FindCallback<AVObject>() {
+            @Override
+            public void done(List<AVObject> list, AVException e) {
+                if (e == null) {
+                    RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
+                    mRealmHleper.deleteAll(TypeBean.class);
+                    for (int i = 0; i < list.size(); i++) {
+                        AVObject avObject = list.get(i);
+                        TypeBean typeBean = new TypeBean();
+                        typeBean.setName(avObject.getString("name"));
+                        typeBean.setNumber(avObject.getInt("number"));
+                        typeBean.setStore(avObject.getInt("store"));
+                        mRealmHleper.addType(typeBean);
+                    }
+                    loadCommodity();
+                } else {
+                    hideDialog();
+                    ToastUtil.showLong(MyApplication.getContextObject(), "加载失败");
+                }
+            }
+        });
+    }
+
     public void loadCommodity() {
-        emptyView.show(true);
         CommodityApi.getOfflineCommodity().findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(final List<AVObject> list, AVException e) {
@@ -142,12 +212,8 @@ public class CommodityFg extends BaseFragment {
                         mRealmHleper.addProduct(productBean);
 
                     }
-                    LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MyApplication.getContextObject(), LinearLayout.VERTICAL, false);
-                    offinelist.setLayoutManager(linearLayoutManager);
-                    offineAdapter = new OffineAdapter(MyApplication.getContextObject(), mRealmHleper.queryAllProduct(), mRealmHleper.queryAllType(), mActivity.getFragmentManager());
-                    offinelist.setAdapter(offineAdapter);
-                    emptyView.show(false);
                     hideDialog();
+                    setData();
                 } else {
                     hideDialog();
                 }
@@ -184,18 +250,6 @@ public class CommodityFg extends BaseFragment {
                         }
                         ruleBean.setFullReduce(reduceList);
                         mRealmHleper.addRule(ruleBean);
-                        for (String reduce : ruleBean.getFullReduce()) {
-                            Logger.d(reduce);
-                        }
-                    }
-                    List<RuleBean> ruleBeans = mRealmHleper.queryAllRule();
-                    if (ruleBeans.size() > 0) {
-                        RuleBean ruleBean = ruleBeans.get(0);
-                        String ruleInfo = "";
-                        if (ruleBean.getAllDiscount() != 1) {
-                            ruleInfo += "全场" + MyUtils.formatDouble(ruleBean.getAllDiscount() * 10) + "折优惠";
-                        }
-                        ruleContent.setText(ruleInfo);
                     }
 
                 }
@@ -203,55 +257,4 @@ public class CommodityFg extends BaseFragment {
             }
         });
     }
-
-    public void loadType() {
-        showDialog();
-        emptyView.show(true);
-        CommodityTypeApi.getCommodityType().findInBackground(new FindCallback<AVObject>() {
-            @Override
-            public void done(List<AVObject> list, AVException e) {
-                if (e == null) {
-                    RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
-                    mRealmHleper.deleteAll(TypeBean.class);
-                    for (int i = 0; i < list.size(); i++) {
-                        AVObject avObject = list.get(i);
-                        TypeBean typeBean = new TypeBean();
-                        typeBean.setName(avObject.getString("name"));
-                        typeBean.setNumber(avObject.getInt("number"));
-                        typeBean.setStore(avObject.getInt("store"));
-                        mRealmHleper.addType(typeBean);
-                    }
-                    loadCommodity();
-                } else {
-                    hideDialog();
-                    emptyView.show(false);
-                    ToastUtil.showLong(MyApplication.getContextObject(), "加载失败");
-                }
-            }
-        });
-    }
-
-    public static CommodityFg newInstance(String str) {
-        CommodityFg commodityFg = new CommodityFg();
-        Bundle bundle = new Bundle();
-        bundle.putString(ARG_PARAM, str);
-        commodityFg.setArguments(bundle);
-        return commodityFg;
-    }
-
-
-    @OnClick({R.id.btn_refrsh, R.id.ll_current_activity})
-    public void onViewClicked(View view) {
-        switch (view.getId()) {
-            case R.id.btn_refrsh:
-                loadType();
-                break;
-            case R.id.ll_current_activity:
-                ShowActivityFragment showActivityFragment = new ShowActivityFragment();
-                showActivityFragment.show(getFragmentManager(), "showactivitylist");
-                break;
-        }
-    }
-
 }
-

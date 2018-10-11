@@ -7,8 +7,8 @@ android {
         applicationId "cn.kuwo.player"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 60
-        versionName '1.6.1'
+        versionCode 63
+        versionName '1.6.4'
         testInstrumentationRunner "android.support.Test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
@@ -75,4 +75,5 @@ dependencies {
     compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
     compile 'io.reactivex:rxandroid:1.2.0'
     compile 'io.sentry:sentry-android:1.5.3'
+    compile 'com.facebook.fresco:fresco:0.11.0'
 }

@@ -32,6 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1 " />
 
+
             <TextView
                 android:id="@+id/order_state"
                 android:layout_width="wrap_content"
@@ -96,6 +97,26 @@
                     android:layout_weight="1"
                     android:background="@drawable/textview_border"
                     android:paddingLeft="30dp" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/ll_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:text="输入备注信息:"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <EditText
+                    android:id="@+id/et_remark"
+                    android:background="@drawable/shap_corner_black"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"/>
+                <Button
+                    android:id="@+id/btn_add_remark"
+                    android:text="添加"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
             </LinearLayout>
             <Button
                 android:id="@+id/btn_reprint"

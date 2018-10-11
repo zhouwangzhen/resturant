@@ -371,53 +371,53 @@ public class Bill {
                                     int number = 0;
                                     int commodityType = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType();
                                     if (ObjectUtil.getInt(format, "cookSerial") == k && serialNumber > 0 && ProductUtil.isCoolCommodity(format)) {
-                                          pos1.printLocation(0);
-                                            String nameContent = "";
-                                            nameContent += MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName();
-                                            if (ObjectUtil.getString(format, "barcode").length() == 18) {
-                                                nameContent += "(" + (ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) > 20 ? ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "ml" : ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "kg") + ")";
-                                            }
-                                            pos1.printTextNewLine(nameContent);
-                                            pos1.printLine(1);
-                                            pos1.printText("");
-                                            pos1.printLocation(20, 1);
-                                            pos1.printText("");
-                                            pos1.printLocation(80, 1);
-                                            pos1.printWordSpace(1);
-                                            pos1.printText("");
-                                            pos1.printWordSpace(2);
-                                            pos1.printText("   x" + ObjectUtil.getDouble(format, "number") + "份");
-                                            pos1.printLine(1);
-                                            if (format.containsKey("comboList") && ObjectUtil.getList(format, "comboList").size() > 0) {
-                                                List<String> comboList = ObjectUtil.getList(format, "comboList");
-                                                for (int j = 0; j < comboList.size(); j++) {
-                                                    pos1.printLine();
-                                                    pos1.printWordSpace(1);
-                                                    pos1.printText(comboList.get(j));
-                                                    pos1.printLine();
-                                                }
-                                            }
-                                            if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
-                                                pos1.printTextNewLine("做法:" + ObjectUtil.getString(format, "cookStyle"));
-                                                pos1.printLine(1);
-                                            }
-                                            if (ObjectUtil.getString(format, "presenter").length() > 0) {
+                                        pos1.printLocation(0);
+                                        String nameContent = "";
+                                        nameContent += MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName();
+                                        if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                                            nameContent += "(" + (ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) > 20 ? ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "ml" : ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "kg") + ")";
+                                        }
+                                        pos1.printTextNewLine(nameContent);
+                                        pos1.printLine(1);
+                                        pos1.printText("");
+                                        pos1.printLocation(20, 1);
+                                        pos1.printText("");
+                                        pos1.printLocation(80, 1);
+                                        pos1.printWordSpace(1);
+                                        pos1.printText("");
+                                        pos1.printWordSpace(2);
+                                        pos1.printText("   x" + ObjectUtil.getDouble(format, "number") + "份");
+                                        pos1.printLine(1);
+                                        if (format.containsKey("comboList") && ObjectUtil.getList(format, "comboList").size() > 0) {
+                                            List<String> comboList = ObjectUtil.getList(format, "comboList");
+                                            for (int j = 0; j < comboList.size(); j++) {
                                                 pos1.printLine();
                                                 pos1.printWordSpace(1);
-                                                pos1.printText("赠送菜品:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
+                                                pos1.printText(comboList.get(j));
                                                 pos1.printLine();
                                             }
-                                            if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
-                                                pos1.printText("<<<<<<<备注:" + ObjectUtil.getString(format, "comment") + ">>>>>>>>");
-                                                pos1.printLine(1);
-                                            }
-                                            if (number > 0 && number != serialNumber) {
-                                                pos1.printTextNewLine("-----------------------------------------------");
-                                            }
-                                            ++number;
-
+                                        }
+                                        if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+                                            pos1.printTextNewLine("做法:" + ObjectUtil.getString(format, "cookStyle"));
                                             pos1.printLine(1);
                                         }
+                                        if (ObjectUtil.getString(format, "presenter").length() > 0) {
+                                            pos1.printLine();
+                                            pos1.printWordSpace(1);
+                                            pos1.printText("赠送菜品:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
+                                            pos1.printLine();
+                                        }
+                                        if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
+                                            pos1.printText("<<<<<<<备注:" + ObjectUtil.getString(format, "comment") + ">>>>>>>>");
+                                            pos1.printLine(1);
+                                        }
+                                        if (number > 0 && number != serialNumber) {
+                                            pos1.printTextNewLine("-----------------------------------------------");
+                                        }
+                                        ++number;
+
+                                        pos1.printLine(1);
+                                    }
                                 }
                             }
                             pos1.printLine(3);
@@ -2700,7 +2700,7 @@ public class Bill {
         }.start();
     }
 
-    public static void printNb(final Context context, final String username, final Double rechargeMoney, final int escrow, final String cashierName, final String marketName) {
+    public static void printNb(final Context context, final String username, final Double rechargeMoney, final int escrow, final String cashierName, final String marketName, final Double actualPrice) {
         new Thread() {
             @Override
             public void run() {
@@ -2811,7 +2811,7 @@ public class Bill {
                             payContent1 = "现金支付";
                             break;
                     }
-                    pos1.printTwoColumn(payContent1 + ":", rechargeMoney + "元");
+                    pos1.printTwoColumn(payContent1 + ":", actualPrice + "元");
                     pos1.printLine(1);
                     pos1.printTextNewLine("------------------------------------------------");
                     pos1.printLocation(1);
@@ -3245,61 +3245,62 @@ public class Bill {
             }
         }.start();
     }
-    public static void rePrintNbRecharge(final NbRechargeLog jsniuTokenOfflineOperationsBeanonText) {
-//        new Thread() {
-//            @Override
-//            public void run() {
-//                try {
-//                    mContext = MyApplication.getContextObject();
-//                    String url = SharedHelper.read("ip1") + "." + SharedHelper.read("ip2") + "." + SharedHelper.read("ip3") + "." + SharedHelper.read("ip4");
-//                    Pos pos;
-//                    pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
-//                    pos.initPos();
-//                    pos.printLocation(1);
-//                    pos.bold(true);
-//                    pos.printText("牛币充值");
-//                    pos.bold(false);
-//                    pos.printLine(1);
-//                    pos.printLocation(0);
-//                    pos.printTextNewLine("操作人:" + jsniuTokenOfflineOperationsBeanonText.getCashier().getReal_name());
-//                    pos.printTextNewLine("负责人:" + jsniuTokenOfflineOperationsBeanonText.getSalesman().getReal_name());
-//                    pos.printTextNewLine("时间:" + DateUtil.formatDate(new Date(jsniuTokenOfflineOperationsBeanonText.getCreated_at() * 1000)));
-//                    pos.printTextNewLine("----------------------------------------------");
-//                    pos.printLine(1);
-//                    pos.printLocation(0);
-//                    pos.printTwoColumn("充值用户:", jsniuTokenOfflineOperationsBeanonText.getTarget_user().getUsername());
-//                    pos.printLine(1);
-//                    pos.printTwoColumn("充值数量:", jsniuTokenOfflineOperationsBeanonText.getAmount()+"牛币");
-//                    pos.printLine(1);
-//                    String secrowContent = "";
-//                    if (jsniuTokenOfflineOperationsBeanonText.getOp_type()== 11) {
-//                        secrowContent = "白条支付";
-//                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 3) {
-//                        secrowContent = "支付宝支付";
-//                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 4) {
-//                        secrowContent = "微信支付";
-//                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 5) {
-//                        secrowContent = "银行卡支付";
-//                    } else if (jsniuTokenOfflineOperationsBeanonText.getOp_type() == 6) {
-//                        secrowContent = "现金支付";
-//                    }
-//                    pos.printTwoColumn("支付方式:", secrowContent);
-//                    pos.printTextNewLine("----------------------------------------------");
-//                    pos.printLocation(1);
-//                    pos.printLine(1);
-//                    pos.printText("地址:" + CONST.ADDRESS);
-//                    pos.printLine(1);
-//                    pos.printText("电话:" + CONST.TEL);
-//                    pos.printLine(1);
-//                    pos.printText("祝您生活越来越牛!");
-//                    pos.printLine(4);
-//                    pos.feedAndCut();
-//                    pos.closeIOAndSocket();
-//
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }.start();
+
+    public static void rePrintNbRecharge(final NbRechargeLog log) {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    mContext = MyApplication.getContextObject();
+                    String url = SharedHelper.read("ip1") + "." + SharedHelper.read("ip2") + "." + SharedHelper.read("ip3") + "." + SharedHelper.read("ip4");
+                    Pos pos;
+                    pos = new Pos(url, 9100, "GBK");    //第一个参数是打印机网口IP
+                    pos.initPos();
+                    pos.printLocation(1);
+                    pos.bold(true);
+                    pos.printText("牛币充值");
+                    pos.bold(false);
+                    pos.printLine(1);
+                    pos.printLocation(0);
+                    pos.printTextNewLine("操作人:" + log.getCashier().getReal_name());
+                    pos.printTextNewLine("负责人:" + log.getSalesman().getReal_name());
+                    pos.printTextNewLine("时间:" + DateUtil.formatDate(new Date(log.getCreated_at() * 1000)));
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printLine(1);
+                    pos.printLocation(0);
+                    pos.printTwoColumn("充值用户:", log.getTarget_user().getUsername());
+                    pos.printLine(1);
+                    pos.printTwoColumn("充值数量:", log.getAmount() + "牛币");
+                    pos.printLine(1);
+                    pos.printTwoColumn("实付金额:", log.getAcctually_paid() + "元");
+                    pos.printLine(1);
+                    String secrowContent = "";
+                    if (log.getPayment() == 1) {
+                        secrowContent = "支付宝支付";
+                    } else if (log.getPayment() == 2) {
+                        secrowContent = "微信支付";
+                    } else if (log.getPayment() == 3) {
+                        secrowContent = "银行卡支付";
+                    } else if (log.getPayment() == 4) {
+                        secrowContent = "现金支付";
+                    }
+                    pos.printTwoColumn("支付方式:", secrowContent);
+                    pos.printTextNewLine("----------------------------------------------");
+                    pos.printLocation(1);
+                    pos.printLine(1);
+                    pos.printText("地址:" + CONST.ADDRESS);
+                    pos.printLine(1);
+                    pos.printText("电话:" + CONST.TEL);
+                    pos.printLine(1);
+                    pos.printText("祝您生活越来越牛!");
+                    pos.printLine(4);
+                    pos.feedAndCut();
+                    pos.closeIOAndSocket();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 }

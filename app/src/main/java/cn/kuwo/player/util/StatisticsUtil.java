@@ -180,8 +180,8 @@ public class StatisticsUtil {
         Double svipMoney = 0.0;
         Double DZDPMoney = 0.0;
         Double nbRechargeMoney = 0.0;
-        Double nbTotalMoney=0.0;
-        Double DZDPCommodityMoney=0.0;
+        Double nbTotalMoney = 0.0;
+        Double DZDPCommodityMoney = 0.0;
         int dinnerPeople = 0;
         int retail = 0;
         int restaurarnt = 0;
@@ -197,17 +197,17 @@ public class StatisticsUtil {
             rechargeMoney += RechargeUtil.findRealMoney(rechargeOrder.getDouble("change"));
         }
         for (int i = 0; i < offline_operations.size(); i++) {
-                nbRechargeNum++;
-                nbRechargeMoney += offline_operations.get(i).getAcctually_paid();
-            nbTotalMoney+=offline_operations.get(i).getAmount();
+            nbRechargeNum++;
+            nbRechargeMoney += offline_operations.get(i).getAcctually_paid();
+            nbTotalMoney += offline_operations.get(i).getAmount();
         }
         capitalDetail = getCapitalDetail(orders, rechargeOrders, offline_operations);
         for (AVObject order : orders) {
             if (order.getAVObject("orderStatus").getObjectId().equals(CONST.OrderState.ORDER_STATUS_FINSIH)) {
                 Double actualMoney = order.getDouble("paysum") - order.getDouble("reduce");
-                if (order.getInt("escrow")==25){
-                    online+=actualMoney;
-                }else{
+                if (order.getInt("escrow") == 25) {
+                    online += actualMoney;
+                } else {
                     online += order.getDouble("actuallyPaid");
                     offline += actualMoney - order.getDouble("actuallyPaid");
                 }
@@ -229,9 +229,9 @@ public class StatisticsUtil {
                         if (number == 0) {
                             number = 1;
                         }
-                        if (DateUtil.getZeroTimeStamp(new Date())>1531238400000l){
+                        if (DateUtil.getZeroTimeStamp(new Date()) > 1531238400000l) {
                             DZDPMoney += MyUtils.formatDouble(85 * number);
-                        }else{
+                        } else {
                             DZDPMoney += MyUtils.formatDouble(68 * number);
                         }
 
@@ -263,18 +263,18 @@ public class StatisticsUtil {
                             weights.put(name, MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")));
                         }
                     }
-                    if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_1_id)){
-                        DZDPCommodityMoney+=CONST.DZDP.menu_1_price*ObjectUtil.getDouble(format,"number");
-                    }else if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_2_id)){
-                        DZDPCommodityMoney+=CONST.DZDP.menu_2_price*ObjectUtil.getDouble(format,"number");
-                    }else if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_3_id)){
-                        DZDPCommodityMoney+=CONST.DZDP.menu_3_price*ObjectUtil.getDouble(format,"number");
-                    }else  if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_4_id)){
-                        DZDPCommodityMoney+=CONST.DZDP.menu_4_price*ObjectUtil.getDouble(format,"number");
-                    }else if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_5_id)){
-                        DZDPCommodityMoney+=CONST.DZDP.menu_5_price*ObjectUtil.getDouble(format,"number");
-                    }else if (ObjectUtil.getString(format,"id").equals(CONST.DZDP.menu_6_id)){
-                        DZDPCommodityMoney+=CONST.DZDP.menu_6_price*ObjectUtil.getDouble(format,"number");
+                    if (ObjectUtil.getString(format, "id").equals(CONST.DZDP.menu_1_id)) {
+                        DZDPCommodityMoney += CONST.DZDP.menu_1_price * ObjectUtil.getDouble(format, "number");
+                    } else if (ObjectUtil.getString(format, "id").equals(CONST.DZDP.menu_2_id)) {
+                        DZDPCommodityMoney += CONST.DZDP.menu_2_price * ObjectUtil.getDouble(format, "number");
+                    } else if (ObjectUtil.getString(format, "id").equals(CONST.DZDP.menu_3_id)) {
+                        DZDPCommodityMoney += CONST.DZDP.menu_3_price * ObjectUtil.getDouble(format, "number");
+                    } else if (ObjectUtil.getString(format, "id").equals(CONST.DZDP.menu_4_id)) {
+                        DZDPCommodityMoney += CONST.DZDP.menu_4_price * ObjectUtil.getDouble(format, "number");
+                    } else if (ObjectUtil.getString(format, "id").equals(CONST.DZDP.menu_5_id)) {
+                        DZDPCommodityMoney += CONST.DZDP.menu_5_price * ObjectUtil.getDouble(format, "number");
+                    } else if (ObjectUtil.getString(format, "id").equals(CONST.DZDP.menu_6_id)) {
+                        DZDPCommodityMoney += CONST.DZDP.menu_6_price * ObjectUtil.getDouble(format, "number");
                     }
 
 
@@ -323,7 +323,7 @@ public class StatisticsUtil {
         offline += nbRechargeMoney;
         detail.put("onlineMoney", MyUtils.formatDouble(online) + "元");
         detail.put("offlineMoney", MyUtils.formatDouble(offline) + "元");
-        detail.put("totalMoney", MyUtils.formatDouble(offline + online+DZDPCommodityMoney+DZDPMoney) + "元");
+        detail.put("totalMoney", MyUtils.formatDouble(offline + online + DZDPCommodityMoney + DZDPMoney) + "元");
         detail.put("DZDPMoney", DZDPMoney + "元");
         detail.put("member", member + "单");
         detail.put("noMember", noMember + "单");
@@ -339,7 +339,7 @@ public class StatisticsUtil {
         detail.put("offlineCoupon", offlineCoupon);
         detail.put("onlineCoupon", onlineCoupon);
         detail.put("orderTypes", orderTypes);
-        capitalDetail.put("大众点评",MyUtils.formatDouble(DZDPCommodityMoney+DZDPMoney));
+        capitalDetail.put("大众点评", MyUtils.formatDouble(DZDPCommodityMoney + DZDPMoney));
         detail.put("capitalDetail", capitalDetail);
         detail.put("dinnerPeople", dinnerPeople + "人");
         detail.put("rechargeMoney", MyUtils.formatDouble(rechargeMoney));
@@ -347,7 +347,7 @@ public class StatisticsUtil {
         detail.put("svipMoney", MyUtils.formatDouble(svipMoney) + "元");
         detail.put("nbTotalMoney", MyUtils.formatDouble(nbTotalMoney) + "元");
         detail.put("DZDPCommodityMoney", MyUtils.formatDouble(DZDPCommodityMoney) + "元");
-        detail.put("DZDPTotalMoney", MyUtils.formatDouble(DZDPCommodityMoney+DZDPMoney) + "元");
+        detail.put("DZDPTotalMoney", MyUtils.formatDouble(DZDPCommodityMoney + DZDPMoney) + "元");
         return detail;
     }
 }

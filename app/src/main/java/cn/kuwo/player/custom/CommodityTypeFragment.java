@@ -62,6 +62,7 @@ public class CommodityTypeFragment extends DialogFragment {
         gvCommoidty = view.findViewById(R.id.gv_commoidty);
         tablayout.addTab(tablayout.newTab().setText("大众点评菜单"));
         tablayout.addTab(tablayout.newTab().setText("午市套餐"));
+        tablayout.addTab(tablayout.newTab().setText("新菜单菜品"));
         tablayout.addTab(tablayout.newTab().setText("午市小食"));
         tablayout.addTab(tablayout.newTab().setText("色拉"));
         tablayout.addTab(tablayout.newTab().setText("汤"));

@@ -480,7 +480,8 @@ public class NbFg extends BaseFragment {
                             rechargeMoney,
                             escrow,
                             SharedHelper.read("cashierName"),
-                            marketName);
+                            marketName,
+                            paySumMoney);
                     judgeCouponGive();
                     freshUserInfo();
                 } else {

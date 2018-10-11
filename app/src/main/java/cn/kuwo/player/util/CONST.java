@@ -81,7 +81,7 @@ public class CONST {
 
         public static final String menu_2_name="PAPA招牌牛肉汉堡配大蒜薯条(大众点评专享)";
         public static final String menu_2_id="5b35b8cfee920a003a0da220";
-        public static final Double menu_2_price=48.0;
+        public static final Double menu_2_price=68.0;
 
         public static final String menu_3_name="爆款西冷(大众点评)";
         public static final String menu_3_id="5b4f13750b616000311b9605";

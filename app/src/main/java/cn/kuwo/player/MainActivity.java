@@ -33,6 +33,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -50,6 +51,7 @@ import cn.kuwo.player.event.ClearEvent;
 import cn.kuwo.player.event.PrintEvent;
 import cn.kuwo.player.event.RefundEvent;
 import cn.kuwo.player.event.SuccessEvent;
+import cn.kuwo.player.fragment.CommodityClassifyFg;
 import cn.kuwo.player.fragment.CommodityFg;
 import cn.kuwo.player.fragment.NbFg;
 import cn.kuwo.player.fragment.NetConnectFg;
@@ -228,7 +230,7 @@ public class MainActivity extends BaseActivity {
         ft.replace(R.id.fragment_content, tableFg, "table").commitAllowingStateLoss();
     }
 
-    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored, R.id.menu_activity, R.id.menu_nb, R.id.menu_update_info,R.id.menu_credit})
+    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored, R.id.menu_activity, R.id.menu_nb, R.id.menu_update_info, R.id.menu_credit})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.ll_table:
@@ -282,8 +284,10 @@ public class MainActivity extends BaseActivity {
         switch (tag) {
             case "commodity":
                 setSelectState(menuCommodity, R.drawable.icon_menu);
-                CommodityFg commodityFg = CommodityFg.newInstance("");
-                ft.replace(R.id.fragment_content, commodityFg, "commodity").commit();
+//                CommodityFg commodityFg = CommodityFg.newInstance("");
+//                ft.replace(R.id.fragment_content, commodityFg, "commodity").commit();
+                CommodityClassifyFg commodityClassifyFg = new CommodityClassifyFg();
+                ft.replace(R.id.fragment_content, commodityClassifyFg, "commodity").commit();
                 break;
             case "table":
                 setSelectState(menuTable, R.drawable.icon_table);
@@ -455,9 +459,9 @@ public class MainActivity extends BaseActivity {
     public void onMessageEvent(final SuccessEvent event) {
         if (event.getCode() <= -1) {
             AVObject avObject = new AVObject("PrintLog");
-            avObject.put("order",event.getOrders());
-            avObject.put("tableInfo",event.getTableAVObject().get("tableNumber").toString());
-            avObject.put("errorCode",event.getCode());
+            avObject.put("order", event.getOrders());
+            avObject.put("tableInfo", event.getTableAVObject().get("tableNumber").toString());
+            avObject.put("errorCode", event.getCode());
             avObject.saveInBackground(new SaveCallback() {
                 @Override
                 public void done(AVException e) {
@@ -534,17 +538,18 @@ public class MainActivity extends BaseActivity {
     }
 
     private void checkUsbDevice() {
-        if (CameraProvider.hasCamera()) {
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-            filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-            registerReceiver(new USBBroadcastReceiver(), filter);
+        try {
+            if (CameraProvider.hasCamera()) {
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+                filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+                registerReceiver(new USBBroadcastReceiver(), filter);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
 
-    }
-
-    private void test() {
     }
 
 
@@ -559,4 +564,9 @@ public class MainActivity extends BaseActivity {
             ft.replace(R.id.fragment_content, nbFg, "nb").commit();
         }
     }
+
+
+    private void test() {
+    }
+
 }

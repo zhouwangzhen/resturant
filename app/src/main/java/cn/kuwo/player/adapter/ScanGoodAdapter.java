@@ -88,12 +88,6 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(preProductBean.getSerial());
             String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + (ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
-            if (preProductBean.getScale() > 0) {
-                weightContent += "超牛会员可抵扣" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")*preProductBean.getScale()) + "kg";
-                if (preProductBean.getRemainMoney() > 0) {
-                    weightContent += ",额外需要" + MyUtils.formatDouble(preProductBean.getRemainMoney() * ObjectUtil.getDouble(format, "number"));
-                }
-            }
             holder.tvWeight.setText(weightContent);
             holder.tvComment.setText(ObjectUtil.getString(format, "comment").length() > 0 ? "备注:" + ObjectUtil.getString(format, "comment") : "备注:无");
             if (ObjectUtil.getString(format, "presenter").length() > 0) {
@@ -135,12 +129,6 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(productBean.getSerial());
             String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  +(ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
-            if (productBean.getScale() > 0) {
-                weightContent += "超牛会员可抵扣" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")*productBean.getScale()) + "kg";
-                if (productBean.getRemainMoney() > 0) {
-                    weightContent += ",额外需要" + MyUtils.formatDouble(productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number"));
-                }
-            }
             holder.tvWeight.setText(weightContent);
             if (ObjectUtil.getString(format, "presenter").length() > 0) {
                 holder.tvGive.setVisibility(View.VISIBLE);
@@ -165,12 +153,6 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(productBean.getSerial());
             String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + (ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
-            if (productBean.getScale() > 0) {
-                weightContent += "超牛会员可抵扣" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")*productBean.getScale()) + "kg";
-                if (productBean.getRemainMoney() > 0) {
-                    weightContent += ",额外需要" + MyUtils.formatDouble(productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number"));
-                }
-            }
             holder.tvWeight.setText(weightContent);
             if (ObjectUtil.getString(format, "presenter").length() > 0) {
                 holder.tvGive.setVisibility(View.VISIBLE);

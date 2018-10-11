@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -19,6 +20,7 @@ import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.GetCallback;
+import com.avos.avoscloud.SaveCallback;
 import com.bigkoo.pickerview.TimePickerView;
 import com.orhanobut.logger.Logger;
 
@@ -97,7 +99,7 @@ public class OrderListFg extends BaseFragment {
     TextView stateNbNum;
     private Activity mActivity;
     private String mParam;
-    private List<NbRechargeLog> nbRechargeLogs=new ArrayList<>();
+    private List<NbRechargeLog> nbRechargeLogs = new ArrayList<>();
     @BindView(R.id.gv_table)
     GridView gvTable;
     HashMap<String, Object> ordersDetail;
@@ -184,6 +186,9 @@ public class OrderListFg extends BaseFragment {
                             }
                         }
                     });
+                } else {
+                    hideDialog();
+                    ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
                 }
             }
         });
@@ -193,23 +198,23 @@ public class OrderListFg extends BaseFragment {
         HashMap<Integer, Integer> orderTypes = (HashMap<Integer, Integer>) ordersDetail.get("orderTypes");
         if (orderTypes.containsKey(0)) {
             stateRes.setText(orderTypes.get(0) + "笔");
-        }else{
+        } else {
             stateRes.setText("0笔");
         }
         if (orderTypes.containsKey(1)) {
             stateRetail.setText(orderTypes.get(1) + "笔");
-        }else{
-            stateRetail.setText( "0笔");
+        } else {
+            stateRetail.setText("0笔");
         }
         if (orderTypes.containsKey(2) || rechargeOrders.size() > 0) {
             stateRecharge.setText((orderTypes.containsKey(2) ? orderTypes.get(2) : 0) + rechargeOrders.size() + "笔");
-        }else{
+        } else {
             stateRecharge.setText("0笔");
         }
         if (orderTypes.containsKey(3)) {
             stateHangup.setText(orderTypes.get(3) + "笔");
-        }else {
-            stateHangup.setText(0+ "笔");
+        } else {
+            stateHangup.setText(0 + "笔");
         }
         stateNbNum.setText(nbRechargeLogs.size() + "笔");
 
@@ -339,6 +344,9 @@ public class OrderListFg extends BaseFragment {
                 holder.order_memberstyle = view.findViewById(R.id.order_memberstyle);
                 holder.card_order = view.findViewById(R.id.card_order);
                 holder.btn_reprint = view.findViewById(R.id.btn_reprint);
+                holder.ll_edit = view.findViewById(R.id.ll_edit);
+                holder.et_remark = view.findViewById(R.id.et_remark);
+                holder.btn_add_remark = view.findViewById(R.id.btn_add_remark);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
@@ -412,6 +420,7 @@ public class OrderListFg extends BaseFragment {
                             e.printStackTrace();
                         }
                     }
+                    settleContent+=avObject.getString("message")==null?"备注:无":"备注:"+avObject.getString("message");
                     holder.order_settle.setText(settleContent);
 
                     holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
@@ -425,7 +434,25 @@ public class OrderListFg extends BaseFragment {
 
                         }
                     });
+                    holder.btn_add_remark.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (holder.et_remark.getText().toString().trim().length()>0) {
+                                avObject.put("message", (avObject.get("message") == null ? " " : avObject.get("message") + ",") + holder.et_remark.getText().toString());
+                                avObject.saveInBackground(new SaveCallback() {
+                                    @Override
+                                    public void done(AVException e) {
+                                        if (e == null) {
+                                            holder.et_remark.setText("");
+                                            notifyDataSetChanged();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
                 } else if (avObject.getClassName().equals("MallGoldLog")) {
+                    holder.ll_edit.setVisibility(View.GONE);
                     holder.order_state.setText("订单状态:已完成");
                     holder.order_state_img.setBackgroundResource(R.drawable.order_recharge);
                     holder.order_table_number.setText("");
@@ -485,13 +512,14 @@ public class OrderListFg extends BaseFragment {
                 }
             } else {
                 if (orderType == 4 || orderType == -1) {
+                    holder.ll_edit.setVisibility(View.GONE);
                     holder.order_state.setText("订单状态:已完成");
                     holder.order_state_img.setBackgroundResource(R.drawable.order_nb);
                     holder.order_paysum.setVisibility(View.GONE);
                     holder.order_table_number.setVisibility(View.GONE);
-                    NbRechargeLog nbRechargeLog = nbRechargeLogs.get(position - findOrders.size());
+                    final NbRechargeLog nbRechargeLog = nbRechargeLogs.get(position - findOrders.size());
                     holder.order_date.setText("充值时间:" + DateUtil.formatDate(new Date(nbRechargeLog.getCreated_at() * 1000)));
-                    holder.order_memberstyle.setText("会员用户:" + nbRechargeLog.getTarget_user().getUsername()+"\n营业员:"+nbRechargeLog.getCashier().getReal_name()+"\n销售:"+(nbRechargeLog.getSalesman()!=null?nbRechargeLog.getSalesman().getReal_name():"无"));
+                    holder.order_memberstyle.setText("会员用户:" + nbRechargeLog.getTarget_user().getUsername() + "\n营业员:" + nbRechargeLog.getCashier().getReal_name() + "\n销售:" + (nbRechargeLog.getSalesman() != null ? nbRechargeLog.getSalesman().getReal_name() : "无"));
                     String payContent = "";
                     switch (nbRechargeLog.getPayment()) {
                         case 1:
@@ -508,7 +536,7 @@ public class OrderListFg extends BaseFragment {
                             break;
                     }
                     holder.order_settle.setText("支付方式:" + payContent);
-                    holder.order_detail.setText("牛币充值:" + nbRechargeLog.getAmount());
+                    holder.order_detail.setText("牛币充值:" + nbRechargeLog.getAmount()+"\n实付金额:"+nbRechargeLog.getAcctually_paid());
 
                     holder.card_order.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -525,7 +553,7 @@ public class OrderListFg extends BaseFragment {
                     holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-//                            Bill.rePrintNbRecharge(niuTokenOfflineOperationsBean);
+                            Bill.rePrintNbRecharge(nbRechargeLog);
                         }
                     });
                 }
@@ -544,14 +572,17 @@ public class OrderListFg extends BaseFragment {
             TextView order_memberstyle;
             Button btn_reprint;
             LinearLayout show_detail;
+            LinearLayout ll_edit;
+            EditText et_remark;
             CardView card_order;
+            Button btn_add_remark;
         }
     }
 
     private NbRechargeLogView mNbRechargeLog = new NbRechargeLogView() {
         @Override
         public void onSuccess(List<NbRechargeLog> nbRechargeLog) {
-            nbRechargeLogs=nbRechargeLog;
+            nbRechargeLogs = nbRechargeLog;
             findMallGoldOrder(currentDate);
         }
 
