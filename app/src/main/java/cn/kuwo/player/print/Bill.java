@@ -38,6 +38,7 @@ import cn.kuwo.player.event.SuccessEvent;
 import cn.kuwo.player.service.entity.NbRechargeLog;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.DateUtil;
+import cn.kuwo.player.util.IntegrateUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.PayInfoUtil;
@@ -93,114 +94,60 @@ public class Bill {
                             pos1.printText("点菜时间:" + MyUtils.dateFormat1(new Date()));
                             pos1.printTextNewLine("-----------------------------------------------");
                             pos1.printLine(1);
-                            for (int k = -1; k < 6; k++) {
-                                pos1.bold(true);
-                                int serial = ProductUtil.indexOfSerial(orders, k);
-                                if (k == 1 && serial > 0) {
-                                    pos1.printText("-----------------------------------------------");
-                                    pos1.printLine(1);
-                                    pos1.printLocation(1);
-                                    pos1.bold(true);
-                                    pos1.printText("第一道菜" + "(" + serial + "种)");
-                                    pos1.printLine(1);
-                                    pos1.bold(false);
-                                } else if (k == 2 && serial > 0) {
-                                    pos1.printText("-----------------------------------------------");
-                                    pos1.printLine(1);
-                                    pos1.printLocation(1);
-                                    pos1.bold(true);
-                                    pos1.printText("第二道菜" + "(" + serial + "种)");
-                                    pos1.printLine(1);
-                                    pos1.bold(false);
-                                } else if (k == 3 && serial > 0) {
-                                    pos1.printText("-----------------------------------------------");
-                                    pos1.printLine(1);
-                                    pos1.printLocation(1);
-                                    pos1.bold(true);
-                                    pos1.printText("第三道菜" + "(" + serial + "种)");
-                                    pos1.printLine(1);
-                                    pos1.bold(false);
-                                } else if (k == 4 && serial > 0) {
-                                    pos1.printText("-----------------------------------------------");
-                                    pos1.printLine(1);
-                                    pos1.printLocation(1);
-                                    pos1.bold(true);
-                                    pos1.printText("第四道菜" + "(" + serial + "种)");
-                                    pos1.printLine(1);
-                                    pos1.bold(false);
-
-                                } else if (k == 5 && serial > 0) {
-                                    pos1.printText("-----------------------------------------------");
-                                    pos1.printLine(1);
-                                    pos1.printLocation(1);
-                                    pos1.bold(true);
-                                    pos1.printText("第五道菜" + "(" + serial + "种)");
-                                    pos1.printLine(1);
-                                    pos1.bold(false);
-                                }
-                                pos1.bold(true);
-                                int commoditySerial = 1;
-                                for (int i = 0; i < orders.size(); i++) {
+                            pos1.bold(true);
+                            int commoditySerial = 1;
+                            List<Object> kitchens = IntegrateUtil.integrateKitcherOrder(orders, "kitchen");
+                            for (int i = 0; i < kitchens.size(); i++) {
+                                pos1.printLocation(0);
+                                HashMap<String, Object> format = ObjectUtil.format(kitchens.get(i));
                                     pos1.printLocation(0);
-                                    HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-                                    int serialNumber = ProductUtil.indexOfSerial(orders, k);
-                                    int number = 0;
-                                    Logger.d(ObjectUtil.getInt(format, "cookSerial") == k);
-                                    Logger.d(serialNumber > 0);
-                                    Logger.d(ProductUtil.isCookCommodity(format));
-                                    if (ObjectUtil.getInt(format, "cookSerial") == k && serialNumber > 0 && ProductUtil.isCookCommodity(format)) {
-                                        pos1.printLocation(0);
-                                        String nameContent = commoditySerial + ".";
-                                        commoditySerial++;
-                                        nameContent += MyUtils.filter(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName());
-                                        if (ObjectUtil.getString(format, "barcode").length() == 18) {
-                                            nameContent += "(" + (ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) > 20 ? ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "ml" : ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "kg") + ")";
-                                        }
-                                        pos1.printTextNewLine(nameContent);
-                                        pos1.printLine(1);
-                                        pos1.printText("");
-                                        pos1.printLocation(20, 1);
-                                        pos1.printText("");
-                                        pos1.printLocation(80, 1);
-                                        pos1.printWordSpace(1);
-                                        pos1.printText("");
-                                        pos1.printWordSpace(2);
-                                        pos1.printText("x" + ObjectUtil.getDouble(format, "number") + "份");
-                                        pos1.printLine(1);
-                                        if (ObjectUtil.getList(format, "comboList").size() > 0) {
-                                            List<String> comboList = ObjectUtil.getList(format, "comboList");
-                                            for (int j = 0; j < comboList.size(); j++) {
-                                                pos1.printWordSpace(1);
-                                                pos1.printText(comboList.get(j));
-                                                pos1.printLine();
-                                            }
-                                        }
-                                        if (ObjectUtil.getString(format, "presenter").length() > 0) {
-                                            pos1.printLine();
-                                            pos1.printWordSpace(1);
-                                            pos1.printText("赠送菜品:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
-                                            pos1.printLine();
-                                        }
-                                        if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
-                                            pos1.printTextNewLine("做法:" + ObjectUtil.getString(format, "cookStyle"));
-                                            pos1.printLine(1);
-                                        }
-                                        if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
-                                            pos1.bold(true);
-                                            pos1.printText("<<<<<<<备注:" + ObjectUtil.getString(format, "comment") + ">>>>>>>>");
-                                            pos1.bold(false);
-                                            pos1.printLine(1);
-                                        }
-                                        pos1.printTextNewLine("***********************************************");
-                                        if (number > 0 && number != serialNumber) {
-                                            pos1.printTextNewLine("-----------------------------------------------");
-                                        }
-                                        ++number;
-                                        pos1.printLine(1);
-
+                                    String nameContent = commoditySerial + ".";
+                                    commoditySerial++;
+                                    nameContent += MyUtils.filter(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName());
+                                    if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                                        nameContent += "(" + (ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) > 20 ? ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "ml" : ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "kg") + ")";
                                     }
-
-                                }
+                                    pos1.printTextNewLine(nameContent);
+                                    pos1.printLine(1);
+                                    pos1.printText("");
+                                    pos1.printLocation(20, 1);
+                                    pos1.printText("");
+                                    pos1.printLocation(80, 1);
+                                    pos1.printWordSpace(1);
+                                    pos1.printText("");
+                                    pos1.printWordSpace(2);
+                                    pos1.printText("x" + ObjectUtil.getDouble(format, "number") + "份");
+                                    pos1.printLine(1);
+                                    if (ObjectUtil.getList(format, "comboList").size() > 0) {
+                                        List<String> comboList = ObjectUtil.getList(format, "comboList");
+                                        for (int j = 0; j < comboList.size(); j++) {
+                                            pos1.printWordSpace(1);
+                                            pos1.printText(comboList.get(j));
+                                            pos1.printLine();
+                                        }
+                                    }
+                                    if (ObjectUtil.getString(format, "presenter").length() > 0) {
+                                        pos1.printLine();
+                                        pos1.printWordSpace(1);
+                                        pos1.printText("赠送菜品:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
+                                        pos1.printLine();
+                                    }
+                                    if (!ObjectUtil.getString(format, "sideDishCommodity").equals("")) {
+                                        pos1.printTextNewLine("加料:" + ObjectUtil.getString(format, "sideDishCommodity"));
+                                        pos1.printLine(1);
+                                    }
+                                    if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+                                        pos1.printTextNewLine("做法:" + ObjectUtil.getString(format, "cookStyle"));
+                                        pos1.printLine(1);
+                                    }
+                                    if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
+                                        pos1.bold(true);
+                                        pos1.printText("<<<<<<<备注:" + ObjectUtil.getString(format, "comment") + ">>>>>>>>");
+                                        pos1.bold(false);
+                                        pos1.printLine(1);
+                                    }
+                                    pos1.printTextNewLine("***********************************************");
+                                    pos1.printLine(1);
                             }
                             pos1.printLine(3);
                             pos1.feedAndCut();
@@ -238,10 +185,10 @@ public class Bill {
                             pos2.printLine(1);
                             pos2.printTextNewLine("-----------------------------------------------");
                             pos2.printLine(1);
-
-                            for (int i = 0; i < orders.size(); i++) {
+                            List<Object> waters = IntegrateUtil.integrateKitcherOrder(orders, "water");
+                            for (int i = 0; i < waters.size(); i++) {
                                 pos2.printLocation(0);
-                                HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
+                                HashMap<String, Object> format = ObjectUtil.format(waters.get(i));
                                 if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 3 || MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() == 4) {
                                     pos2.printLocation(0);
                                     String nameContent = "";
@@ -317,108 +264,60 @@ public class Bill {
                             pos1.printText("点单");
                             pos1.printTextNewLine("-----------------------------------------------");
                             pos1.printLine(1);
-                            for (int k = -1; k < 6; k++) {
-                                pos1.bold(true);
-                                int serial = ProductUtil.indexOfSerial(orders, k);
-                                if (k == 1 && serial > 0) {
-                                    pos1.printText("-----------------------------------------------");
-                                    pos1.printLine(1);
-                                    pos1.printLocation(1);
-                                    pos1.bold(true);
-                                    pos1.printText("第一道菜" + "(" + serial + "种)");
-                                    pos1.printLine(1);
-                                    pos1.bold(false);
-                                } else if (k == 2 && serial > 0) {
-                                    pos1.printText("-----------------------------------------------");
-                                    pos1.printLine(1);
-                                    pos1.printLocation(1);
-                                    pos1.bold(true);
-                                    pos1.printText("第二道菜" + "(" + serial + "种)");
-                                    pos1.printLine(1);
-                                    pos1.bold(false);
-                                } else if (k == 3 && serial > 0) {
-                                    pos1.printText("-----------------------------------------------");
-                                    pos1.printLine(1);
-                                    pos1.printLocation(1);
-                                    pos1.bold(true);
-                                    pos1.printText("第三道菜" + "(" + serial + "种)");
-                                    pos1.printLine(1);
-                                    pos1.bold(false);
-                                } else if (k == 4 && serial > 0) {
-                                    pos1.printText("-----------------------------------------------");
-                                    pos1.printLine(1);
-                                    pos1.printLocation(1);
-                                    pos1.bold(true);
-                                    pos1.printText("第四道菜" + "(" + serial + "种)");
-                                    pos1.printLine(1);
-                                    pos1.bold(false);
-
-                                } else if (k == 5 && serial > 0) {
-                                    pos1.printText("-----------------------------------------------");
-                                    pos1.printLine(1);
-                                    pos1.printLocation(1);
-                                    pos1.bold(true);
-                                    pos1.printText("第五道菜" + "(" + serial + "种)");
-                                    pos1.printLine(1);
-                                    pos1.bold(false);
+                            pos1.bold(true);
+                            int commoditySerial = 1;
+                            List<Object> kitchens = IntegrateUtil.integrateKitcherOrder(orders, "kitchen");
+                            for (int i = 0; i < kitchens.size(); i++) {
+                                pos1.printLocation(0);
+                                HashMap<String, Object> format = ObjectUtil.format(kitchens.get(i));
+                                pos1.printLocation(0);
+                                String nameContent = commoditySerial + ".";
+                                commoditySerial++;
+                                nameContent += MyUtils.filter(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName());
+                                if (ObjectUtil.getString(format, "barcode").length() == 18) {
+                                    nameContent += "(" + (ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) > 20 ? ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "ml" : ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "kg") + ")";
                                 }
-                                pos1.bold(false);
-                                for (int i = 0; i < orders.size(); i++) {
-                                    pos1.printLocation(0);
-                                    HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-                                    int serialNumber = ProductUtil.indexOfSerial(orders, k);
-                                    ProductUtil.indexOfSerial(orders, k);
-                                    int number = 0;
-                                    int commodityType = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType();
-                                    if (ObjectUtil.getInt(format, "cookSerial") == k && serialNumber > 0 && ProductUtil.isCoolCommodity(format)) {
-                                        pos1.printLocation(0);
-                                        String nameContent = "";
-                                        nameContent += MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName();
-                                        if (ObjectUtil.getString(format, "barcode").length() == 18) {
-                                            nameContent += "(" + (ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) > 20 ? ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "ml" : ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "kg") + ")";
-                                        }
-                                        pos1.printTextNewLine(nameContent);
-                                        pos1.printLine(1);
-                                        pos1.printText("");
-                                        pos1.printLocation(20, 1);
-                                        pos1.printText("");
-                                        pos1.printLocation(80, 1);
+                                pos1.printTextNewLine(nameContent);
+                                pos1.printLine(1);
+                                pos1.printText("");
+                                pos1.printLocation(20, 1);
+                                pos1.printText("");
+                                pos1.printLocation(80, 1);
+                                pos1.printWordSpace(1);
+                                pos1.printText("");
+                                pos1.printWordSpace(2);
+                                pos1.printText("x" + ObjectUtil.getDouble(format, "number") + "份");
+                                pos1.printLine(1);
+                                if (ObjectUtil.getList(format, "comboList").size() > 0) {
+                                    List<String> comboList = ObjectUtil.getList(format, "comboList");
+                                    for (int j = 0; j < comboList.size(); j++) {
                                         pos1.printWordSpace(1);
-                                        pos1.printText("");
-                                        pos1.printWordSpace(2);
-                                        pos1.printText("   x" + ObjectUtil.getDouble(format, "number") + "份");
-                                        pos1.printLine(1);
-                                        if (format.containsKey("comboList") && ObjectUtil.getList(format, "comboList").size() > 0) {
-                                            List<String> comboList = ObjectUtil.getList(format, "comboList");
-                                            for (int j = 0; j < comboList.size(); j++) {
-                                                pos1.printLine();
-                                                pos1.printWordSpace(1);
-                                                pos1.printText(comboList.get(j));
-                                                pos1.printLine();
-                                            }
-                                        }
-                                        if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
-                                            pos1.printTextNewLine("做法:" + ObjectUtil.getString(format, "cookStyle"));
-                                            pos1.printLine(1);
-                                        }
-                                        if (ObjectUtil.getString(format, "presenter").length() > 0) {
-                                            pos1.printLine();
-                                            pos1.printWordSpace(1);
-                                            pos1.printText("赠送菜品:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
-                                            pos1.printLine();
-                                        }
-                                        if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
-                                            pos1.printText("<<<<<<<备注:" + ObjectUtil.getString(format, "comment") + ">>>>>>>>");
-                                            pos1.printLine(1);
-                                        }
-                                        if (number > 0 && number != serialNumber) {
-                                            pos1.printTextNewLine("-----------------------------------------------");
-                                        }
-                                        ++number;
-
-                                        pos1.printLine(1);
+                                        pos1.printText(comboList.get(j));
+                                        pos1.printLine();
                                     }
                                 }
+                                if (ObjectUtil.getString(format, "presenter").length() > 0) {
+                                    pos1.printLine();
+                                    pos1.printWordSpace(1);
+                                    pos1.printText("赠送菜品:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
+                                    pos1.printLine();
+                                }
+                                if (!ObjectUtil.getString(format, "sideDishCommodity").equals("")) {
+                                    pos1.printTextNewLine("加料:" + ObjectUtil.getString(format, "sideDishCommodity"));
+                                    pos1.printLine(1);
+                                }
+                                if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+                                    pos1.printTextNewLine("做法:" + ObjectUtil.getString(format, "cookStyle"));
+                                    pos1.printLine(1);
+                                }
+                                if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
+                                    pos1.bold(true);
+                                    pos1.printText("<<<<<<<备注:" + ObjectUtil.getString(format, "comment") + ">>>>>>>>");
+                                    pos1.bold(false);
+                                    pos1.printLine(1);
+                                }
+                                pos1.printTextNewLine("***********************************************");
+                                pos1.printLine(1);
                             }
                             pos1.printLine(3);
                             pos1.feedAndCut();
@@ -432,100 +331,100 @@ public class Bill {
                     EventBus.getDefault().post(new SuccessEvent(-4, tableAVObject.getString("tableNumber") + "桌下单冷菜间小票机连接失败", orders, tableAVObject));
 
                 }
-                try {
-                    if (type == 0 || type == -5) {
-                        if (ProductUtil.MeatOfShowRoomNum(orders) > 0) {
-                            String url_kitchen = SharedHelper.read("ip1_show") + "." + SharedHelper.read("ip2_show") + "." + SharedHelper.read("ip3_show") + "." + SharedHelper.read("ip4_show");
-                            Pos pos1;
-                            pos1 = new Pos(url_kitchen, 9100, "GBK");    //第一个参数是打印机网口IP
-                            pos1.initPos();
-                            pos1.printLine(1);
-                            pos1.fontSizeSetBig(1);
-                            pos1.bold(true);
-                            pos1.printText("展示间");
-                            pos1.printLine(1);
-                            pos1.printText("餐桌:" + tableAVObject.getString("tableNumber") + "桌");
-                            pos1.printLine(1);
-                            pos1.printText("操作人:" + SharedHelper.read("cashierName"));
-                            pos1.printLine(1);
-                            try {
-                                pos1.printText("人数:" + tableAVObject.getInt("customer") + "人");
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            pos1.printLine(1);
-                            pos1.printText("点菜时间:" + MyUtils.dateFormat1(new Date()));
-                            pos1.printTextNewLine("-----------------------------------------------");
-                            pos1.printLine(1);
-                            pos1.bold(true);
-                            int commoditySerial = 1;
-                            for (int i = 0; i < orders.size(); i++) {
-                                pos1.printLocation(0);
-                                HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-                                int number = 0;
-                                int commodityType = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType();
-                                if (ProductUtil.isShowCommodity(format)) {
-                                    pos1.printLocation(0);
-                                    String nameContent = commoditySerial + ".";
-                                    commoditySerial++;
-                                    nameContent += MyUtils.filter(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName());
-                                    if (ObjectUtil.getString(format, "barcode").length() == 18) {
-                                        nameContent += "(" + (ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) > 20 ? ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "ml" : ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "kg") + ")";
-                                    } else {
-                                        nameContent += "(" + (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getWeight() > 20 ? MyUtils.getProductById(ObjectUtil.getString(format, "id")).getWeight() + "ml" : MyUtils.getProductById(ObjectUtil.getString(format, "id")).getWeight() + "kg") + ")";
-                                    }
-                                    pos1.printTextNewLine(nameContent);
-                                    pos1.printText("");
-                                    pos1.printLine(1);
-                                    pos1.printLocation(20, 1);
-                                    pos1.printText("");
-                                    pos1.printLocation(80, 1);
-                                    pos1.printWordSpace(1);
-                                    pos1.printText("");
-                                    pos1.printWordSpace(2);
-                                    pos1.printText("x" + ObjectUtil.getDouble(format, "number") + "份");
-                                    pos1.printLine(1);
-                                    if (ObjectUtil.getList(format, "comboList").size() > 0) {
-                                        List<String> comboList = ObjectUtil.getList(format, "comboList");
-                                        for (int j = 0; j < comboList.size(); j++) {
-                                            pos1.printWordSpace(1);
-                                            pos1.printText(comboList.get(j));
-                                            pos1.printLine();
-                                        }
-                                    }
-                                    if (ObjectUtil.getString(format, "presenter").length() > 0) {
-                                        pos1.printLine();
-                                        pos1.printWordSpace(1);
-                                        pos1.printText("赠送菜品:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
-                                        pos1.printLine();
-                                    }
-                                    if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
-                                        pos1.printTextNewLine("做法:" + ObjectUtil.getString(format, "cookStyle"));
-                                        pos1.printLine(1);
-                                    }
-                                    if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
-                                        pos1.bold(true);
-                                        pos1.printText("<<<<<<<备注:" + ObjectUtil.getString(format, "comment") + ">>>>>>>>");
-                                        pos1.bold(false);
-                                        pos1.printLine(1);
-                                    }
-                                    pos1.printTextNewLine("***********************************************");
-                                    ++number;
-                                    pos1.printLine(1);
-                                }
-
-
-                            }
-                            pos1.printLine(3);
-                            pos1.feedAndCut();
-                            pos1.closeIOAndSocket();
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Logger.d(e.getMessage());
-                    EventBus.getDefault().post(new SuccessEvent(-5, tableAVObject.getString("tableNumber") + "桌下单展示间小票机连接失败", orders, tableAVObject));
-                }
+//                try {
+//                    if (type == 0 || type == -5) {
+//                        if (ProductUtil.MeatOfShowRoomNum(orders) > 0) {
+//                            String url_kitchen = SharedHelper.read("ip1_show") + "." + SharedHelper.read("ip2_show") + "." + SharedHelper.read("ip3_show") + "." + SharedHelper.read("ip4_show");
+//                            Pos pos1;
+//                            pos1 = new Pos(url_kitchen, 9100, "GBK");    //第一个参数是打印机网口IP
+//                            pos1.initPos();
+//                            pos1.printLine(1);
+//                            pos1.fontSizeSetBig(1);
+//                            pos1.bold(true);
+//                            pos1.printText("展示间");
+//                            pos1.printLine(1);
+//                            pos1.printText("餐桌:" + tableAVObject.getString("tableNumber") + "桌");
+//                            pos1.printLine(1);
+//                            pos1.printText("操作人:" + SharedHelper.read("cashierName"));
+//                            pos1.printLine(1);
+//                            try {
+//                                pos1.printText("人数:" + tableAVObject.getInt("customer") + "人");
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                            }
+//                            pos1.printLine(1);
+//                            pos1.printText("点菜时间:" + MyUtils.dateFormat1(new Date()));
+//                            pos1.printTextNewLine("-----------------------------------------------");
+//                            pos1.printLine(1);
+//                            pos1.bold(true);
+//                            int commoditySerial = 1;
+//                            for (int i = 0; i < orders.size(); i++) {
+//                                pos1.printLocation(0);
+//                                HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
+//                                int number = 0;
+//                                int commodityType = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType();
+//                                if (ProductUtil.isShowCommodity(format)) {
+//                                    pos1.printLocation(0);
+//                                    String nameContent = commoditySerial + ".";
+//                                    commoditySerial++;
+//                                    nameContent += MyUtils.filter(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName());
+//                                    if (ObjectUtil.getString(format, "barcode").length() == 18) {
+//                                        nameContent += "(" + (ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) > 20 ? ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "ml" : ProductUtil.calCommodityWeight(ObjectUtil.getString(format, "barcode")) + "kg") + ")";
+//                                    } else {
+//                                        nameContent += "(" + (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getWeight() > 20 ? MyUtils.getProductById(ObjectUtil.getString(format, "id")).getWeight() + "ml" : MyUtils.getProductById(ObjectUtil.getString(format, "id")).getWeight() + "kg") + ")";
+//                                    }
+//                                    pos1.printTextNewLine(nameContent);
+//                                    pos1.printText("");
+//                                    pos1.printLine(1);
+//                                    pos1.printLocation(20, 1);
+//                                    pos1.printText("");
+//                                    pos1.printLocation(80, 1);
+//                                    pos1.printWordSpace(1);
+//                                    pos1.printText("");
+//                                    pos1.printWordSpace(2);
+//                                    pos1.printText("x" + ObjectUtil.getDouble(format, "number") + "份");
+//                                    pos1.printLine(1);
+//                                    if (ObjectUtil.getList(format, "comboList").size() > 0) {
+//                                        List<String> comboList = ObjectUtil.getList(format, "comboList");
+//                                        for (int j = 0; j < comboList.size(); j++) {
+//                                            pos1.printWordSpace(1);
+//                                            pos1.printText(comboList.get(j));
+//                                            pos1.printLine();
+//                                        }
+//                                    }
+//                                    if (ObjectUtil.getString(format, "presenter").length() > 0) {
+//                                        pos1.printLine();
+//                                        pos1.printWordSpace(1);
+//                                        pos1.printText("赠送菜品:" + MyUtils.getProductById(ObjectUtil.getString(format, "presenter")).getName());
+//                                        pos1.printLine();
+//                                    }
+//                                    if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+//                                        pos1.printTextNewLine("做法:" + ObjectUtil.getString(format, "cookStyle"));
+//                                        pos1.printLine(1);
+//                                    }
+//                                    if (ObjectUtil.getString(format, "comment") != "" && ObjectUtil.getString(format, "comment").trim().length() > 0) {
+//                                        pos1.bold(true);
+//                                        pos1.printText("<<<<<<<备注:" + ObjectUtil.getString(format, "comment") + ">>>>>>>>");
+//                                        pos1.bold(false);
+//                                        pos1.printLine(1);
+//                                    }
+//                                    pos1.printTextNewLine("***********************************************");
+//                                    ++number;
+//                                    pos1.printLine(1);
+//                                }
+//
+//
+//                            }
+//                            pos1.printLine(3);
+//                            pos1.feedAndCut();
+//                            pos1.closeIOAndSocket();
+//                        }
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    Logger.d(e.getMessage());
+//                    EventBus.getDefault().post(new SuccessEvent(-5, tableAVObject.getString("tableNumber") + "桌下单展示间小票机连接失败", orders, tableAVObject));
+//                }
             }
 
         }.start();
@@ -914,8 +813,9 @@ public class Bill {
                     pos.printLine(1);
 
                     pos.printTextNewLine("------------------------------------------------");
-                    for (int i = 0; i < orders.size(); i++) {
-                        HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
+                    List<Object> objects = IntegrateUtil.integratePreOrder(orders);
+                    for (int i = 0; i < objects.size(); i++) {
+                        HashMap<String, Object> format = ObjectUtil.format(objects.get(i));
                         ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
                         pos.printLine(1);
                         pos.printTextNewLine(productBean.getName());
@@ -1042,8 +942,9 @@ public class Bill {
                     pos1.printLine(1);
 
                     pos1.printTextNewLine("------------------------------------------------");
-                    for (int i = 0; i < orders.size(); i++) {
-                        HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
+                    List<Object> objects1 = IntegrateUtil.integratePreOrder(orders);
+                    for (int i = 0; i < objects1.size(); i++) {
+                        HashMap<String, Object> format = ObjectUtil.format(objects1.get(i));
                         ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
                         pos1.printLine(1);
                         pos1.printTextNewLine(productBean.getName());
@@ -2209,8 +2110,10 @@ public class Bill {
                     pos.printText("金额");
                     List orders = tableAVObject.getList("order");
                     pos.printTextNewLine("----------------------------------------------");
-                    for (int i = 0; i < orders.size(); i++) {
-                        HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
+                    List<Object>  mergeOrders =  IntegrateUtil.integratePreOrder(ObjectUtil.deepCopy(orders));
+
+                    for (int i = 0; i < mergeOrders.size(); i++) {
+                        HashMap<String, Object> format = ObjectUtil.format(mergeOrders.get(i));
                         ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
                         pos.printTextNewLine(productBean.getName());
                         pos.printLine(1);

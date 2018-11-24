@@ -106,7 +106,6 @@ public class OrderListFg extends BaseFragment {
     OrderListAdapter orderListAdapter;
     List<AVObject> orders = new ArrayList<>();
     List<AVObject> findOrders = new ArrayList<>();
-    List<AVObject> testUsers = new ArrayList<>();
     List<AVObject> rechargeOrders = new ArrayList<>();
     Date currentDate;
     private int orderType = -1;

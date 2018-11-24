@@ -140,8 +140,6 @@ public class SettingFg extends BaseFragment {
                         changeCommodityPrice.setText(CommodityAVObject.getDouble("price") + "");
                         setListener();
                     }
-                } else {
-                    Logger.d(e.getMessage());
                 }
             }
         });
@@ -286,7 +284,6 @@ public class SettingFg extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
             savedInstanceState) {
-        // TODO: inflate a fragment view
         View rootView = super.onCreateView(inflater, container, savedInstanceState);
         unbinder1 = ButterKnife.bind(this, rootView);
         return rootView;

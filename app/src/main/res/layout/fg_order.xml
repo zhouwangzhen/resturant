@@ -151,7 +151,7 @@
                                 android:layout_marginLeft="10dp"
                                 android:layout_marginRight="10dp"
                                 android:background="#E9967A"
-                                android:text="选菜模式"
+                                android:text="当前模式:选菜模式"
                                 android:textColor="@color/white" />
                             <Button
                                 android:id="@+id/btn_choose_commodity"
@@ -162,7 +162,7 @@
                                 android:layout_marginLeft="10dp"
                                 android:layout_marginRight="5dp"
                                 android:background="#CDCD00"
-                                android:text="名称点菜"
+                                android:text="按名称点菜"
                                 android:textColor="@color/white" />
                         </LinearLayout>
 
@@ -268,8 +268,7 @@
                     android:layout_height="60dp"
                     android:layout_gravity="bottom"
                     android:background="#e6e6ea"
-                    android:gravity="bottom"
-                    android:padding="10dp">
+                    android:gravity="bottom">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -287,7 +286,6 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:layout_marginTop="10dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
                             <TextView
@@ -311,8 +309,7 @@
                     <Button
                         android:id="@+id/btn_place_order"
                         android:layout_width="wrap_content"
-                        android:layout_height="30dp"
-                        android:layout_marginRight="10dp"
+                        android:layout_height="match_parent"
                         android:background="@drawable/pay"
                         android:text="下单"
                         android:textColor="@color/white" />

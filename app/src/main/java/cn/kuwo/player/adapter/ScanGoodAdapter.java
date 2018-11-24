@@ -87,8 +87,8 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             }
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(preProductBean.getSerial());
-            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + (ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
-            holder.tvWeight.setText(weightContent);
+//            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + (ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
+//            holder.tvWeight.setText(weightContent);
             holder.tvComment.setText(ObjectUtil.getString(format, "comment").length() > 0 ? "备注:" + ObjectUtil.getString(format, "comment") : "备注:无");
             if (ObjectUtil.getString(format, "presenter").length() > 0) {
                 holder.tvGive.setVisibility(View.VISIBLE);
@@ -123,13 +123,13 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             Drawable drawable = mContext.getResources().getDrawable(R.mipmap.icon_already);
             holder.tvNumber.setText("x" + ObjectUtil.getDouble(format, "number") + "份");
             holder.tvPrice.setText("￥" + ObjectUtil.getDouble(format, "price"));
-            if (productBean.getUrl()!=null&&!productBean.getUrl().equals("")){
-                Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
-            }
+//            if (productBean.getUrl()!=null&&!productBean.getUrl().equals("")){
+//                Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
+//            }
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(productBean.getSerial());
             String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  +(ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
-            holder.tvWeight.setText(weightContent);
+//            holder.tvWeight.setText(weightContent);
             if (ObjectUtil.getString(format, "presenter").length() > 0) {
                 holder.tvGive.setVisibility(View.VISIBLE);
                 try {
@@ -147,13 +147,13 @@ public class ScanGoodAdapter extends RecyclerView.Adapter<ScanGoodAdapter.MyView
             Drawable drawable = mContext.getResources().getDrawable(R.mipmap.icon_delete);
             holder.tvNumber.setText("x" + ObjectUtil.getDouble(format, "number"));
             holder.tvPrice.setText("￥" + ObjectUtil.getDouble(format, "price"));
-            if (productBean.getUrl()!=null&&!productBean.getUrl().equals("")){
-                Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
-            }
+//            if (productBean.getUrl()!=null&&!productBean.getUrl().equals("")){
+//                Glide.with(MyApplication.getContextObject()).load(productBean.getUrl()).into(holder.imageAvatar);
+//            }
             holder.imageState.setImageDrawable(drawable);
             holder.tvSerial.setText(productBean.getSerial());
-            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + (ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
-            holder.tvWeight.setText(weightContent);
+//            String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  + (ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
+//            holder.tvWeight.setText(weightContent);
             if (ObjectUtil.getString(format, "presenter").length() > 0) {
                 holder.tvGive.setVisibility(View.VISIBLE);
                 try {

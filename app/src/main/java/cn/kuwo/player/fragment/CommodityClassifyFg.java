@@ -18,6 +18,7 @@ import com.facebook.drawee.backends.pipeline.Fresco;
 import com.orhanobut.logger.Logger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -34,6 +35,7 @@ import cn.kuwo.player.base.BaseFragment;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RuleBean;
 import cn.kuwo.player.bean.TypeBean;
+import cn.kuwo.player.bean.entity.SideDishEntity;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.ToastUtil;
@@ -209,6 +211,22 @@ public class CommodityClassifyFg extends BaseFragment {
                         productBean.setReviewCommodity(avObject.getString("reviewCommodity"));
                         productBean.setComments(commentsList);
                         productBean.setMerge(avObject.getBoolean("merge"));
+                        productBean.setNbDiscountType(avObject.getInt("nb_discount_type"));
+                        productBean.setNbDiscountRate(avObject.getDouble("nb_discount_rate"));
+                        productBean.setNbDiscountPrice(avObject.getDouble("nb_discount_price"));
+                        if (avObject.getList("sideDish") != null && avObject.getList("sideDish").size() > 0) {
+                            List<HashMap<String,Object>> sideDish = (List<HashMap<String,Object>>) avObject.getList("sideDish");
+                            RealmList<SideDishEntity> objects = new RealmList<>();
+                            for (int j = 0; j < sideDish.size(); j++) {
+                                SideDishEntity sideDishEntity = new SideDishEntity();
+                                sideDishEntity.setName(sideDish.get(j).get("name").toString());
+                                sideDishEntity.setPrice(Double.parseDouble(sideDish.get(j).get("price").toString()));
+                                objects.add(sideDishEntity);
+                            }
+                            productBean.setSidedish(objects);
+                        } else {
+                            productBean.setSidedish(new RealmList<SideDishEntity>());
+                        }
                         mRealmHleper.addProduct(productBean);
 
                     }
@@ -229,7 +247,6 @@ public class CommodityClassifyFg extends BaseFragment {
             public void done(List<AVObject> list, AVException e) {
                 if (e == null) {
                     for (int i = 0; i < list.size(); i++) {
-                        Logger.d(list.get(0));
                         mRealmHleper = new RealmHelper(MyApplication.getContextObject());
                         mRealmHleper.deleteAll(RuleBean.class);
                         AVObject avObject = list.get(i);

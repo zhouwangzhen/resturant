@@ -42,14 +42,23 @@ public class DataUtil {
         hashMap.put("number", event.getCommodityNumber());
         hashMap.put("comment", event.getContent());
         hashMap.put("name", event.getProductBean().getName());
+        Double sideDishPrice=0.0;
+        if (event.getSideDishPrice()!=0.0&&event.getSideDish()!=null){
+            sideDishPrice=MyUtils.formatDouble(event.getCommodityNumber()*event.getSideDishPrice());
+        }
         if (event.getBarcode().length() == 18) {
             hashMap.put("weight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(event.getBarcode()) * event.getCommodityNumber()));
             if (mode == 0) {
                 hashMap.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()));
                 if (productBean.getType()==6||productBean.getType()==7){
-                    hashMap.put("nb", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber() * CONST.NB.MEATDiSCOUNT));
+
+                    if (productBean.getNbDiscountType()==2){
+                        hashMap.put("nb", MyUtils.formatDouble(MyUtils.formatDouble(ProductUtil.calCommodityWeight(event.getBarcode()) * event.getCommodityNumber())*productBean.getNbDiscountPrice()+sideDishPrice));
+                    }else{
+                        hashMap.put("nb", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber() * CONST.NB.MEATDiSCOUNT+sideDishPrice));
+                    }
                 }else{
-                    hashMap.put("nb", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber() * CONST.NB.OTHERDISCOUNT));
+                    hashMap.put("nb", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber() * CONST.NB.OTHERDISCOUNT+sideDishPrice));
                 }
 
             } else {
@@ -59,17 +68,17 @@ public class DataUtil {
         } else {
             hashMap.put("weight", MyUtils.formatDouble(productBean.getWeight() * event.getCommodityNumber()));
             if (mode == 0) {
-                hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
+                hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber())+sideDishPrice);
                 if (productBean.getSerial()==null){
                     if (productBean.getType()==6||productBean.getType()==7){
-                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()*CONST.NB.MEATDiSCOUNT));
+                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()*CONST.NB.MEATDiSCOUNT+sideDishPrice));
                     }else if(productBean.getType()==9){
-                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()));
+                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()+sideDishPrice));
                     }else{
-                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()*CONST.NB.OTHERDISCOUNT));
+                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()*CONST.NB.OTHERDISCOUNT+sideDishPrice));
                     }
                 }else{
-                    hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()));
+                    hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()+sideDishPrice));
                 }
 
             } else {
@@ -78,11 +87,22 @@ public class DataUtil {
             }
 
         }
+        if (event.getSideDish()!=null){
+            hashMap.put("sideDishPrice",sideDishPrice);
+            hashMap.put("sideDishIndex",event.getSideDishIndex());
+            hashMap.put("sideDishCommodity",event.getSideDish().getName());
+        }else{
+            hashMap.put("sideDishPrice",0.0);
+            hashMap.put("sideDishIndex",event.getSideDishIndex());
+            hashMap.put("sideDishCommodity","");
+        }
+
         hashMap.put("cookStyle", event.getCookStyle());
         hashMap.put("barcode", event.getBarcode());
         hashMap.put("mode", mode);
         hashMap.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
         hashMap.put("cookSerial", event.getCookSerial());
+        hashMap.put("date",DateUtil.formatLongDate(new Date()));
         if (event.getComboList() != null && event.getComboList().size() > 0) {
             hashMap.put("comboList", event.getComboList());
         } else {
@@ -105,7 +125,6 @@ public class DataUtil {
                                        String userId,
                                        int mode) {
         if (event.getOrderIndex() != -1) {
-            Logger.d(event);
             if (event.getCommodityNumber() > 0) {
                 String commodityId = event.getProductBean().getObjectId();
                 ProductBean productBean = MyUtils.getProductById(commodityId);
@@ -115,24 +134,38 @@ public class DataUtil {
                 format.put("number", event.getCommodityNumber());
                 format.put("comment", event.getContent());
                 format.put("name", event.getProductBean().getName());
+                Double sideDishPrice=0.0;
+                if (event.getSideDishPrice()!=0.0&&event.getSideDish()!=null){
+                    sideDishPrice=MyUtils.formatDouble(event.getCommodityNumber()*event.getSideDishPrice());
+                }
                 if (event.getBarcode().length() == 18) {
                     format.put("weight", MyUtils.formatDouble(ProductUtil.calCommodityWeight(event.getBarcode()) * event.getCommodityNumber()));
                     if (mode == 0) {
-                        format.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()));
-                        format.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber() * CONST.NB.MEATDiSCOUNT));
+                        format.put("price", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber()+sideDishPrice));
+                        format.put("nb", MyUtils.formatDouble(ProductUtil.calCommodityMoney(event.getBarcode()) * event.getCommodityNumber() * CONST.NB.MEATDiSCOUNT+sideDishPrice));
                     } else {
                         format.put("price", 0);
+                        format.put("nb", 0);
                     }
                 } else {
                     format.put("weight", MyUtils.formatDouble(productBean.getWeight() * event.getCommodityNumber()));
                     if (mode == 0) {
-                        format.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
-                        format.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()));
+                        format.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()+sideDishPrice));
+                        format.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()+sideDishPrice));
                     } else {
                         format.put("price", 0);
+                        format.put("nb", 0);
                     }
                 }
-
+                if (event.getSideDish()!=null){
+                    format.put("sideDishPrice",sideDishPrice);
+                    format.put("sideDishIndex",event.getSideDishIndex());
+                    format.put("sideDishCommodity",event.getSideDish().getName());
+                }else{
+                    format.put("sideDishPrice",0.0);
+                    format.put("sideDishIndex",event.getSideDishIndex());
+                    format.put("sideDishCommodity","");
+                }
 
                 format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
                 if (event.getProductBean().getComboMenu() != null && event.getProductBean().getComboMenu().length() > 0) {
@@ -143,6 +176,7 @@ public class DataUtil {
                 format.put("presenter", ProductUtil.calPresenter(tableAVObject, event.getProductBean(), isSvip));
                 format.put("cookSerial", event.getCookSerial());
                 format.put("cookStyle", event.getCookStyle());
+                format.put("updateDate",DateUtil.formatLongDate(new Date()));
             } else {
                 preOrders.remove(event.getOrderIndex());
             }

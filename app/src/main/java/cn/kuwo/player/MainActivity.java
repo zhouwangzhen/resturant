@@ -26,6 +26,7 @@ import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
+import com.qmuiteam.qmui.widget.dialog.QMUIBottomSheet;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -81,8 +82,6 @@ import cn.kuwo.player.util.UpgradeUtil;
 public class MainActivity extends BaseActivity {
     @BindView(R.id.menu_stored)
     TextView menuStored;
-    @BindView(R.id.menu_inventory)
-    TextView menuInventory;
     @BindView(R.id.ll_table)
     LinearLayout llTable;
     @BindView(R.id.menu_nb)
@@ -101,15 +100,12 @@ public class MainActivity extends BaseActivity {
     TextView menuPrint;
     @BindView(R.id.menu_update)
     TextView menuUpdate;
-    @BindView(R.id.menu_svip)
-    TextView menuSvip;
     @BindView(R.id.menu_order)
     TextView menuOrder;
     @BindView(R.id.remain_table)
     TextView remainTable;
     @BindView(R.id.gv_table)
     GridView gvTable;
-    List<AVObject> tables = new ArrayList<>();
     FragmentTransaction ft;
     @BindView(R.id.waiter_avatar)
     QMUIRadiusImageView waiterAvatar;
@@ -230,7 +226,7 @@ public class MainActivity extends BaseActivity {
         ft.replace(R.id.fragment_content, tableFg, "table").commitAllowingStateLoss();
     }
 
-    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_svip, R.id.menu_order, R.id.menu_stored, R.id.menu_activity, R.id.menu_nb, R.id.menu_update_info, R.id.menu_credit})
+    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_order, R.id.menu_stored, R.id.menu_activity, R.id.menu_nb, R.id.menu_update_info, R.id.menu_credit})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.ll_table:
@@ -248,9 +244,6 @@ public class MainActivity extends BaseActivity {
                 break;
             case R.id.menu_update:
                 switchFragment("setting");
-                break;
-            case R.id.menu_svip:
-                switchFragment("svip");
                 break;
             case R.id.menu_order:
                 switchFragment("order");
@@ -284,8 +277,6 @@ public class MainActivity extends BaseActivity {
         switch (tag) {
             case "commodity":
                 setSelectState(menuCommodity, R.drawable.icon_menu);
-//                CommodityFg commodityFg = CommodityFg.newInstance("");
-//                ft.replace(R.id.fragment_content, commodityFg, "commodity").commit();
                 CommodityClassifyFg commodityClassifyFg = new CommodityClassifyFg();
                 ft.replace(R.id.fragment_content, commodityClassifyFg, "commodity").commit();
                 break;
@@ -299,11 +290,6 @@ public class MainActivity extends BaseActivity {
                 setSelectState(menuPrint, R.drawable.icon_print);
                 NetConnectFg netConnectFg = NetConnectFg.newInstance("");
                 ft.replace(R.id.fragment_content, netConnectFg, "netconnect").commit();
-                break;
-            case "svip":
-                setSelectState(menuSvip, R.drawable.icon_svip_sel);
-                SvipFg svipFg = SvipFg.newInstance("");
-                ft.replace(R.id.fragment_content, svipFg, "svip").commit();
                 break;
             case "order":
                 setSelectState(menuOrder, R.drawable.icon_order);
@@ -336,30 +322,17 @@ public class MainActivity extends BaseActivity {
      * 重置状态
      */
     private void resetState() {
-        ImageUtil.setDrawableLeft(this, R.drawable.icon_menu_nor, menuCommodity);
-        ImageUtil.setDrawableLeft(this, R.drawable.icon_table_nor, menuTable);
-        ImageUtil.setDrawableLeft(this, R.drawable.icon_print_nor, menuPrint);
-        ImageUtil.setDrawableLeft(this, R.drawable.icon_update_nor, menuUpdate);
-        ImageUtil.setDrawableLeft(this, R.drawable.icon_svip_nor, menuSvip);
-        ImageUtil.setDrawableLeft(this, R.drawable.icon_order_nor, menuOrder);
-        ImageUtil.setDrawableLeft(this, R.drawable.icon_recharge, menuStored);
-        ImageUtil.setDrawableLeft(this, R.drawable.icon_recharge, menuNb);
         menuCommodity.setTextColor(getResources().getColor(R.color.purple));
         menuTable.setTextColor(getResources().getColor(R.color.purple));
         menuPrint.setTextColor(getResources().getColor(R.color.purple));
         menuUpdate.setTextColor(getResources().getColor(R.color.purple));
         remainTable.setTextColor(getResources().getColor(R.color.purple));
-        menuSvip.setTextColor(getResources().getColor(R.color.purple));
         menuOrder.setTextColor(getResources().getColor(R.color.purple));
         menuStored.setTextColor(getResources().getColor(R.color.purple));
         menuNb.setTextColor(getResources().getColor(R.color.purple));
     }
 
     private void setSelectState(TextView view, int resourceId) {
-        Drawable left;
-        left = getResources().getDrawable(resourceId);
-        left.setBounds(0, 0, left.getMinimumWidth(), left.getMinimumHeight());
-        view.setCompoundDrawables(left, null, null, null);
         view.setTextColor(getResources().getColor(R.color.white));
     }
 
@@ -567,6 +540,33 @@ public class MainActivity extends BaseActivity {
 
 
     private void test() {
+        AVQuery<AVObject> query = new AVQuery<>("OfflineCommodity");
+        query.whereEqualTo("store", 1);
+        query.whereEqualTo("type", 6);
+        query.findInBackground(new FindCallback<AVObject>() {
+            @Override
+            public void done(List<AVObject> list, AVException e) {
+                if (e == null) {
+                    for (int i = 0; i < list.size(); i++) {
+                        AVObject avObject = list.get(i);
+                        if (avObject.getString("code").length() == 5) {
+                        avObject.put("nb_discount_type", 2);
+                        avObject.put("nb_discount_price", avObject.getDouble("price") * 0.6);
+                        avObject.saveInBackground(new SaveCallback() {
+                            @Override
+                            public void done(AVException e) {
+                                if (e == null) {
+                                    Logger.d("zzzzzz");
+                                }
+                            }
+                        });
+                        }
+                    }
+                }
+            }
+        });
+
+
     }
 
 }

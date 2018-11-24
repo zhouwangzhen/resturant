@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
@@ -58,9 +59,8 @@ public class TableFg extends BaseFragment {
     @BindView(R.id.tv_hangup_number)
     TextView tvHangupNumber;
     @BindView(R.id.rl_hangup)
-    RelativeLayout rlHangup;
-    @BindView(R.id.btn_hangup)
-    TextView btnHangup;
+    LinearLayout rlHangup;
+
     private Activity mActivity;
     private boolean chooseBigTable = true;
     private AVLiveQuery avLiveQuery;
@@ -107,8 +107,8 @@ public class TableFg extends BaseFragment {
         final AVQuery<AVObject> table = new AVQuery<>("Table");
         table.orderByAscending("tableNumber");
         table.whereEqualTo("spread", !chooseBigTable);
-        table.whereEqualTo("active", 1);
-        table.findInBackground(new FindCallback<AVObject>() {
+//        table.whereEqualTo("active", 1);
+        table.findInBackground( new FindCallback<AVObject>() {
             @Override
             public void done(List<AVObject> list, AVException e) {
                 if (e == null) {
@@ -166,7 +166,7 @@ public class TableFg extends BaseFragment {
                 }
             }
         });
-        btnHangup.setOnClickListener(new View.OnClickListener() {
+        rlHangup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
@@ -224,7 +224,6 @@ public class TableFg extends BaseFragment {
                 holder.tablePrice = view.findViewById(R.id.table_price);
                 holder.tablePeople = view.findViewById(R.id.table_people);
                 holder.tableDate =  view.findViewById(R.id.table_date);
-                holder.tableNb =  view.findViewById(R.id.table_nb);
                 holder.cv_table = view.findViewById(R.id.cv_table);
                 view.setTag(holder);
             } else {
@@ -234,17 +233,17 @@ public class TableFg extends BaseFragment {
             holder.tableNumber.setText(avObject.getString("tableNumber"));
             if (avObject.getInt("customer") != 0) {
                 holder.tableNumber.setBackgroundResource(R.drawable.shape_red_circle);
-                holder.tablePrice.setText("￥" + ProductUtil.calculateTotalMoney(avObject));
+                String priceContext="￥" + ProductUtil.calculateTotalMoney(avObject)+"(牛币￥" + ProductUtil.calNbTotalMoney(avObject.getList("order"))+")";
+                holder.tablePrice.setText(priceContext);
                 holder.tableCommodity.setText(avObject.getList("order").size() + avObject.getList("preOrder").size() + "道菜品");
                 holder.tablePeople.setText(avObject.getInt("customer") + "人");
                 holder.tableDate.setText(DateUtil.formatDate(avObject.getDate("startedAt")));
-                holder.tableNb.setText("牛币价格￥" + ProductUtil.calNbTotalMoney(avObject.getList("order")));
             } else {
                 holder.tableNumber.setBackgroundResource(R.drawable.shape_green_circle);
                 holder.tableCommodity.setText("空闲");
                 holder.tablePeople.setText(avObject.getInt("accommodate") + "人桌");
                 holder.tableDate.setText("");
-                holder.tableNb.setText("");
+                holder.tablePrice.setText("");
             }
             holder.cv_table.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -258,12 +257,7 @@ public class TableFg extends BaseFragment {
         }
 
         private class ViewHolder {
-            TextView tableNumber;
-            TextView tableCommodity;
-            TextView tablePrice;
-            TextView tablePeople;
-            TextView tableDate;
-            TextView tableNb;
+            TextView tableNumber,tableCommodity,tablePrice,tablePeople,tableDate;
             CardView cv_table;
         }
     }

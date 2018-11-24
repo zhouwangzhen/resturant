@@ -564,7 +564,6 @@ public class PayFg extends BaseFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Logger.d("销毁");
         unbinder1.unbind();
         if (isShield){
             AVObject avObject = orderDetail.getAvObject();

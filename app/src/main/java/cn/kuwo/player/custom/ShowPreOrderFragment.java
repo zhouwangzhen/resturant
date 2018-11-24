@@ -25,6 +25,7 @@ import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,6 +41,7 @@ import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.fragment.OrderFg;
 import cn.kuwo.player.fragment.TableFg;
 import cn.kuwo.player.print.Bill;
+import cn.kuwo.player.util.IntegrateUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
@@ -50,13 +52,14 @@ public class ShowPreOrderFragment extends DialogFragment {
     private GridView gvTable;
     private Button btnSureOrder;
     private List<Object> preOrders;
+    private List<Object> mergrOrders;
     private View view;
     private ListAdapter listAdapter;
     private AVObject tableAVObject;
     QMUITipDialog tipDialog;
 
     @SuppressLint("ValidFragment")
-    public ShowPreOrderFragment(AVObject tableAVObject, List<Object> preOrders) {
+    public ShowPreOrderFragment(AVObject tableAVObject, List<Object> preOrders) throws IOException, ClassNotFoundException {
         Collections.sort(preOrders, new Comparator<Object>() {
 
 
@@ -68,6 +71,7 @@ public class ShowPreOrderFragment extends DialogFragment {
             }
         });
         this.preOrders = preOrders;
+        this.mergrOrders= IntegrateUtil.integratePreOrder(ObjectUtil.deepCopy(preOrders));
         this.tableAVObject = tableAVObject;
     }
 
@@ -135,7 +139,7 @@ public class ShowPreOrderFragment extends DialogFragment {
     public class ListAdapter extends BaseAdapter {
         @Override
         public int getCount() {
-            return preOrders.size();
+            return mergrOrders.size();
         }
 
         @Override
@@ -161,11 +165,12 @@ public class ShowPreOrderFragment extends DialogFragment {
                 holder.show_combo_content = view.findViewById(R.id.show_combo_content);
                 holder.commodity_type = view.findViewById(R.id.commodity_type);
                 holder.show_cookstyle = view.findViewById(R.id.show_cookstyle);
+                holder.show_side_dish = view.findViewById(R.id.show_side_dish);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
             }
-            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(i));
+            HashMap<String, Object> format = ObjectUtil.format(mergrOrders.get(i));
             String nameContent="";
             nameContent+=MyUtils.getProductById(ObjectUtil.getString(format, "id")).getName();
             if (ObjectUtil.getString(format,"barcode").length()==18){
@@ -180,6 +185,10 @@ public class ShowPreOrderFragment extends DialogFragment {
                 holder.show_list_content.setVisibility(View.VISIBLE);
                 holder.show_list_content.setText("(备注:" + ObjectUtil.getString(format, "comment") + ")");
             }
+            if (!ObjectUtil.getString(format,"sideDishCommodity").equals("")){
+                holder.show_side_dish.setText("配菜/加料:"+ObjectUtil.getString(format,"sideDishCommodity"));
+            }
+
             holder.show_list_number.setText(ObjectUtil.getDouble(format, "number") + "份");
             if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getGivecode().length() > 0) {
                 ProductBean giveProductBean = MyUtils.getProductById(MyUtils.getProductById(ObjectUtil.getString(format, "id")).getGivecode());
@@ -205,6 +214,7 @@ public class ShowPreOrderFragment extends DialogFragment {
             TextView show_combo_content;
             TextView commodity_type;
             TextView show_cookstyle;
+            TextView show_side_dish;
         }
     }
 

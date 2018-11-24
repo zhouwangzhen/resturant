@@ -98,6 +98,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="20dp"
                                 android:background="@drawable/shape_grey"
+                                android:visibility="gone"
                                 android:orientation="vertical">
 
                                 <LinearLayout

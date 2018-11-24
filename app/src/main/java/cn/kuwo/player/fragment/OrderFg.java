@@ -234,10 +234,10 @@ public class OrderFg extends BaseFragment {
                                 dialog.dismiss();
                                 if (mode == 1) {
                                     mode = 0;
-                                    btnChooseType.setText("选菜模式");
+                                    btnChooseType.setText("当前模式:选菜模式");
                                 } else {
                                     mode = 1;
-                                    btnChooseType.setText("赠菜模式");
+                                    btnChooseType.setText("当前模式:赠菜模式");
                                 }
                             }
                         })
@@ -353,23 +353,23 @@ public class OrderFg extends BaseFragment {
      * 绑定订阅事件
      */
     private void subscribeQuery() {
-        AVQuery<AVObject> query = new AVQuery<>("Table");
-        query.whereEqualTo("objectId", tableId);
-        avLiveQuery = AVLiveQuery.initWithQuery(query);
-        avLiveQuery.setEventHandler(new AVLiveQueryEventHandler() {
-            @Override
-            public void onObjectUpdated(AVObject avObject, List<String> updateKeyList) {
-                QueryTable();
-            }
-        });
-        avLiveQuery.subscribeInBackground(new AVLiveQuerySubscribeCallback() {
-            @Override
-            public void done(AVException e) {
-                if (e != null) {
-                    Logger.d(e.getMessage());
-                }
-            }
-        });
+//        AVQuery<AVObject> query = new AVQuery<>("Table");
+//        query.whereEqualTo("objectId", tableId);
+//        avLiveQuery = AVLiveQuery.initWithQuery(query);
+//        avLiveQuery.setEventHandler(new AVLiveQueryEventHandler() {
+//            @Override
+//            public void onObjectUpdated(AVObject avObject, List<String> updateKeyList) {
+//                QueryTable();
+//            }
+//        });
+//        avLiveQuery.subscribeInBackground(new AVLiveQuerySubscribeCallback() {
+//            @Override
+//            public void done(AVException e) {
+//                if (e != null) {
+//                    Logger.d(e.getMessage());
+//                }
+//            }
+//        });
     }
 
     private void fetchCommodity(AVObject tableAVObject) {

@@ -847,10 +847,9 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             int type = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType();
-            Logger.d(type);
-            if (type == 3 || type == 4 || type == 5 || type == 6 || type == 7|| type == 9) {
+            if ( type == 5 || type == 6 || type == 7|| type == 9) {
                     number++;
-            } else if (type == 11 || type == 12) {
+            } else if (type == 11 || type == 12||type == 3 || type == 4) {
 
             } else {
                 number++;

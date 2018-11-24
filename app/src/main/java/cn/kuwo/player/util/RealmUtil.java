@@ -5,11 +5,13 @@ import android.text.TextUtils;
 import com.avos.avoscloud.AVObject;
 import com.orhanobut.logger.Logger;
 
+import java.util.HashMap;
 import java.util.List;
 
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RuleBean;
+import cn.kuwo.player.bean.entity.SideDishEntity;
 import io.realm.RealmList;
 
 public class RealmUtil {
@@ -39,6 +41,9 @@ public class RealmUtil {
             productBean.setActive(avObject.getInt("active"));
             productBean.setNb(avObject.getDouble("nb"));
             productBean.setComboMenu(avObject.getString("comboMenu") == null ? "" : MyUtils.replaceBlank(avObject.getString("comboMenu").trim().replace(" ", "")));
+            productBean.setNbDiscountType(avObject.getInt("nb_discount_type"));
+            productBean.setNbDiscountRate(avObject.getDouble("nb_discount_rate"));
+            productBean.setNbDiscountPrice(avObject.getDouble("nb_discount_price"));
             RealmList<String> commentsList = new RealmList<>();
             for (int k = 0; k < avObject.getList("comments").size(); k++) {
                 commentsList.add(avObject.getList("comments").get(k).toString());
@@ -48,10 +53,25 @@ public class RealmUtil {
             productBean.setReviewCommodity(avObject.getString("reviewCommodity"));
             productBean.setMerge(avObject.getBoolean("merge"));
             productBean.setClassify(avObject.getInt("classify"));
+            if (avObject.getList("sideDish") != null && avObject.getList("sideDish").size() > 0) {
+                List<HashMap<String,Object>> sideDish = (List<HashMap<String,Object>>) avObject.getList("sideDish");
+                RealmList<SideDishEntity> objects = new RealmList<>();
+                for (int j = 0; j < sideDish.size(); j++) {
+                    SideDishEntity sideDishEntity = new SideDishEntity();
+                    sideDishEntity.setName(sideDish.get(j).get("name").toString());
+                    sideDishEntity.setPrice(Double.parseDouble(sideDish.get(j).get("price").toString()));
+                    objects.add(sideDishEntity);
+                }
+                productBean.setSidedish(objects);
+                Logger.d(productBean.getSidedish());
+            } else {
+                productBean.setSidedish(new RealmList<SideDishEntity>());
+            }
             mRealmHleper.addProduct(productBean);
         }
     }
-    public static void setRuleBeanRealm(List<AVObject> list){
+
+    public static void setRuleBeanRealm(List<AVObject> list) {
         RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
         for (int i = 0; i < list.size(); i++) {
             mRealmHleper.deleteAll(RuleBean.class);

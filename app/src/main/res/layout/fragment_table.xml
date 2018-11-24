@@ -5,17 +5,17 @@
     android:layout_marginTop="10dp"
     android:orientation="vertical">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="right"
+        android:layout_marginLeft="40dp"
         android:layout_marginRight="40dp">
 
         <RadioGroup
             android:id="@+id/rg_choose_table_style"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="right"
+            android:layout_alignParentLeft="true"
             android:orientation="horizontal">
 
             <RadioButton
@@ -25,12 +25,14 @@
                 android:background="@drawable/radiobutton_left"
                 android:button="@null"
                 android:gravity="center"
-                android:textColor="@color/white"
-                android:text="大桌" />
+                android:text="大桌"
+                android:textColor="@color/white" />
+
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
-                android:background="@color/white"/>
+                android:background="@color/white" />
+
             <RadioButton
                 android:id="@+id/radio_small_table"
                 android:layout_width="60dp"
@@ -38,46 +40,56 @@
                 android:background="@drawable/radiobutton_right"
                 android:button="@null"
                 android:gravity="center"
-                android:textColor="@color/white"
-                android:text="小桌" />
+                android:text="小桌"
+                android:textColor="@color/white" />
         </RadioGroup>
-    </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rl_hangup"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/shape_hangup"
+            android:gravity="center"
+            android:visibility="invisible">
+
+            <TextView
+                android:id="@+id/btn_hangup"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentRight="true"
+                android:gravity="center"
+                android:paddingLeft="20dp"
+                android:paddingRight="10dp"
+                android:textColor="@color/white"
+                android:text="挂单数" />
+
+            <TextView
+                android:id="@+id/tv_hangup_number"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="6dp"
+                android:background="@drawable/shape_red_circle"
+                android:gravity="center"
+                android:text=""
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </RelativeLayout>
 
     <GridView
         android:id="@+id/gv_tables"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="20dp"
         android:layout_weight="1"
         android:background="@color/grey"
         android:fadingEdge="none"
+        android:horizontalSpacing="3dp"
         android:listSelector="#00000000"
-        android:numColumns="4"
+        android:numColumns="5"
         android:overScrollMode="never"
-        android:layout_marginTop="20dp"
-        android:horizontalSpacing="5dp"
         android:verticalSpacing="20dp" />
-    <RelativeLayout
-        android:id="@+id/rl_hangup"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="invisible"
-        android:layout_margin="10dp">
-        <TextView
-            android:id="@+id/btn_hangup"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_alignParentRight="true"
-            android:background="@drawable/icon_hangup"/>
-         <TextView
-             android:id="@+id/tv_hangup_number"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:textSize="16sp"
-             android:layout_alignParentRight="true"
-             android:gravity="center"
-             android:textColor="@color/white"
-             android:layout_marginRight="6dp"
-             android:background="@drawable/shape_red_circle"
-             android:text=""/>
-    </RelativeLayout>
+
 </LinearLayout>

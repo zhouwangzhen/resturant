@@ -63,16 +63,7 @@ public class CommodityTypeFragment extends DialogFragment {
         tablayout.addTab(tablayout.newTab().setText("大众点评菜单"));
         tablayout.addTab(tablayout.newTab().setText("午市套餐"));
         tablayout.addTab(tablayout.newTab().setText("新菜单菜品"));
-        tablayout.addTab(tablayout.newTab().setText("午市小食"));
-        tablayout.addTab(tablayout.newTab().setText("色拉"));
-        tablayout.addTab(tablayout.newTab().setText("汤"));
-        tablayout.addTab(tablayout.newTab().setText("开胃菜"));
-        tablayout.addTab(tablayout.newTab().setText("安格斯牛排"));
-        tablayout.addTab(tablayout.newTab().setText("和牛牛排"));
-        tablayout.addTab(tablayout.newTab().setText("主食"));
-        tablayout.addTab(tablayout.newTab().setText("小吃"));
-        tablayout.addTab(tablayout.newTab().setText("甜品"));
-        tablayout.addTab(tablayout.newTab().setText("火锅"));
+        tablayout.addTab(tablayout.newTab().setText("午市特惠套餐"));
         tablayout.addTab(tablayout.newTab().setText("葡萄酒"));
         tablayout.addTab(tablayout.newTab().setText("葡萄酒(杯)"));
         tablayout.addTab(tablayout.newTab().setText("啤酒饮料"));
