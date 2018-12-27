@@ -23,6 +23,7 @@ import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
+import com.avos.avoscloud.GetCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
@@ -75,6 +76,7 @@ import cn.kuwo.player.util.LoginUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.RealmUtil;
+import cn.kuwo.player.util.ScriptUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
 import cn.kuwo.player.util.UpgradeUtil;
@@ -540,31 +542,7 @@ public class MainActivity extends BaseActivity {
 
 
     private void test() {
-        AVQuery<AVObject> query = new AVQuery<>("OfflineCommodity");
-        query.whereEqualTo("store", 1);
-        query.whereEqualTo("type", 6);
-        query.findInBackground(new FindCallback<AVObject>() {
-            @Override
-            public void done(List<AVObject> list, AVException e) {
-                if (e == null) {
-                    for (int i = 0; i < list.size(); i++) {
-                        AVObject avObject = list.get(i);
-                        if (avObject.getString("code").length() == 5) {
-                        avObject.put("nb_discount_type", 2);
-                        avObject.put("nb_discount_price", avObject.getDouble("price") * 0.6);
-                        avObject.saveInBackground(new SaveCallback() {
-                            @Override
-                            public void done(AVException e) {
-                                if (e == null) {
-                                    Logger.d("zzzzzz");
-                                }
-                            }
-                        });
-                        }
-                    }
-                }
-            }
-        });
+
 
 
     }

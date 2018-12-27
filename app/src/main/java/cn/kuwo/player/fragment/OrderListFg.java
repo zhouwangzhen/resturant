@@ -2,6 +2,7 @@ package cn.kuwo.player.fragment;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.view.Gravity;
@@ -48,6 +49,8 @@ import cn.kuwo.player.R;
 import cn.kuwo.player.api.MallGoldLogApi;
 import cn.kuwo.player.api.MallOrderApi;
 import cn.kuwo.player.base.BaseFragment;
+import cn.kuwo.player.custom.ScanCardFragment;
+import cn.kuwo.player.custom.ShowNbRebateFg;
 import cn.kuwo.player.custom.ShowStatisticsDialog;
 import cn.kuwo.player.print.Bill;
 import cn.kuwo.player.service.entity.NbRechargeLog;
@@ -62,10 +65,6 @@ import cn.kuwo.player.util.RechargeUtil;
 import cn.kuwo.player.util.StatisticsUtil;
 import cn.kuwo.player.util.T;
 import cn.kuwo.player.util.ToastUtil;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class OrderListFg extends BaseFragment {
     private static String ARG_PARAM = "param_key";
@@ -109,8 +108,9 @@ public class OrderListFg extends BaseFragment {
     List<AVObject> rechargeOrders = new ArrayList<>();
     Date currentDate;
     private int orderType = -1;
-
+    private int queryNumber = 0;
     private NbRechargeLogPresenter nbRechargeLogPresenter = new NbRechargeLogPresenter(getContext());
+    private OrderListFg orderListFg=this;
 
 
     @Override
@@ -157,10 +157,22 @@ public class OrderListFg extends BaseFragment {
      */
     private void getOrders() {
         showDialog();
+        queryNumber = 0;
+        nbRechargeLogs.removeAll(nbRechargeLogs);
         nbRechargeLogPresenter.getNbRechagreLog(DateUtil.getZeroTimeStampBySecond(currentDate),
                 DateUtil.getLasterTimeStampBySecond(currentDate),
                 2,
                 0,
+                CONST.isShowTEST);
+
+    }
+
+    private void getRebateOrders() {
+        showDialog();
+        nbRechargeLogPresenter.getNbRechagreLog(DateUtil.getZeroTimeStampBySecond(currentDate),
+                DateUtil.getLasterTimeStampBySecond(currentDate),
+                2,
+                3,
                 CONST.isShowTEST);
 
     }
@@ -226,7 +238,7 @@ public class OrderListFg extends BaseFragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         mActivity = (Activity) context;
-        mParam = getArguments().getString(ARG_PARAM);  //获取参数
+        mParam = getArguments().getString(ARG_PARAM);
     }
 
     public static OrderListFg newInstance(String str) {
@@ -267,6 +279,8 @@ public class OrderListFg extends BaseFragment {
             case R.id.ll_state_nb:
                 orderType = 4;
                 findOrders();
+                break;
+            default:
                 break;
         }
     }
@@ -346,6 +360,7 @@ public class OrderListFg extends BaseFragment {
                 holder.ll_edit = view.findViewById(R.id.ll_edit);
                 holder.et_remark = view.findViewById(R.id.et_remark);
                 holder.btn_add_remark = view.findViewById(R.id.btn_add_remark);
+                holder.nb_rebate = view.findViewById(R.id.nb_rebate);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
@@ -419,7 +434,7 @@ public class OrderListFg extends BaseFragment {
                             e.printStackTrace();
                         }
                     }
-                    settleContent+=avObject.getString("message")==null?"备注:无":"备注:"+avObject.getString("message");
+                    settleContent += avObject.getString("message") == null ? "备注:无" : "备注:" + avObject.getString("message");
                     holder.order_settle.setText(settleContent);
 
                     holder.btn_reprint.setOnClickListener(new View.OnClickListener() {
@@ -436,7 +451,7 @@ public class OrderListFg extends BaseFragment {
                     holder.btn_add_remark.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if (holder.et_remark.getText().toString().trim().length()>0) {
+                            if (holder.et_remark.getText().toString().trim().length() > 0) {
                                 avObject.put("message", (avObject.get("message") == null ? " " : avObject.get("message") + ",") + holder.et_remark.getText().toString());
                                 avObject.saveInBackground(new SaveCallback() {
                                     @Override
@@ -448,6 +463,19 @@ public class OrderListFg extends BaseFragment {
                                     }
                                 });
                             }
+                        }
+                    });
+                    if (avObject.getInt("escrow") == 25) {
+                        holder.nb_rebate.setVisibility(View.VISIBLE);
+                    } else {
+                        holder.nb_rebate.setVisibility(View.INVISIBLE);
+                    }
+                    holder.nb_rebate.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            ShowNbRebateFg showNbRebateFg = new ShowNbRebateFg(avObject);
+                            showNbRebateFg.setTargetFragment(orderListFg,1);
+                            showNbRebateFg.show(getFragmentManager(), "shownbrebate");
                         }
                     });
                 } else if (avObject.getClassName().equals("MallGoldLog")) {
@@ -535,7 +563,10 @@ public class OrderListFg extends BaseFragment {
                             break;
                     }
                     holder.order_settle.setText("支付方式:" + payContent);
-                    holder.order_detail.setText("牛币充值:" + nbRechargeLog.getAmount()+"\n实付金额:"+nbRechargeLog.getAcctually_paid());
+                    holder.order_detail.setText("牛币充值:" + nbRechargeLog.getAmount() + "\n实付金额:" + nbRechargeLog.getAcctually_paid()+"\n");
+                    if (nbRechargeLog.getMessage().toString().length()>0){
+                        holder.order_detail.append("备注:" + nbRechargeLog.getMessage().getGift_reason());
+                    }
 
                     holder.card_order.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -570,6 +601,7 @@ public class OrderListFg extends BaseFragment {
             TextView order_state_img;
             TextView order_memberstyle;
             Button btn_reprint;
+            Button nb_rebate;
             LinearLayout show_detail;
             LinearLayout ll_edit;
             EditText et_remark;
@@ -581,8 +613,15 @@ public class OrderListFg extends BaseFragment {
     private NbRechargeLogView mNbRechargeLog = new NbRechargeLogView() {
         @Override
         public void onSuccess(List<NbRechargeLog> nbRechargeLog) {
-            nbRechargeLogs = nbRechargeLog;
-            findMallGoldOrder(currentDate);
+            nbRechargeLogs.addAll(nbRechargeLog);
+            Logger.d(nbRechargeLogs.size());
+            queryNumber++;
+            if (queryNumber <= 1) {
+                getRebateOrders();
+            } else {
+                findMallGoldOrder(currentDate);
+            }
+
         }
 
         @Override
@@ -591,4 +630,15 @@ public class OrderListFg extends BaseFragment {
             hideDialog();
         }
     };
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        try {
+            Thread.sleep(2000);
+            getOrders();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 }

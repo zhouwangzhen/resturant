@@ -7,8 +7,8 @@ android {
         applicationId "cn.kuwo.player"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 65
-        versionName '1.6.6'
+        versionCode 69
+        versionName '1.7.0'
         testInstrumentationRunner "android.support.Test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }

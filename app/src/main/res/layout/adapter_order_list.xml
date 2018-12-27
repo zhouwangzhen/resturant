@@ -119,6 +119,12 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
             <Button
+                android:id="@+id/nb_rebate"
+                android:visibility="invisible"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="牛币返现"/>
+            <Button
                 android:id="@+id/btn_reprint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

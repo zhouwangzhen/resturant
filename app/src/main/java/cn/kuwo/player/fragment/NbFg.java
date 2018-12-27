@@ -35,8 +35,10 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -130,6 +132,13 @@ public class NbFg extends BaseFragment {
     private int REQUEST_CODE_SCAN_USER = 112;
     private Double rechargeMoney = 2000.0;
     private Double paySumMoney = 2000.0;
+    //选择充值列表
+    private Double[] chooseList = new Double[]{500.0, 2000.0, 5000.0, 10000.0};
+    //实际充值列表
+    private Double[] rechargeList = new Double[]{500.0, 2000.0, 5000.0, 10000.0};
+    //实际付款金额
+    private Double[] payList = new Double[]{550.0, 2200.0, 5500.0, 11000.0};
+    private int ChooseIndex = 0;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
 
     @Override
@@ -140,6 +149,10 @@ public class NbFg extends BaseFragment {
     @Override
     public void initData() {
         setUserInfo();
+        rechargeMoney = chooseList[ChooseIndex];
+        paySumMoney = payList[ChooseIndex];
+        tvRechargeMoney.setText(rechargeMoney + "个牛币");
+        tvPaymoney.setText("需要支付的金额" + paySumMoney + "元");
         rgPaystyle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -156,14 +169,16 @@ public class NbFg extends BaseFragment {
                     case R.id.pay_cash:
                         escrow = 6;
                         break;
+                    default:
+                        break;
                 }
             }
         });
     }
 
     private void setUserInfo() {
-        if (!mParam.equals("")){
-            userId=mParam;
+        if (!mParam.equals("")) {
+            userId = mParam;
             freshUserInfo();
         }
     }
@@ -309,10 +324,11 @@ public class NbFg extends BaseFragment {
         marketId = "";
         username = "";
         escrow = 3;
-        rechargeMoney = 2000.0;
-        paySumMoney = 2000.0;
-        tvRechargeMoney.setText("2000个牛币");
-        tvPaymoney.setText("需要支付的金额"+tvPaymoney+"元");
+        ChooseIndex=0;
+        rechargeMoney = chooseList[ChooseIndex];
+        paySumMoney = payList[ChooseIndex];
+        tvRechargeMoney.setText(rechargeMoney + "个牛币");
+        tvPaymoney.setText("需要支付的金额" + paySumMoney + "元");
         rgPaystyle.check(R.id.pay_ali);
     }
 
@@ -460,7 +476,7 @@ public class NbFg extends BaseFragment {
         Call<ResponseBody> responseBodyCall = ApiManager.getInstance().getRetrofitService().offlineRecharge(userId,
                 marketId,
                 SharedHelper.read("cashierId"),
-                rechargeMoney,
+                rechargeList[ChooseIndex],
                 paySumMoney,
                 payment,
                 2,
@@ -477,7 +493,7 @@ public class NbFg extends BaseFragment {
                     btnRecharge.setVisibility(View.INVISIBLE);
                     Bill.printNb(MyApplication.getContextObject(),
                             username,
-                            rechargeMoney,
+                            rechargeList[ChooseIndex],
                             escrow,
                             SharedHelper.read("cashierName"),
                             marketName,
@@ -555,39 +571,20 @@ public class NbFg extends BaseFragment {
     }
 
     private void showSimpleBottomSheetList() {
-        new QMUIBottomSheet.BottomListSheetBuilder(getActivity())
-                .addItem("充值2000个牛币")
-                .addItem("充值5000个牛币(赠送200牛币)")
-                .addItem("充值10000个牛币(赠送1000牛币)")
-                .setTitle("选择充值牛币的数量")
+        QMUIBottomSheet.BottomListSheetBuilder bottomListSheetBuilder = new QMUIBottomSheet.BottomListSheetBuilder(getActivity());
+        for (int i=0;i<chooseList.length;i++){
+            bottomListSheetBuilder.addItem("充值"+chooseList[i]+"个牛币");
+        }
+        bottomListSheetBuilder.setTitle("选择充值牛币的数量")
                 .setOnSheetItemClickListener(new QMUIBottomSheet.BottomListSheetBuilder.OnSheetItemClickListener() {
                     @Override
                     public void onClick(QMUIBottomSheet dialog, View itemView, int position, String tag) {
                         dialog.dismiss();
-                        switch (position) {
-                            case 0:
-                                rechargeMoney = 2000.0;
-                                paySumMoney = 2000.0;
-                                tvRechargeMoney.setText("2000个牛币");
-                                tvPaymoney.setText("需要支付的金额2000元");
-                                break;
-                            case 1:
-                                rechargeMoney = 5200.0;
-                                paySumMoney = 5000.0;
-                                tvRechargeMoney.setText("5200个牛币");
-                                tvPaymoney.setText("需要支付的金额5000元");
-                                break;
-                            case 2:
-                                rechargeMoney = 11000.0;
-                                paySumMoney = 10000.0;
-                                tvRechargeMoney.setText("11000个牛币");
-                                tvPaymoney.setText("需要支付的金额10000元");
-                                break;
-                            default:
-                                break;
-                        }
-
-
+                        ChooseIndex=position;
+                        rechargeMoney = chooseList[ChooseIndex];
+                        paySumMoney = payList[ChooseIndex];
+                        tvRechargeMoney.setText(rechargeMoney+"个牛币");
+                        tvPaymoney.setText("需要支付的金额"+paySumMoney+"元");
                     }
                 })
                 .build()
