@@ -465,7 +465,7 @@ public class OrderListFg extends BaseFragment {
                             }
                         }
                     });
-                    if (avObject.getInt("escrow") == 25) {
+                    if (avObject.getInt("escrow") == 25&&!avObject.getBoolean("isRebate")&&inSameDay(avObject.getCreatedAt(), new Date())) {
                         holder.nb_rebate.setVisibility(View.VISIBLE);
                     } else {
                         holder.nb_rebate.setVisibility(View.INVISIBLE);
@@ -614,7 +614,6 @@ public class OrderListFg extends BaseFragment {
         @Override
         public void onSuccess(List<NbRechargeLog> nbRechargeLog) {
             nbRechargeLogs.addAll(nbRechargeLog);
-            Logger.d(nbRechargeLogs.size());
             queryNumber++;
             if (queryNumber <= 1) {
                 getRebateOrders();
@@ -641,4 +640,20 @@ public class OrderListFg extends BaseFragment {
             e.printStackTrace();
         }
     }
+    public static boolean inSameDay(Date date1, Date Date2) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date1);
+        int year1 = calendar.get(Calendar.YEAR);
+        int day1 = calendar.get(Calendar.DAY_OF_YEAR);
+
+        calendar.setTime(Date2);
+        int year2 = calendar.get(Calendar.YEAR);
+        int day2 = calendar.get(Calendar.DAY_OF_YEAR);
+
+        if ((year1 == year2) && (day1 == day2)) {
+            return true;
+        }
+        return false;
+    }
+
 }

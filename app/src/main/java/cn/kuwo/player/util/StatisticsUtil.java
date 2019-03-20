@@ -275,6 +275,10 @@ public class StatisticsUtil {
                         DZDPCommodityMoney += CONST.DZDP.menu_5_price * ObjectUtil.getDouble(format, "number");
                     } else if (ObjectUtil.getString(format, "id").equals(CONST.DZDP.menu_6_id)) {
                         DZDPCommodityMoney += CONST.DZDP.menu_6_price * ObjectUtil.getDouble(format, "number");
+                    }else if (ObjectUtil.getString(format, "id").equals(CONST.DZDP.menu_7_id)) {
+                        DZDPCommodityMoney += CONST.DZDP.menu_7_price * ObjectUtil.getDouble(format, "number");
+                    } else if (ObjectUtil.getString(format, "id").equals(CONST.DZDP.menu_8_id)) {
+                        DZDPCommodityMoney += CONST.DZDP.menu_8_price * ObjectUtil.getDouble(format, "number");
                     }
 
 

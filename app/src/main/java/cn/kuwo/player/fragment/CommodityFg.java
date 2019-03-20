@@ -139,6 +139,7 @@ public class CommodityFg extends BaseFragment {
                         productBean.setReviewCommodity(avObject.getString("reviewCommodity"));
                         productBean.setComments(commentsList);
                         productBean.setMerge(avObject.getBoolean("merge"));
+                        productBean.setSpecial(avObject.getString("special"));
                         mRealmHleper.addProduct(productBean);
 
                     }

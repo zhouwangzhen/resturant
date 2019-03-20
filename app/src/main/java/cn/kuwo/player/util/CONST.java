@@ -99,6 +99,13 @@ public class CONST {
         public static final String menu_6_id="5b94a086fb4ffe005c6930a6";
         public static final Double menu_6_price=48.0;
 
+        public static final String menu_7_name="牛人聚会套餐(大众点评专享)";
+        public static final String menu_7_id="5c2eea910b616000673a7f78";
+        public static final Double menu_7_price=888.0;
+
+        public static final String menu_8_name="澳洲安格斯牛肉暖身锅2份(大众点评专享)";
+        public static final String menu_8_id="5c2ee6eafb4ffe005fba1757";
+        public static final Double menu_8_price=176.0;
     }
 
     public static final class ACTIVITYCOMMODITY {

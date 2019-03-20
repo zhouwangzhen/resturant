@@ -41,6 +41,7 @@ public class ProductBean extends RealmObject implements Serializable {
     private int nbDiscountType;
     private Double nbDiscountRate;
     private Double nbDiscountPrice;
+    private String special;
 
     public String getCode() {
         return code;
@@ -272,6 +273,14 @@ public class ProductBean extends RealmObject implements Serializable {
 
     public void setNbDiscountPrice(Double nbDiscountPrice) {
         this.nbDiscountPrice = nbDiscountPrice;
+    }
+
+    public String getSpecial() {
+        return special;
+    }
+
+    public void setSpecial(String special) {
+        this.special = special;
     }
 
     @Override

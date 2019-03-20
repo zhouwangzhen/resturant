@@ -44,6 +44,7 @@ public class RealmUtil {
             productBean.setNbDiscountType(avObject.getInt("nb_discount_type"));
             productBean.setNbDiscountRate(avObject.getDouble("nb_discount_rate"));
             productBean.setNbDiscountPrice(avObject.getDouble("nb_discount_price"));
+            productBean.setSpecial(avObject.getString("special"));
             RealmList<String> commentsList = new RealmList<>();
             for (int k = 0; k < avObject.getList("comments").size(); k++) {
                 commentsList.add(avObject.getList("comments").get(k).toString());

@@ -353,23 +353,6 @@ public class OrderFg extends BaseFragment {
      * 绑定订阅事件
      */
     private void subscribeQuery() {
-//        AVQuery<AVObject> query = new AVQuery<>("Table");
-//        query.whereEqualTo("objectId", tableId);
-//        avLiveQuery = AVLiveQuery.initWithQuery(query);
-//        avLiveQuery.setEventHandler(new AVLiveQueryEventHandler() {
-//            @Override
-//            public void onObjectUpdated(AVObject avObject, List<String> updateKeyList) {
-//                QueryTable();
-//            }
-//        });
-//        avLiveQuery.subscribeInBackground(new AVLiveQuerySubscribeCallback() {
-//            @Override
-//            public void done(AVException e) {
-//                if (e != null) {
-//                    Logger.d(e.getMessage());
-//                }
-//            }
-//        });
     }
 
     private void fetchCommodity(AVObject tableAVObject) {
@@ -848,7 +831,6 @@ public class OrderFg extends BaseFragment {
                     public void done(final Map<String, Object> object, AVException e) {
                         if (e == null) {
                             showDialog();
-
                             hideDialog();
                             llShowMember.setVisibility(View.VISIBLE);
                             Double whiteBarBalance = MyUtils.formatDouble(Double.parseDouble(object.get("gold").toString()) - Double.parseDouble(object.get("arrears").toString()));

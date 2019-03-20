@@ -41,6 +41,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import cn.kuwo.player.activity.MouActivity;
 import cn.kuwo.player.activity.RetailActivity;
 import cn.kuwo.player.api.CommodityApi;
 import cn.kuwo.player.api.RuleApi;
@@ -228,7 +229,7 @@ public class MainActivity extends BaseActivity {
         ft.replace(R.id.fragment_content, tableFg, "table").commitAllowingStateLoss();
     }
 
-    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_order, R.id.menu_stored, R.id.menu_activity, R.id.menu_nb, R.id.menu_update_info, R.id.menu_credit})
+    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_order, R.id.menu_stored, R.id.menu_activity, R.id.menu_nb, R.id.menu_update_info, R.id.menu_credit,R.id.menu_mou})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.ll_table:
@@ -265,6 +266,9 @@ public class MainActivity extends BaseActivity {
                 break;
             case R.id.menu_credit:
                 startActivity(new Intent(MainActivity.this, CreditActivity.class));
+                break;
+            case R.id.menu_mou:
+                startActivity(new Intent(MainActivity.this, MouActivity.class));
                 break;
         }
     }

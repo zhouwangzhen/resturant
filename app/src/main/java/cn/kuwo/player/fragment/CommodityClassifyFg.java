@@ -214,6 +214,7 @@ public class CommodityClassifyFg extends BaseFragment {
                         productBean.setNbDiscountType(avObject.getInt("nb_discount_type"));
                         productBean.setNbDiscountRate(avObject.getDouble("nb_discount_rate"));
                         productBean.setNbDiscountPrice(avObject.getDouble("nb_discount_price"));
+                        productBean.setSpecial(avObject.getString("special"));
                         if (avObject.getList("sideDish") != null && avObject.getList("sideDish").size() > 0) {
                             List<HashMap<String,Object>> sideDish = (List<HashMap<String,Object>>) avObject.getList("sideDish");
                             RealmList<SideDishEntity> objects = new RealmList<>();

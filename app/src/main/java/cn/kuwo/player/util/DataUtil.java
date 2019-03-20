@@ -68,19 +68,23 @@ public class DataUtil {
         } else {
             hashMap.put("weight", MyUtils.formatDouble(productBean.getWeight() * event.getCommodityNumber()));
             if (mode == 0) {
-                hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber())+sideDishPrice);
-                if (productBean.getSerial()==null){
-                    if (productBean.getType()==6||productBean.getType()==7){
-                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()*CONST.NB.MEATDiSCOUNT+sideDishPrice));
-                    }else if(productBean.getType()==9){
-                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()+sideDishPrice));
+                if(productBean.getSpecial().length()>0&&productBean.getSpecial().split("-").length==2&&(DateUtil.getWeekNumber()+"").equals(productBean.getSpecial().split("-")[0])&&new Date().getHours()<=14){
+                    hashMap.put("price",MyUtils.formatDouble(Double.parseDouble(productBean.getSpecial().split("-")[1])));
+                    hashMap.put("nb",MyUtils.formatDouble(Double.parseDouble(productBean.getSpecial().split("-")[1])));
+                }else {
+                    hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber())+sideDishPrice);
+                    if (productBean.getSerial()==null){
+                        if (productBean.getType()==6||productBean.getType()==7){
+                            hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()*CONST.NB.MEATDiSCOUNT+sideDishPrice));
+                        }else if(productBean.getType()==9){
+                            hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()+sideDishPrice));
+                        }else{
+                            hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()*CONST.NB.OTHERDISCOUNT+sideDishPrice));
+                        }
                     }else{
-                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()*CONST.NB.OTHERDISCOUNT+sideDishPrice));
+                        hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()+sideDishPrice));
                     }
-                }else{
-                    hashMap.put("nb", MyUtils.formatDouble(productBean.getNb() * event.getCommodityNumber()+sideDishPrice));
                 }
-
             } else {
                 hashMap.put("price", 0);
                 hashMap.put("nb", 0);

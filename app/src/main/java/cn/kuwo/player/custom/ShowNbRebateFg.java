@@ -174,6 +174,7 @@ public class ShowNbRebateFg extends DialogFragment {
                 Double actual_rebate = MyUtils.formatDouble(Double.parseDouble(actual_rebate_price.getText().toString().trim()));
                 if (actual_rebate > 0) {
                     avObject.put("message",avObject.getString("message")+"【牛币返现】");
+                    avObject.put("isRebate",true);
                     try {
                         avObject.save();
                     } catch (AVException e) {
@@ -183,9 +184,24 @@ public class ShowNbRebateFg extends DialogFragment {
                     String reason = "【消费牛币返现】- ";
                     if (rb_rate.isChecked()) {
                         reason += "订单金额的" + MyUtils.formatDouble(Double.parseDouble(rebate_rate.getText().toString().trim()) * avObject.getDouble("paysum") / 100) + "%" + "返现牛币";
+                        if(Double.parseDouble(rebate_rate.getText().toString().trim())>10){
+                            ToastUtil.showShort(MyApplication.getContextObject(), "最高返现比例为10%");
+                            tipDialog.hide();
+                            return;
+                        }
                     }
                     if (rb_fix.isChecked()) {
                         reason += "固定金额" + MyUtils.formatDouble(Double.parseDouble(rebate_money.getText().toString().trim())) + "个返现牛币";
+                        if (Double.parseDouble(rebate_money.getText().toString().trim())>(MyUtils.formatDouble(avObject.getDouble("paysum")-avObject.getDouble("reduce")))){
+                            ToastUtil.showShort(MyApplication.getContextObject(), "返现不可超过订单金额");
+                            tipDialog.hide();
+                            return;
+                        }
+                        if (Double.parseDouble(rebate_money.getText().toString().trim())>100){
+                            ToastUtil.showShort(MyApplication.getContextObject(), "返现不可超过100元");
+                            tipDialog.hide();
+                            return;
+                        }
                     }
                     if (rebate_context.getText().toString().length() > 0) {
                         reason += "-" + rebate_context.getText().toString();
@@ -205,6 +221,11 @@ public class ShowNbRebateFg extends DialogFragment {
                         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                             tipDialog.hide();
                             if (response.code() == 200 || response.code() == 201) {
+                                try {
+                                    avObject.save();
+                                } catch (AVException e) {
+                                    e.printStackTrace();
+                                }
                                 Toast.makeText(MyApplication.getContextObject(), "充值成功", Toast.LENGTH_SHORT).show();
                                 new AlertDialog.Builder(getActivity(), R.style.AlertDialogCustom)
                                         .setTitle("提示")

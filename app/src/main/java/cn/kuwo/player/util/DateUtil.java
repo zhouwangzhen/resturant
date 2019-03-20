@@ -140,6 +140,28 @@ public class DateUtil {
                 return "";
         }
     }
+    public static int  getWeekNumber() {
+        Calendar cal = Calendar.getInstance();
+        int i = cal.get(Calendar.DAY_OF_WEEK);
+        switch (i) {
+            case 1:
+                return 7;
+            case 2:
+                return 1;
+            case 3:
+                return 2;
+            case 4:
+                return 3;
+            case 5:
+                return 4;
+            case 6:
+                return 5;
+            case 7:
+                return 6;
+            default:
+                return -1;
+        }
+    }
 
     public static Boolean isBlackFive() {
         if (getWeek().equals("星期五")) {

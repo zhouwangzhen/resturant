@@ -363,7 +363,6 @@ public class ShowComboMenuFragment extends DialogFragment implements View.OnClic
                 if (sidedish.size() > 0 && sideDishIndex != -1) {
                     sideDishEntity = sidedish.get(sideDishIndex);
                 }
-                Logger.d(sideDishEntity);
                 EventBus.getDefault().post(new ComboEvent(
                                 productBean,
                                 chooseIds,
