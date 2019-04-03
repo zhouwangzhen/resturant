@@ -88,8 +88,8 @@ public class OffineAdapter extends RecyclerView.Adapter<OffineAdapter.MyViewHold
 
         public MyViewHolder(View itemView) {
             super(itemView);
-            title = (TextView) itemView.findViewById(R.id.title);
-            gvTable = (GridView) itemView.findViewById(R.id.gv_table);
+            title = itemView.findViewById(R.id.title);
+            gvTable = itemView.findViewById(R.id.gv_table);
         }
     }
 

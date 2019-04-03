@@ -498,7 +498,6 @@ public class NbFg extends BaseFragment {
                             SharedHelper.read("cashierName"),
                             marketName,
                             paySumMoney);
-                    judgeCouponGive();
                     freshUserInfo();
                 } else {
                     T.show(response);
@@ -512,30 +511,6 @@ public class NbFg extends BaseFragment {
             }
         });
 
-    }
-
-    private void judgeCouponGive() {
-//        if (paySumMoney==1000){
-//            AVObject coupon = new AVObject("Coupon");
-//            coupon.put("type",AVObject.createWithoutData("CouponType","5b39958a9f5454003a7c5aa4"));
-//            coupon.put("username",username);
-//            coupon.put("from","牛爸餐厅充值派发");
-//            coupon.put("gold",200);
-//            coupon.put("start",new Date());
-//            coupon.put("active",1);
-//            coupon.put("range",AVObject.createWithoutData("CouponRange","58edc6c8b123db43cc355905"));
-//            coupon.put("end",new Date(System.currentTimeMillis()+1000*60*60*24*2));
-//            coupon.saveInBackground(new SaveCallback() {
-//                @Override
-//                public void done(AVException e) {
-//                    if (e==null){
-//                        Logger.d("保存成功");
-//                    }else{
-//                        Logger.d(e.getMessage());
-//                    }
-//                }
-//            });
-//        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

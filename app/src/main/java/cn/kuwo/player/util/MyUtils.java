@@ -90,21 +90,6 @@ public class MyUtils {
         return Double.parseDouble(df.format(number));
     }
 
-    public static List<ProductBean> getTypeCommodity(int type) {
-        RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
-        List<ProductBean> productBeans = mRealmHleper.queryStoreCommodity(type);
-        return productBeans;
-    }
-
-    /**
-     * 获取所有品类的类型
-     */
-    public static List<TypeBean> getCommdityType() {
-        RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
-        List<TypeBean> typeBeans = mRealmHleper.queryCommodityTypes();
-        return typeBeans;
-    }
-
 
     /**
      * 开启摄像头参数设置
@@ -125,30 +110,6 @@ public class MyUtils {
         return productBean;
     }
 
-    /**
-     * 计算商品的总价 通过商品进行查询
-     */
-    public static double calculateTotal(List<ProductBean> preProductBeans, List<Double> preProductNumbers, List<ProductBean> productBeans, List<Double> productNumbers) {
-        double total = 0.0;
-        for (int i = 0; i < preProductBeans.size(); i++) {
-            total += preProductBeans.get(i).getPrice() * preProductNumbers.get(i);
-        }
-        for (int i = 0; i < productBeans.size(); i++) {
-            total += (Double) (productBeans.get(i).getPrice() * productNumbers.get(i));
-        }
-        return formatDouble(total);
-    }
-
-    /**
-     * 计算商品的总价 通过商品的id
-     */
-    public static double calculateTotal(List<String> productIds, List<Object> productNumbers) {
-        double total = 0.0;
-        for (int i = 0; i < productIds.size(); i++) {
-            total += MyUtils.getProductById(productIds.get(i)).getPrice() * Double.valueOf(productNumbers.get(i).toString());
-        }
-        return formatDouble(total);
-    }
 
     /**
      * 格式化时间
@@ -210,7 +171,6 @@ public class MyUtils {
     }
     public static String filter(String character)
     {
-//        character = character.replaceAll("[^(0-9\\u4e00-\\u9fa5)]", "");
         return character;
     }
     public static boolean isNumber(String str) {

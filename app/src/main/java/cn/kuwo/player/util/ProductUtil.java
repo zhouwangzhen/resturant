@@ -38,14 +38,6 @@ import io.realm.RealmObject;
 public class ProductUtil {
 
 
-    public static int getTotalNumber(List<Integer> commodityNumber) {
-        int totalNumber = 0;
-        for (int i = 0; i < commodityNumber.size(); i++) {
-            totalNumber += commodityNumber.get(i);
-        }
-        return totalNumber;
-    }
-
     public static int remainTable(List<AVObject> tableAvObject) {
         int tables = 0;
         for (int i = 0; i < tableAvObject.size(); i++) {
@@ -57,31 +49,14 @@ public class ProductUtil {
         return tables;
     }
 
-    public static double calculateTotalMoney(List<ProductBean> preProductBeans, List<Double> preProductNumbers, List<ProductBean> productBeans, List<Double> productNumbers) {
-        double total = 0.0;
-        for (int i = 0; i < preProductBeans.size(); i++) {
-            total += preProductBeans.get(i).getPrice() * preProductNumbers.get(i);
-        }
-        for (int i = 0; i < productBeans.size(); i++) {
-            total += (Double) (productBeans.get(i).getPrice() * productNumbers.get(i));
-        }
-        return MyUtils.formatDouble(total);
-    }
 
     public static double calculateTotalMoney(AVObject avObject) {
         double totalMoney = 0.0;
         List<Object> orders = avObject.getList("order");
-        List<Object> preOrders = avObject.getList("preOrder");
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             totalMoney += ObjectUtil.getDouble(format, "price");
         }
-//        for (int j = 0; j < preOrders.size(); j++) {
-//            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
-//            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-//            totalMoney += ObjectUtil.getDouble(format, "price");
-//        }
         return MyUtils.formatDouble(totalMoney);
     }
 
@@ -89,82 +64,11 @@ public class ProductUtil {
         double totalMoney = 0.0;
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
             totalMoney += ObjectUtil.getDouble(format, "price");
         }
-//        for (int j = 0; j < preOrders.size(); j++) {
-//            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
-//            ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-////            totalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-//            totalMoney += ObjectUtil.getDouble(format, "price");
-//        }
         return MyUtils.formatDouble(totalMoney);
     }
 
-    public static double calculateMinMoney(AVObject avObject) {
-        double svipTotalMoney = 0.0;
-        List<Object> orders = avObject.getList("order");
-        List<Object> preOrders = avObject.getList("preOrder");
-        for (int i = 0; i < orders.size(); i++) {
-            HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            if (ObjectUtil.getDouble(format, "price") > 0) {
-                ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                if (productBean.getScale() == 0) {
-                    if (ObjectUtil.getString(format, "barcode").length() == 18) {
-                        svipTotalMoney += ProductUtil.calCommodityMoney(ObjectUtil.getString(format, "barcode")) * ObjectUtil.getDouble(format, "number");
-                    } else {
-                        svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-                    }
-
-                } else {
-                    svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
-                }
-            }
-        }
-//        for (int j = 0; j < preOrders.size(); j++) {
-//            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
-//            if (ObjectUtil.getDouble(format, "price") > 0) {
-//                ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-//                if (productBean.getScale() == 0) {
-//                    svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-//                } else {
-//                    svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
-//                }
-//            }
-//        }
-        return MyUtils.formatDouble(svipTotalMoney);
-    }
-
-    public static double calculateMinMoney(List<Object> orders, List<Object> preOrders) {
-        double svipTotalMoney = 0.0;
-        for (int i = 0; i < orders.size(); i++) {
-            HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            if (ObjectUtil.getDouble(format, "price") > 0) {
-                ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-                if (productBean.getScale() == 0) {
-                    if (ObjectUtil.getString(format, "barcode").length() == 18) {
-                        svipTotalMoney += ProductUtil.calCommodityMoney(ObjectUtil.getString(format, "barcode")) * ObjectUtil.getDouble(format, "number");
-                    } else {
-                        svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-                    }
-                } else {
-                    svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
-                }
-            }
-        }
-//        for (int j = 0; j < preOrders.size(); j++) {
-//            HashMap<String, Object> format = ObjectUtil.format(preOrders.get(j));
-//            if (ObjectUtil.getDouble(format, "price") > 0) {
-//                ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-//                if (productBean.getScale() == 0) {
-//                    svipTotalMoney += productBean.getPrice() * ObjectUtil.getDouble(format, "number");
-//                } else {
-//                    svipTotalMoney += productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number");
-//                }
-//            }
-//        }
-        return MyUtils.formatDouble(svipTotalMoney);
-    }
 
     public static List<ProductBean> searchBySerial(String serial) {
         RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
@@ -646,7 +550,6 @@ public class ProductUtil {
                 escrowDetail.put("现金支付", actualMoney);
                 break;
             case 7:
-
                 escrowDetail.put("消费金支付", storedBalance);
                 escrowDetail.put("支付宝支付", MyUtils.formatDouble(actualMoney - storedBalance));
 
@@ -810,37 +713,6 @@ public class ProductUtil {
         return finalOrders;
     }
 
-    public static int indexOfSerial(List<Object> orders, int k) {
-        int number = 0;
-        for (int i = 0; i < orders.size(); i++) {
-            HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            int cookSerial = ObjectUtil.getInt(format, "cookSerial");
-            if (cookSerial == k) {
-                ++number;
-            }
-        }
-
-        return number;
-    }
-
-    public static int indexOfNoDrink(List<Object> orders) {
-        int number = 0;
-        for (int i = 0; i < orders.size(); i++) {
-            HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            if (MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 3 && MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 4 && MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType() != 11) {
-                if (ObjectUtil.getString(format, "barcode").length() == 18) {
-                    if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
-                        ++number;
-                    }
-
-                } else {
-                    ++number;
-                }
-
-            }
-        }
-        return number;
-    }
 
     public static int MeatOfCookRoomNum(List<Object> orders) {
         int number = 0;
@@ -877,24 +749,6 @@ public class ProductUtil {
         return number;
     }
 
-    public static int MeatOfShowRoomNum(List<Object> orders) {
-        int number = 0;
-        for (int i = 0; i < orders.size(); i++) {
-            HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
-            int type = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType();
-            if (type == 5 || type == 6 || type == 7 || type == 9) {
-                ++number;
-            }
-            if (type == 2) {
-                String serial = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getSerial();
-                if (serial.equals("501") || serial.equals("502") && serial.equals("503")) {
-                    ++number;
-                }
-
-            }
-        }
-        return number;
-    }
 
     public static int indexOfDrink(List<Object> orders) {
         int number = 0;
@@ -963,30 +817,7 @@ public class ProductUtil {
 
     }
 
-    public static void saveOperateLog(int i, List<Object> preOrders, AVObject avObject) {
-        AVObject operateLog = new AVObject("OperateLog");
-        operateLog.put("type", i);//0:下单 1:点单 2:改单 3:退单 4:结账
-        operateLog.put("store", 1);
-        operateLog.put("orderlist", preOrders);
-        operateLog.put("tableNumber", avObject.getString("tableNumber"));
-        operateLog.put("operator", AVObject.createWithoutData("_User", SharedHelper.read("cashierId")));
-        operateLog.saveInBackground(new SaveCallback() {
-            @Override
-            public void done(AVException e) {
 
-            }
-        });
-
-    }
-
-    public static boolean checkIsGive(int type) {
-        for (int i = 0; i < CONST.GIVETYPES.length; i++) {
-            if (CONST.GIVETYPES[i] == type) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     public static String calOtherTable(List<String> selectTableNumbers) {
         String content = "";
@@ -996,19 +827,6 @@ public class ProductUtil {
         return content;
     }
 
-    /**
-     * 判断是否是超牛会员订单
-     */
-    public static Boolean isRechargeSvipOrder(AVObject avObject) {
-        List<String> commoditys = avObject.getList("commodity");
-        if (commoditys.size() == 1) {
-            String id = commoditys.get(0);
-            if (id.equals(CONST.SVIPSTYLE.DATE_12_MONTH) || id.equals(CONST.SVIPSTYLE.DATE_1_MONTH)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
 
     public static List<ProductBean> getOtherGoods(int index) {
@@ -1122,17 +940,6 @@ public class ProductUtil {
         return MyUtils.formatDouble(money);
     }
 
-    public static int calExplodeNumbers(List<Object> orders) {
-        int number = 0;
-        for (int i = 0; i < orders.size(); i++) {
-            HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(i);
-            String id = ObjectUtil.getString(hashMap, "id");
-            if (Arrays.asList(CONST.COUNTIDS).contains(id)){
-                number += ObjectUtil.getDouble(hashMap, "number").intValue();
-            }
-        }
-        return number;
-    }
 
     public static Double calNbTotalMoney(List<Object> orders) {
         double totalMoney = 0.0;
@@ -1163,85 +970,4 @@ public class ProductUtil {
         return false;
     }
 
-    public static Boolean isCoolCommodity(HashMap<String, Object> format) {
-        ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-        int type = productBean.getType();
-        if (type == 3 || type == 4 || type == 5 || type == 6 || type == 11) {
-            if (ObjectUtil.getString(format, "barcode").length() == 18) {
-                if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
-                    return true;
-                }
-            }
-        } else if (type == 11 || type == 12) {
-            return false;
-        } else {
-            return true;
-        }
-        return false;
-    }
-
-    public static Boolean isShowCommodity(HashMap<String, Object> format) {
-        ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
-        int type = productBean.getType();
-        if (type == 5 || type == 6 || type == 7|| type == 9) {
-            return true;
-        } else if (type == 2) {
-            String serial = productBean.getSerial();
-            if (serial.equals("219") && serial.equals("220") && serial.equals("221") && serial.equals("223") && serial.equals("224") && serial.equals("225")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * 检查爆款西冷是否可以买
-     */
-    public static boolean checkCanBuy(List<Object> orders, UserBean userBean) {
-        double explose=0.0;
-        double normal=0.0;
-        int number = 0;
-        for (int i = 0; i < orders.size(); i++) {
-            HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(i);
-            String id = ObjectUtil.getString(hashMap, "id");
-            if (Arrays.asList(CONST.COUNTIDS).contains(id)){
-                number++;
-            }
-        }
-        if (number > 1) {
-            T.L("每个用户每天只能买一份爆款产品");
-            return false;
-        }
-        if (userBean == null && number == 1) {
-            T.L("未登陆用户不可以买爆款产品");
-            return false;
-        }
-        return true;
-
-    }
-
-    public static void addExploseRecord(List<Object> orders, UserBean userBean) {
-        int number = 0;
-        for (int i = 0; i < orders.size(); i++) {
-            HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(i);
-            String id = ObjectUtil.getString(hashMap, "id");
-            if (Arrays.asList(CONST.COUNTIDS).contains(id)){
-                number++;
-            }
-        }
-        if (number > 0) {
-            AVObject offlineExchange = new AVObject("OfflineExchange");
-            offlineExchange.put("number", number);
-            offlineExchange.put("user", AVObject.createWithoutData("_User", userBean.getId()));
-            offlineExchange.saveInBackground(new SaveCallback() {
-                @Override
-                public void done(AVException e) {
-                    if (e == null) {
-
-                    }
-                }
-            });
-        }
-
-    }
 }

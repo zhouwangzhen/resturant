@@ -205,82 +205,6 @@ public class DataUtil {
         return new RetailBean(ids, codes, prices, weight, name);
     }
 
-    /**
-     * @param preOrders    预下单订单
-     * @param event        修改商品的信息
-     * @param mode         模式
-     * @param isEdit       是否是修改模式
-     * @param OriginNumber 原订单数量
-     */
-    public static void additionalCharge(List<Object> preOrders, ComboEvent event, int mode, boolean isEdit, int OriginNumber) {
-        if (!isEdit) {
-            if (!event.getCookStyle().equals("")) {
-                if (QueryUtil.findMachine(preOrders) == 0) {
-                    HashMap<String, Object> hashMap = new HashMap<>();
-                    RealmHelper realmHelper = new RealmHelper(MyApplication.getContextObject());
-                    List<ProductBean> productBeans = realmHelper.queryAdditionals();
-                    if (productBeans.size() > 0) {
-                        ProductBean productBean = productBeans.get(0);
-                        hashMap.put("id", productBean.getObjectId());
-                        hashMap.put("number", event.getCommodityNumber());
-                        hashMap.put("comment", "");
-                        hashMap.put("name", productBean.getName());
-                        hashMap.put("weight", 0);
-                        if (mode == 1) {
-                            hashMap.put("price", 0);
-                        } else {
-                            hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber()));
-                        }
-                        hashMap.put("barcode", productBean.getCode());
-                        hashMap.put("mode", "mode");
-                        hashMap.put("cookSerial", "");
-                        hashMap.put("cookStyle", "");
-                        hashMap.put("comboList", new ArrayList<Object>());
-                        preOrders.add(hashMap);
-                    }
-                } else {
-                    for (Object o : preOrders) {
-                        HashMap<String, Object> map = (HashMap<String, Object>) o;
-                        if (ObjectUtil.getString(map, "id").equals(CONST.MACHINEID)) {
-                            map.put("number", ObjectUtil.getDouble(map, "number") + event.getCommodityNumber());
-                            if (mode == 1) {
-                                map.put("price", ObjectUtil.getDouble(map, "price") + 0);
-                            } else {
-                                map.put("price", MyUtils.formatDouble(ObjectUtil.getDouble(map, "price") * event.getCommodityNumber()));
-                            }
-                            return;
-                        }
-                    }
-                }
-
-            }
-        } else {
-            if (!event.getCookStyle().equals("")) {
-                int cookMeatNumber = QueryUtil.findCookMeatNumber(preOrders);
-                Logger.d(event.getCommodityNumber());
-                if (event.getCommodityNumber() > 0) {
-                    for (Object o : preOrders) {
-                        HashMap<String, Object> map = (HashMap<String, Object>) o;
-                        if (ObjectUtil.getString(map, "id").equals(CONST.MACHINEID)) {
-                            if (ObjectUtil.getDouble(map, "price") != 0) {
-                                double price = ObjectUtil.getDouble(map, "price") - ((OriginNumber - event.getCommodityNumber()) * 30);
-                                map.put("price", MyUtils.formatDouble(price > 0 ? price : 0));
-                            }
-                            map.put("number", cookMeatNumber);
-                        }
-                    }
-                } else {
-                    for (Object o : preOrders) {
-                        HashMap<String, Object> map = (HashMap<String, Object>) o;
-                        if (ObjectUtil.getString(map, "id").equals(CONST.MACHINEID)) {
-                            preOrders.remove(map);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     public static String JSONTokener(String str_json) {
         // consume an optional byte order mark (BOM) if it exists
         if (str_json != null && str_json.startsWith("\ufeff")) {
@@ -334,18 +258,6 @@ public class DataUtil {
             hashMap.put("price", MyUtils.formatDouble(98*v));
             hashMap.put("nb", MyUtils.formatDouble(98*v));
         }
-        avObject.put("order", orders);
-        avObject.saveInBackground(new SaveCallback() {
-            @Override
-            public void done(AVException e) {
-                Logger.d("修改成功");
-            }
-        });
-    }
-    public static void changeAnniversaryNumber(AVObject avObject, List<Object> orders, int postion) {
-        HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(orders.size() - postion - 1);
-        hashMap.put("price",0);
-        hashMap.put("nb", 0);
         avObject.put("order", orders);
         avObject.saveInBackground(new SaveCallback() {
             @Override

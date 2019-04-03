@@ -6,21 +6,6 @@ package cn.kuwo.player.service.entity;
 public class NbRechargeLog {
 
 
-    /**
-     * amount : 233
-     * cashier : {"real_name":"张睿提","username":"13791000673"}
-     * cashier_id : 5655460f00b0bf379ee81d75
-     * created_at : 1530527298
-     * message : {}
-     * operator_id : 5a27ba4a1579a30062c826bf
-     * salesman : null
-     * salesman_id : null
-     * status : 2
-     * store : 2
-     * target_user : {"real_name":"张睿提","username":"13791000673"}
-     * target_user_id : 5655460f00b0bf379ee81d75
-     * updated_at : 1530527298
-     */
     private Double acctually_paid;
     private Double amount;
     private CashierBean cashier;
@@ -246,10 +231,7 @@ public class NbRechargeLog {
     }
 
     public static class TargetUserBean {
-        /**
-         * real_name : 张睿提
-         * username : 13791000673
-         */
+
 
         private String real_name;
         private String username;

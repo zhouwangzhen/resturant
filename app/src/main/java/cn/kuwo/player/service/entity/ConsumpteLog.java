@@ -8,12 +8,6 @@ import java.util.List;
 public class ConsumpteLog {
 
 
-    /**
-     * consumption_count : 274
-     * last_store_order : {"commodity":["5b2878492f301e0035212806"],"commodityDetail":[{"id":"5b2878492f301e0035212806","name":"Q弹牛肉粒","nb":40.8,"number":1,"price":68,"weight":0}],"createdAt":"2018-07-19T11:34:32.510000+08:00"}
-     * top_three_store_commodities : ["澳洲安格斯谷饲西冷(爆款)","晚上单人套餐","中午单人套餐A"]
-     */
-
     private int consumption_count;
     private LastStoreOrderBean last_store_order;
     private List<String> top_three_store_commodities;

@@ -160,7 +160,6 @@ public class OrderFg extends BaseFragment {
     private List<Object> orders = new ArrayList<>();
     private List<Object> preOrders = new ArrayList<>();
     private List<Object> initializePreOrders = new ArrayList<>();
-    private AVLiveQuery avLiveQuery;
 
     LinearLayoutManager linearLayoutManager;
     ScanGoodAdapter scanGoodAdapter;
@@ -383,7 +382,7 @@ public class OrderFg extends BaseFragment {
                     if (productBeans.size() > 0) {
                         editMemberAmount.setText("");
                         ProductBean productBean = productBeans.get(0);
-                        if (!ProductUtil.checkIsGive(productBean.getType()) || (ProductUtil.checkIsGive(productBean.getType()) && tableAVObject.getAVObject("user") != null)) {
+                        if (tableAVObject.getAVObject("user") != null) {
                             ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(MyApplication.getContextObject(), productBean, false, productBean.getCode());
                             showComboMenuFragment.show(getActivity().getFragmentManager(), "showcomboMenu");
                         } else {
@@ -489,13 +488,6 @@ public class OrderFg extends BaseFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (avLiveQuery != null) {
-            avLiveQuery.unsubscribeInBackground(new AVLiveQuerySubscribeCallback() {
-                @Override
-                public void done(AVException e) {
-                }
-            });
-        }
         EventBus.getDefault().unregister(this);
         EventBus.getDefault().post(new ClearEvent(0));
         if (tableAVObject != null && preOrders.size() == 0 && orders.size() == 0) {

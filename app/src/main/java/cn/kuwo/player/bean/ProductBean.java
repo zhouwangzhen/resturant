@@ -12,8 +12,8 @@ import io.realm.RealmObject;
 import io.realm.annotations.RealmField;
 
 public class ProductBean extends RealmObject implements Serializable {
-    private String name;//品名
-    private String code;//编码
+    private String name;//商品品名
+    private String code;//商品编码,承重的商品为5位,不称重的为条形码编码
     private double price;//价格
     private double weight;//重量
     private String objectId;//id

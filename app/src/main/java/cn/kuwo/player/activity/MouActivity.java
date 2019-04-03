@@ -48,7 +48,6 @@ public class MouActivity extends BaseActivity {
     Button activeMou;
     @BindView(R.id.tv_back)
     LinearLayout tvBack;
-    private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private Context mContext;
 
     @Override

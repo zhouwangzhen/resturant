@@ -14,12 +14,6 @@ import cn.kuwo.player.util.DateUtil;
 public class MallGoldLogApi {
     public static AVQuery<AVObject> finalAllMallGold(Date date){
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            Long time = date.getTime();
-            Long nextTime = time + 24 * 60 * 60 * 1000;
-            String d = sdf.format(nextTime);
-            Date nextDate = null;
-            nextDate = sdf.parse(d);
             AVQuery<AVObject> mallGoldLog = new AVQuery<>("MallGoldLog");
             mallGoldLog.whereEqualTo("store",1);
             List<AVObject> testUsers = new ArrayList<>();

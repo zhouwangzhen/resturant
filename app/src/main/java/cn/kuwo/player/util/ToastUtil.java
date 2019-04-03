@@ -10,7 +10,6 @@ public class ToastUtil {
     private static boolean isShow = true;//默认显示
     private static Toast mToast = null;//全局唯一的Toast
 
-    /*private控制不应该被实例化*/
     private ToastUtil() {
         throw new UnsupportedOperationException("不能被实例化");
     }

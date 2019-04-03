@@ -56,8 +56,8 @@ public class RightMenuAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = View.inflate(context, R.layout.item_right_commodity, null);
             viewHolder = new ViewHolder();
-            viewHolder.gridView = (GridViewForScrollView) convertView.findViewById(R.id.gridView);
-            viewHolder.blank = (TextView) convertView.findViewById(R.id.blank);
+            viewHolder.gridView = convertView.findViewById(R.id.gridView);
+            viewHolder.blank = convertView.findViewById(R.id.blank);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();

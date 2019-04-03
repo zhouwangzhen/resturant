@@ -5,17 +5,6 @@ package cn.kuwo.player.service.entity;
  */
 public class SignLog {
 
-    /**
-     * amount : 1
-     * created_at : 1532413479
-     * message : {}
-     * status : 2
-     * store : 2
-     * target_user : {"id":"5655460f00b0bf379ee81d75","real_name":"张睿提","username":"13791000673"}
-     * target_user_id : 5655460f00b0bf379ee81d75
-     * updated_at : 1532413479
-     */
-
     private int amount;
     private int created_at;
     private MessageBean message;
@@ -93,11 +82,7 @@ public class SignLog {
     }
 
     public static class TargetUserBean {
-        /**
-         * id : 5655460f00b0bf379ee81d75
-         * real_name : 张睿提
-         * username : 13791000673
-         */
+
 
         private String id;
         private String real_name;

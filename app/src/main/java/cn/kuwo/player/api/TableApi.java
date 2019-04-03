@@ -1,10 +1,6 @@
 package cn.kuwo.player.api;
 
-import android.widget.TextView;
-
-import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
-import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 
 import java.util.ArrayList;
@@ -18,7 +14,6 @@ import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
-import cn.kuwo.player.util.QueryUtil;
 import cn.kuwo.player.util.SharedHelper;
 
 public class TableApi {
@@ -157,19 +152,6 @@ public class TableApi {
         }
         tableAVObject.put("order", orders);
         tableAVObject.put("refundOrder", refundOrders);
-//        List alreadyOrders = tableAVObject.getList("order");
-//        for (Object o : alreadyOrders) {
-//            HashMap<String, Object> map = (HashMap<String, Object>) o;
-//            if (ObjectUtil.getString(map, "id").equals(CONST.MACHINEID)) {
-//                if (ObjectUtil.getDouble(map, "number") <= refundNumber) {
-//                    alreadyOrders.remove(map);
-//                } else {
-//                    map.put("number", ObjectUtil.getDouble(map, "number") - refundNumber);
-//                    map.put("price", MyUtils.formatDouble((ObjectUtil.getDouble(map, "number") - refundNumber) * 30));
-//                }
-//
-//            }
-//        }
         return tableAVObject;
     }
 

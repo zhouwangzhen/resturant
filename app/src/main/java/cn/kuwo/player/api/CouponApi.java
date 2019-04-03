@@ -6,12 +6,14 @@ import com.avos.avoscloud.AVQuery;
 import java.util.ArrayList;
 import java.util.Date;
 
+import cn.kuwo.player.util.CONST;
+
 public class CouponApi {
     public static AVQuery<AVObject> getCouponOffline(){
         AVQuery<AVObject> coupon = new AVQuery<>("Coupon");
         coupon.whereEqualTo("active", 1);
         coupon.include("type");
-        coupon.whereEqualTo("username", "13888888888");
+        coupon.whereEqualTo("username", CONST.SYSTEM_ADMIN_TEL);
         return coupon;
 
     }

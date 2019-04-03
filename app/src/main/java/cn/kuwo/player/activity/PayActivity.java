@@ -133,7 +133,6 @@ public class PayActivity extends BaseActivity {
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private Context mContext;
 
-    private String tableId = "";
     private String ensureContent = "";
     private String orderId = "";
 
@@ -277,7 +276,6 @@ public class PayActivity extends BaseActivity {
                     } catch (JSONException e1) {
                         e1.printStackTrace();
                     }
-                    checkExplode();
                     mallOrder.saveInBackground(new SaveCallback() {
                         @Override
                         public void done(AVException e) {
@@ -302,35 +300,8 @@ public class PayActivity extends BaseActivity {
         });
     }
 
-    private void checkExplode() {
-        if (!SharedHelper.readBoolean("Test")) {
-            final int explodeNumber = ProductUtil.calExplodeNumbers(orderDetail.getOrders());
-            if (explodeNumber> 0) {
-                final AVQuery<AVObject> query = new AVQuery<>("OffineControl");
-                query.whereEqualTo("store", 1);
-                query.findInBackground(new FindCallback<AVObject>() {
-                    @Override
-                    public void done(List<AVObject> list, AVException e) {
-                        if (e == null) {
-                            AVObject avObject = list.get(0);
-                            avObject.put("number", avObject.getInt("number") + explodeNumber);
-                            avObject.saveInBackground(new SaveCallback() {
-                                @Override
-                                public void done(AVException e) {
-                                    if (e != null) {
-                                        checkExplode();
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
-            }
-        }
-    }
 
     private void resetTable() {
-        ProductUtil.addExploseRecord(orderDetail.getOrders(),orderDetail.getUserBean());
         if (getIntent().getBooleanExtra("isHangUp", false)) {
             AVQuery<AVObject> query = new AVQuery<>("HangUpOrder");
             query.getInBackground(getIntent().getStringExtra("hangUpId"), new GetCallback<AVObject>() {
@@ -484,7 +455,6 @@ public class PayActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // TODO: add setContentView(...) invocation
         ButterKnife.bind(this);
     }
 
@@ -510,9 +480,9 @@ public class PayActivity extends BaseActivity {
             if (view == null) {
                 view = LayoutInflater.from(MyApplication.getContextObject()).inflate(R.layout.adapter_payment, parent, false);
                 holder = new ViewHolder();
-                holder.pay_money = (TextView) view.findViewById(R.id.pay_money);
-                holder.cb_pay_name = (TextView) view.findViewById(R.id.cb_pay_name);
-                holder.image_avatar = (TextView) view.findViewById(R.id.image_avatar);
+                holder.pay_money = view.findViewById(R.id.pay_money);
+                holder.cb_pay_name =  view.findViewById(R.id.cb_pay_name);
+                holder.image_avatar =  view.findViewById(R.id.image_avatar);
 
                 view.setTag(holder);
             } else {
