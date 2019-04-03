@@ -495,6 +495,10 @@ public class ProductUtil {
                 title.setText("浦发信用卡支付");
                 money.setText("浦发信用卡" + orderDetail.getActualMoney() + "元");
                 break;
+            case 26:
+                title.setText("互动吧支付");
+                money.setText("互动吧支付" + orderDetail.getActualMoney() + "元");
+                break;
         }
     }
 
@@ -564,7 +568,9 @@ public class ProductUtil {
             case 22:
                 content = "浦发信用卡支付余下的" + actual + "元成功？";
                 break;
-
+            case 26:
+                content = "互动吧支付" + actual + "元成功？";
+                break;
 
         }
         return "确认使用" + content;
@@ -706,6 +712,9 @@ public class ProductUtil {
             case 22:
                 escrowDetail.put("浦发信用卡银行支付", actualMoney);
                 break;
+            case 26:
+                escrowDetail.put("互动吧支付", actualMoney);
+                break;
 
         }
         return escrowDetail;
@@ -768,7 +777,7 @@ public class ProductUtil {
                 finalPrice = showprice;
             }
             return MyUtils.formatDouble(finalPrice);
-        } else if (barcode.length() == 13 || barcode.length() == 8) {
+        } else if (barcode.length() == 13 || barcode.length() == 8||barcode.length()==10) {
             return mRealmHleper.queryProductByBarcode(barcode).get(0).getPrice();
         } else {
             return 0.0;
@@ -838,16 +847,15 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             int type = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType();
-            if (type == 3 || type == 4 || type == 5 || type == 6 || type == 7) {
-                if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+            if ( type == 5 || type == 6 || type == 7|| type == 9) {
                     number++;
-                }
+            } else if (type == 11 || type == 12||type == 3 || type == 4) {
+
             } else {
                 number++;
             }
         }
 
-        Logger.d(number);
         return number;
     }
 
@@ -860,6 +868,8 @@ public class ProductUtil {
                 if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
                     number++;
                 }
+            } else if (type == 11 || type == 12) {
+
             } else {
                 number++;
             }
@@ -872,8 +882,15 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> format = ObjectUtil.format(orders.get(i));
             int type = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getType();
-            if (type == 5 || type == 6 || type == 7) {
+            if (type == 5 || type == 6 || type == 7 || type == 9) {
                 ++number;
+            }
+            if (type == 2) {
+                String serial = MyUtils.getProductById(ObjectUtil.getString(format, "id")).getSerial();
+                if (serial.equals("501") || serial.equals("502") && serial.equals("503")) {
+                    ++number;
+                }
+
             }
         }
         return number;
@@ -1110,7 +1127,7 @@ public class ProductUtil {
         for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(i);
             String id = ObjectUtil.getString(hashMap, "id");
-            if (id.equals(CONST.EXPLODEID)) {
+            if (Arrays.asList(CONST.COUNTIDS).contains(id)){
                 number += ObjectUtil.getDouble(hashMap, "number").intValue();
             }
         }
@@ -1129,12 +1146,17 @@ public class ProductUtil {
     public static Boolean isCookCommodity(HashMap<String, Object> format) {
         ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
         int type = productBean.getType();
-        if (type == 3 || type == 4 || type == 5 || type == 6 || type == 11) {
+        if (type == 3 || type == 4 || type == 5 || type == 6) {
             if (ObjectUtil.getString(format, "barcode").length() == 18) {
-                if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
+                    return true;
+            } else if (type == 5) {
+                String serial = productBean.getSerial();
+                if (null!=serial) {
                     return true;
                 }
             }
+        } else if (type == 11 || type == 12) {
+            return false;
         } else {
             return true;
         }
@@ -1145,15 +1167,29 @@ public class ProductUtil {
         ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
         int type = productBean.getType();
         if (type == 3 || type == 4 || type == 5 || type == 6 || type == 11) {
-            Logger.d(ObjectUtil.getString(format, "barcode").length());
-            Logger.d(ObjectUtil.getString(format, "cookStyle").equals(""));
             if (ObjectUtil.getString(format, "barcode").length() == 18) {
                 if (!ObjectUtil.getString(format, "cookStyle").equals("")) {
                     return true;
                 }
             }
+        } else if (type == 11 || type == 12) {
+            return false;
         } else {
             return true;
+        }
+        return false;
+    }
+
+    public static Boolean isShowCommodity(HashMap<String, Object> format) {
+        ProductBean productBean = MyUtils.getProductById(ObjectUtil.getString(format, "id"));
+        int type = productBean.getType();
+        if (type == 5 || type == 6 || type == 7|| type == 9) {
+            return true;
+        } else if (type == 2) {
+            String serial = productBean.getSerial();
+            if (serial.equals("219") && serial.equals("220") && serial.equals("221") && serial.equals("223") && serial.equals("224") && serial.equals("225")) {
+                return true;
+            }
         }
         return false;
     }
@@ -1161,21 +1197,22 @@ public class ProductUtil {
     /**
      * 检查爆款西冷是否可以买
      */
-    public static boolean checkCanBuy(List<Object> orders,UserBean userBean) {
-
-        int number=0;
-        for (int i=0;i<orders.size();i++){
+    public static boolean checkCanBuy(List<Object> orders, UserBean userBean) {
+        double explose=0.0;
+        double normal=0.0;
+        int number = 0;
+        for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(i);
             String id = ObjectUtil.getString(hashMap, "id");
-            if (id.equals(CONST.EXPLODEID)){
+            if (Arrays.asList(CONST.COUNTIDS).contains(id)){
                 number++;
             }
         }
-        if (number>1){
+        if (number > 1) {
             T.L("每个用户每天只能买一份爆款产品");
             return false;
         }
-        if (userBean==null){
+        if (userBean == null && number == 1) {
             T.L("未登陆用户不可以买爆款产品");
             return false;
         }
@@ -1183,23 +1220,23 @@ public class ProductUtil {
 
     }
 
-    public static void addExploseRecord(List<Object> orders,UserBean userBean){
-        int number=0;
-        for (int i=0;i<orders.size();i++){
+    public static void addExploseRecord(List<Object> orders, UserBean userBean) {
+        int number = 0;
+        for (int i = 0; i < orders.size(); i++) {
             HashMap<String, Object> hashMap = (HashMap<String, Object>) orders.get(i);
             String id = ObjectUtil.getString(hashMap, "id");
-            if (id.equals(CONST.EXPLODEID)){
+            if (Arrays.asList(CONST.COUNTIDS).contains(id)){
                 number++;
             }
         }
-        if (number>0){
+        if (number > 0) {
             AVObject offlineExchange = new AVObject("OfflineExchange");
-            offlineExchange.put("number",number);
-            offlineExchange.put("user",AVObject.createWithoutData("_User",userBean.getId()));
+            offlineExchange.put("number", number);
+            offlineExchange.put("user", AVObject.createWithoutData("_User", userBean.getId()));
             offlineExchange.saveInBackground(new SaveCallback() {
                 @Override
                 public void done(AVException e) {
-                    if (e==null){
+                    if (e == null) {
 
                     }
                 }

@@ -2,4 +2,16 @@
     <string name="app_name">assistant</string>
     <string name="cancel">取消</string>
     <string name="submit">确定</string>
+    <string name="menu_retail">零售结账</string>
+    <string name="menu_orderlist">查看订单</string>
+    <string name="menu_store_recharge">消费金充值</string>
+    <string name="menu_nb_recharge">牛币充值</string>
+    <string name="menu_setting">设置</string>
+    <string name="menu_print">打印机连接</string>
+    <string name="menu_commodity">菜品信息</string>
+    <string name="menu_assist">辅助功能</string>
+    <string name="menu_coupon">兑换券兑换</string>
+    <string name="menu_anniversary">周年庆活动</string>
+    <string name="menu_check_upgrade">检测更新</string>
+
 </resources>

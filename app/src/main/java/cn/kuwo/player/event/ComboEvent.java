@@ -1,8 +1,10 @@
 package cn.kuwo.player.event;
 
+import java.util.HashMap;
 import java.util.List;
 
 import cn.kuwo.player.bean.ProductBean;
+import cn.kuwo.player.bean.entity.SideDishEntity;
 
 public class ComboEvent {
     private ProductBean productBean;
@@ -15,8 +17,11 @@ public class ComboEvent {
     private String barcode;
     private String cookStyle;
     private int OriginNumber;
+    private SideDishEntity sideDish;
+    private Double sideDishPrice;
+    private int sideDishIndex;
 
-    public ComboEvent(ProductBean productBean, List<String> comboList,int cookSerial,String content,Double CommodityNumber,Boolean isEdit,int orderIndex,String barcode,String cookStyle,int OriginNumber) {
+    public ComboEvent(ProductBean productBean, List<String> comboList,int cookSerial,String content,Double CommodityNumber,Boolean isEdit,int orderIndex,String barcode,String cookStyle,int OriginNumber,SideDishEntity sideDish,Double sideDishPrice,int sideDishIndex) {
         this.productBean = productBean;
         this.comboList = comboList;
         this.cookSerial = cookSerial;
@@ -27,6 +32,9 @@ public class ComboEvent {
         this.barcode=barcode;
         this.cookStyle=cookStyle;
         this.OriginNumber=OriginNumber;
+        this.sideDish=sideDish;
+        this.sideDishPrice=sideDishPrice;
+        this.sideDishIndex=sideDishIndex;
     }
 
     public ProductBean getProductBean() {
@@ -109,6 +117,30 @@ public class ComboEvent {
         OriginNumber = originNumber;
     }
 
+    public SideDishEntity getSideDish() {
+        return sideDish;
+    }
+
+    public void setSideDish(SideDishEntity sideDish) {
+        this.sideDish = sideDish;
+    }
+
+    public Double getSideDishPrice() {
+        return sideDishPrice;
+    }
+
+    public void setSideDishPrice(Double sideDishPrice) {
+        this.sideDishPrice = sideDishPrice;
+    }
+
+    public int getSideDishIndex() {
+        return sideDishIndex;
+    }
+
+    public void setSideDishIndex(int sideDishIndex) {
+        this.sideDishIndex = sideDishIndex;
+    }
+
     @Override
     public String toString() {
         return "ComboEvent{" +
@@ -121,6 +153,10 @@ public class ComboEvent {
                 ", orderIndex=" + orderIndex +
                 ", barcode='" + barcode + '\'' +
                 ", cookStyle='" + cookStyle + '\'' +
+                ", OriginNumber=" + OriginNumber +
+                ", sideDish=" + sideDish +
+                ", sideDishPrice=" + sideDishPrice +
+                ", sideDishIndex=" + sideDishIndex +
                 '}';
     }
 }

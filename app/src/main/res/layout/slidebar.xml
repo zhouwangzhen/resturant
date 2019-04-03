@@ -61,7 +61,6 @@
         android:overScrollMode="never"
         android:scrollbars="none" />
 
-    <!--<include layout="@layout/line_horizontal" />-->
 
     <ScrollView
         android:layout_width="match_parent"
@@ -74,113 +73,57 @@
             android:orientation="vertical">
             <TextView
                 android:id="@+id/menu_retail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_retail_nor"
-                android:drawablePadding="10dp"
-                android:gravity="center_vertical"
-                android:padding="10dp"
-                android:text="零售结账"
-                android:layout_marginTop="30dp"
-                android:textColor="@color/purple" />
+                style="@style/slidebar"
+                android:text="@string/menu_retail"
+                android:layout_marginTop="30dp" />
 
             <TextView
                 android:id="@+id/menu_order"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_order_nor"
-                android:drawablePadding="10dp"
-                android:gravity="center_vertical"
-                android:padding="10dp"
-                android:text="查看订单"
-                android:textColor="@color/purple" />
-
-            <TextView
-                android:id="@+id/menu_svip"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_svip_nor"
-                android:drawablePadding="10dp"
-                android:gravity="center_vertical"
-                android:padding="10dp"
-                android:text="充值超牛会员"
-                android:textColor="@color/purple" />
-
+                style="@style/slidebar"
+                android:text="@string/menu_orderlist"/>
 
             <TextView
                 android:id="@+id/menu_stored"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_recharge"
-                android:drawablePadding="10dp"
-                android:gravity="center_vertical"
-                android:padding="10dp"
-                android:textSize="14sp"
-                android:text="消费金充值"
-                android:textColor="@color/purple" />
+                style="@style/slidebar"
+                android:text="@string/menu_store_recharge"/>
             <TextView
                 android:id="@+id/menu_nb"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_recharge"
-                android:drawablePadding="10dp"
-                android:gravity="center_vertical"
-                android:padding="10dp"
-                android:textSize="14sp"
-                android:text="牛币充值"
-                android:textColor="@color/purple" />
+                style="@style/slidebar"
+                android:text="@string/menu_nb_recharge"/>
 
             <TextView
                 android:id="@+id/menu_update"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_update_nor"
-                android:drawablePadding="10dp"
-                android:gravity="center_vertical"
-                android:padding="10dp"
-                android:textSize="14sp"
-                android:text="设置"
-                android:textColor="@color/purple" />
+                style="@style/slidebar"
+                android:text="@string/menu_setting"/>
             <TextView
                 android:id="@+id/menu_print"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_print_nor"
-                android:drawablePadding="10dp"
-                android:gravity="center_vertical"
-                android:padding="10dp"
-                android:text="打印机连接"
-                android:textColor="@color/purple" />
+                style="@style/slidebar"
+                android:text="@string/menu_print"/>
             <TextView
                 android:id="@+id/menu_commodity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_menu_nor"
-                android:drawablePadding="10dp"
-                android:gravity="center_vertical"
-                android:padding="10dp"
-                android:text="菜品信息"
-                android:textColor="@color/purple" />
+                style="@style/slidebar"
+                android:text="@string/menu_commodity"/>
             <TextView
-                android:id="@+id/menu_inventory"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_inventory"
-                android:drawablePadding="10dp"
-                android:gravity="center_vertical"
-                android:padding="10dp"
-                android:text="库存盘点"
-                android:textColor="@color/purple" />
+                android:id="@+id/menu_activity"
+                style="@style/slidebar"
+                android:text="@string/menu_assist"/>
+            <TextView
+                android:id="@+id/menu_coupon"
+                style="@style/slidebar"
+                android:text="@string/menu_coupon"/>
+            <TextView
+                android:id="@+id/menu_mou"
+                style="@style/slidebar"
+                android:visibility="gone"
+                android:text="激活牛只"/>
+            <TextView
+                android:id="@+id/menu_credit"
+                style="@style/slidebar"
+                android:text="@string/menu_anniversary"/>
             <TextView
                 android:id="@+id/menu_update_info"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/icon_update_data"
-                android:drawablePadding="10dp"
-                android:gravity="center_vertical"
-                android:padding="10dp"
-                android:text="检测是否最新数据"
-                android:textColor="@color/purple" />
+                style="@style/slidebar"
+                android:text="@string/menu_check_upgrade" />
 
         </LinearLayout>
     </ScrollView>
@@ -204,7 +147,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
-            android:text="服务人员请先登录"
+            android:text="收银人员请先登录"
             android:textColor="@color/purple" />
     </LinearLayout>
 

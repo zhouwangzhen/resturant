@@ -49,7 +49,11 @@ public class ShowRetailAdapter extends RecyclerView.Adapter<ShowRetailAdapter.My
         }
         String nbContent="";
         if (productBean.getType()==6||productBean.getType()==7){
-            nbContent="牛币价："+MyUtils.formatDouble(price* CONST.NB.MEATDiSCOUNT);
+            if (productBean.getNbDiscountType()==2){
+                nbContent="牛币价："+MyUtils.formatDouble(weight*productBean.getNbDiscountPrice());
+            }else{
+                nbContent="牛币价："+MyUtils.formatDouble(price* CONST.NB.MEATDiSCOUNT);
+            }
         }else if(productBean.getType()==9){
             nbContent="牛币价："+MyUtils.formatDouble(price);
         }else{

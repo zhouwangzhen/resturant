@@ -101,6 +101,9 @@ public class PayInfoUtil {
             case 22:
                 escrowDetail.put("浦发信用卡银行支付", actualMoney);
                 break;
+            case 26:
+                escrowDetail.put("互动吧支付", actualMoney);
+                break;
 
         }
         return escrowDetail;

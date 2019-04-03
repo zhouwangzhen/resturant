@@ -112,6 +112,15 @@ public class RealmHelper {
         RealmResults<ProductBean> productBeans = mRealm.where(ProductBean.class).equalTo("active",1).equalTo("serial", serial).findAll();
         return mRealm.copyFromRealm(productBeans);
     }
+
+    public List<ProductBean>  queryCommodityByStyle(int type) {
+        RealmResults<ProductBean> productBeans = mRealm.where(ProductBean.class).equalTo("active",1).equalTo("type", type).isNotNull("serial").findAll();
+        return mRealm.copyFromRealm(productBeans);
+    }
+    public List<ProductBean>  queryCommodityByClassify(int type) {
+        RealmResults<ProductBean> productBeans = mRealm.where(ProductBean.class).equalTo("active",1).equalTo("classify", type).isNotNull("serial").findAll();
+        return mRealm.copyFromRealm(productBeans);
+    }
     public List<RuleBean> queryAllRule() {
         RealmResults<RuleBean> ruleBean = mRealm.where(RuleBean.class).findAll();
         return mRealm.copyFromRealm(ruleBean);

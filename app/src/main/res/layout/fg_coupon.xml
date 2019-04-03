@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/blue"
+        android:gravity="center"
+        android:text="兑换券兑换"
+        android:textColor="@color/white" />
+
+    <LinearLayout
+        android:id="@+id/ll_no_user"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableTop="@drawable/icon_code" />
+
+        <Button
+            android:id="@+id/btn_scan_user"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="点击此按钮后扫描客户订单中二维码进行兑换" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/reset_data"
+        android:padding="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:text="重置"/>
+</LinearLayout>

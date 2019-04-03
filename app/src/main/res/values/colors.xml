@@ -25,4 +25,7 @@
     <color name="app_color_blue_2">#0ecc99</color>
     <color name="app_color_blue_2_disabled">#7F31BDF3</color>
     <color name="app_color_blue_2_pressed">#5A9AEF</color>
+
+    <color name="green">#FF34A350</color>
+    <color name="background">#f1f1f1</color>
 </resources>

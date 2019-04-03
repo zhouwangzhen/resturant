@@ -1,10 +1,15 @@
 package cn.kuwo.player.bean;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import cn.kuwo.player.bean.entity.SideDishEntity;
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.RealmField;
 
 public class ProductBean extends RealmObject implements Serializable {
     private String name;//品名
@@ -27,9 +32,16 @@ public class ProductBean extends RealmObject implements Serializable {
     private String comboMenu;//套餐内容
     private int active;//是否显示
     private RealmList<String> comments;//备注提示
-    private int giveRule;
+    private int giveRule;//不同类型的会员赠送规则
     private Double nb;//牛币
     private String reviewCommodity;//大众点评赠送的商品
+    private boolean merge;//是否可以合并
+    private int classify;//点餐分类
+    private RealmList<SideDishEntity> sidedish;
+    private int nbDiscountType;
+    private Double nbDiscountRate;
+    private Double nbDiscountPrice;
+    private String special;
 
     public String getCode() {
         return code;
@@ -215,6 +227,62 @@ public class ProductBean extends RealmObject implements Serializable {
         this.reviewCommodity = reviewCommodity;
     }
 
+    public boolean isMerge() {
+        return merge;
+    }
+
+    public void setMerge(boolean merge) {
+        this.merge = merge;
+    }
+
+    public int getClassify() {
+        return classify;
+    }
+
+    public void setClassify(int classify) {
+        this.classify = classify;
+    }
+
+    public RealmList<SideDishEntity> getSidedish() {
+        return sidedish;
+    }
+
+    public void setSidedish(RealmList<SideDishEntity> sidedish) {
+        this.sidedish = sidedish;
+    }
+
+    public int getNbDiscountType() {
+        return nbDiscountType;
+    }
+
+    public void setNbDiscountType(int nbDiscountType) {
+        this.nbDiscountType = nbDiscountType;
+    }
+
+    public Double getNbDiscountRate() {
+        return nbDiscountRate;
+    }
+
+    public void setNbDiscountRate(Double nbDiscountRate) {
+        this.nbDiscountRate = nbDiscountRate;
+    }
+
+    public Double getNbDiscountPrice() {
+        return nbDiscountPrice;
+    }
+
+    public void setNbDiscountPrice(Double nbDiscountPrice) {
+        this.nbDiscountPrice = nbDiscountPrice;
+    }
+
+    public String getSpecial() {
+        return special;
+    }
+
+    public void setSpecial(String special) {
+        this.special = special;
+    }
+
     @Override
     public String toString() {
         return "ProductBean{" +
@@ -241,6 +309,12 @@ public class ProductBean extends RealmObject implements Serializable {
                 ", giveRule=" + giveRule +
                 ", nb=" + nb +
                 ", reviewCommodity='" + reviewCommodity + '\'' +
+                ", merge=" + merge +
+                ", classify=" + classify +
+                ", sidedish=" + sidedish +
+                ", nbDiscountType=" + nbDiscountType +
+                ", nbDiscountRate=" + nbDiscountRate +
+                ", nbDiscountPrice=" + nbDiscountPrice +
                 '}';
     }
 }

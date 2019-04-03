@@ -197,6 +197,36 @@
                         android:text="加工费"
                         android:textColor="#000000"
                         android:textSize="22sp" />
+                    <RadioButton
+                        android:id="@+id/goods_other"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:checked="true"
+                        android:padding="6dp"
+                        android:text="周边商品"
+                        android:textColor="#000000"
+                        android:textSize="22sp" />
+                    <RadioButton
+                        android:id="@+id/nb_card"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:checked="true"
+                        android:padding="6dp"
+                        android:text="牛币实体卡"
+                        android:textColor="#000000"
+                        android:textSize="22sp" />
+                    <RadioButton
+                        android:id="@+id/goods_bbq"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:checked="true"
+                        android:padding="6dp"
+                        android:text="烤串"
+                        android:textColor="#000000"
+                        android:textSize="22sp" />
                 </cn.kuwo.player.custom.FlowRadioGroup>
 
                 <android.support.v7.widget.RecyclerView

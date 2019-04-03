@@ -10,9 +10,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVException;
@@ -23,10 +23,7 @@ import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
-import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +31,6 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import cn.kuwo.player.MainActivity;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.api.HangUpApi;
@@ -58,9 +54,11 @@ public class TableFg extends BaseFragment {
     @BindView(R.id.tv_hangup_number)
     TextView tvHangupNumber;
     @BindView(R.id.rl_hangup)
-    RelativeLayout rlHangup;
+    LinearLayout rlHangup;
     @BindView(R.id.btn_hangup)
     TextView btnHangup;
+    Unbinder unbinder;
+
     private Activity mActivity;
     private boolean chooseBigTable = true;
     private AVLiveQuery avLiveQuery;
@@ -97,15 +95,16 @@ public class TableFg extends BaseFragment {
             }
         });
     }
+
     public void onAttach(Context context) {
         super.onAttach(context);
         mActivity = (Activity) context;
     }
+
     private void fetchTable() {
         final AVQuery<AVObject> table = new AVQuery<>("Table");
         table.orderByAscending("tableNumber");
         table.whereEqualTo("spread", !chooseBigTable);
-        table.whereEqualTo("active", 1);
         table.findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(List<AVObject> list, AVException e) {
@@ -129,8 +128,9 @@ public class TableFg extends BaseFragment {
         });
         subscribeQuery(table);
     }
+
     private void subscribeQuery(AVQuery<AVObject> query) {
-         avLiveQuery = AVLiveQuery.initWithQuery(query);
+        avLiveQuery = AVLiveQuery.initWithQuery(query);
         avLiveQuery.setEventHandler(new AVLiveQueryEventHandler() {
             @Override
             public void onObjectUpdated(AVObject avObject, List<String> updateKeyList) {
@@ -144,6 +144,7 @@ public class TableFg extends BaseFragment {
             }
         });
     }
+
     private void setListener() {
         radioBigTable.setChecked(true);
         rgChooseTableStyle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -162,7 +163,7 @@ public class TableFg extends BaseFragment {
                 }
             }
         });
-        btnHangup.setOnClickListener(new View.OnClickListener() {
+        rlHangup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
@@ -190,6 +191,15 @@ public class TableFg extends BaseFragment {
 
             }
         });
+        unbinder.unbind();
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // TODO: inflate a fragment view
+        View rootView = super.onCreateView(inflater, container, savedInstanceState);
+        unbinder = ButterKnife.bind(this, rootView);
+        return rootView;
     }
 
 
@@ -213,16 +223,14 @@ public class TableFg extends BaseFragment {
         public View getView(final int i, View view, ViewGroup parent) {
             final ViewHolder holder;
             if (view == null) {
-                view=getLayoutInflater().inflate(R.layout.adapter_table,null);
+                view = getLayoutInflater().inflate(R.layout.adapter_table, null);
                 holder = new ViewHolder();
-                holder.tableNumber = (TextView) view.findViewById(R.id.table_number);
-                holder.tableCommodity = (TextView) view.findViewById(R.id.table_commodity);
-                holder.tablePrice = (TextView) view.findViewById(R.id.table_price);
-                holder.tableSvipPrice = (TextView) view.findViewById(R.id.table_svip_price);
-                holder.tablePeople = (TextView) view.findViewById(R.id.table_people);
-                holder.tableDate = (TextView) view.findViewById(R.id.table_date);
-                holder.tableTime = (TextView) view.findViewById(R.id.table_time);
-                holder.cv_table = (CardView) view.findViewById(R.id.cv_table);
+                holder.tableNumber = view.findViewById(R.id.table_number);
+                holder.tableCommodity = view.findViewById(R.id.table_commodity);
+                holder.tablePrice = view.findViewById(R.id.table_price);
+                holder.tablePeople = view.findViewById(R.id.table_people);
+                holder.tableDate = view.findViewById(R.id.table_date);
+                holder.cv_table = view.findViewById(R.id.cv_table);
                 view.setTag(holder);
             } else {
                 holder = (ViewHolder) view.getTag();
@@ -231,23 +239,17 @@ public class TableFg extends BaseFragment {
             holder.tableNumber.setText(avObject.getString("tableNumber"));
             if (avObject.getInt("customer") != 0) {
                 holder.tableNumber.setBackgroundResource(R.drawable.shape_red_circle);
-                holder.tablePrice.setText("￥" + ProductUtil.calculateTotalMoney(avObject));
-                holder.tableSvipPrice.setText("超牛价钱￥" + ProductUtil.calculateMinMoney(avObject));
+                String priceContext = "￥" + ProductUtil.calculateTotalMoney(avObject) + "(牛币￥" + ProductUtil.calNbTotalMoney(avObject.getList("order")) + ")";
+                holder.tablePrice.setText(priceContext);
                 holder.tableCommodity.setText(avObject.getList("order").size() + avObject.getList("preOrder").size() + "道菜品");
                 holder.tablePeople.setText(avObject.getInt("customer") + "人");
-                try {
-                    holder.tableDate.setText(DateUtil.formatDate(avObject.getDate("startedAt")));
-                    holder.tableTime.setText("牛币价格￥"+ProductUtil.calNbTotalMoney(avObject.getList("order")));
-                } catch (Exception e) {
-                    ToastUtil.showShort(MyApplication.getContextObject(), "获取牛币价格");
-                }
-
+                holder.tableDate.setText(DateUtil.formatDate(avObject.getDate("startedAt")));
             } else {
                 holder.tableNumber.setBackgroundResource(R.drawable.shape_green_circle);
                 holder.tableCommodity.setText("空闲");
                 holder.tablePeople.setText(avObject.getInt("accommodate") + "人桌");
                 holder.tableDate.setText("");
-                holder.tableTime.setText("");
+                holder.tablePrice.setText("");
             }
             holder.cv_table.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -261,13 +263,7 @@ public class TableFg extends BaseFragment {
         }
 
         private class ViewHolder {
-            TextView tableNumber;
-            TextView tableCommodity;
-            TextView tablePrice;
-            TextView tableSvipPrice;
-            TextView tablePeople;
-            TextView tableDate;
-            TextView tableTime;
+            TextView tableNumber, tableCommodity, tablePrice, tablePeople, tableDate;
             CardView cv_table;
         }
     }

@@ -17,34 +17,40 @@ import android.widget.TextView;
 
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FindCallback;
+import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
 
-import org.json.JSONObject;
-
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import butterknife.Unbinder;
+import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
-import cn.kuwo.player.activity.RetailActivity;
 import cn.kuwo.player.activity.SettleActivity;
 import cn.kuwo.player.api.HangUpApi;
+import cn.kuwo.player.api.MallOrderApi;
 import cn.kuwo.player.base.BaseFragment;
-import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RetailBean;
 import cn.kuwo.player.util.DataUtil;
 import cn.kuwo.player.util.DateUtil;
-import cn.kuwo.player.util.MyUtils;
+import cn.kuwo.player.util.FilterUtil;
 import cn.kuwo.player.util.ObjectUtil;
+import cn.kuwo.player.util.T;
+import cn.kuwo.player.util.ToastUtil;
 
 public class HangUpFragment extends BaseFragment {
     private static String ARG_PARAM = "param_key";
     @BindView(R.id.gv_hangup)
     GridView gvHangup;
+    @BindView(R.id.generator_order)
+    Button generatorOrder;
+    Unbinder unbinder;
     private Activity mActivity;
     private String mParam;
     private List<AVObject> hangUpList;
@@ -66,7 +72,7 @@ public class HangUpFragment extends BaseFragment {
                     hangUpList = list;
                     hangAdapter = new HangAdapter();
                     gvHangup.setAdapter(hangAdapter);
-                }else{
+                } else {
                     hideDialog();
                 }
             }
@@ -86,6 +92,89 @@ public class HangUpFragment extends BaseFragment {
         super.onAttach(context);
         mActivity = (Activity) context;
         mParam = getArguments().getString(ARG_PARAM);  //获取参数
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // TODO: inflate a fragment view
+        View rootView = super.onCreateView(inflater, container, savedInstanceState);
+        unbinder = ButterKnife.bind(this, rootView);
+        return rootView;
+    }
+
+
+    @OnClick(R.id.generator_order)
+    public void onViewClicked() {
+        showDialog();
+        MallOrderApi.findMallOrder(new Date()).findInBackground(new FindCallback<AVObject>() {
+            @Override
+            public void done(final List<AVObject> list, AVException e) {
+                if (e == null) {
+                    AVQuery<AVObject> query = new AVQuery<>("HangUpOrder");
+                    query.whereGreaterThan("createdAt",  new Date(DateUtil.getZeroTimeStamp(new Date())));
+                    query.whereLessThan("createdAt", new Date(DateUtil.getLasterTimeStamp(new Date())));
+                    query.whereEqualTo("active",1);
+                    query.findInBackground(new FindCallback<AVObject>() {
+                        @Override
+                        public void done(final List<AVObject> orderlist, AVException e) {
+                            if (e==null) {
+                                if (orderlist.size() > 0) {
+                                    AVObject avObject1 = orderlist.get(0);
+                                    avObject1.put("active",0);
+                                    avObject1.saveInBackground(new SaveCallback() {
+                                        @Override
+                                        public void done(AVException e) {
+                                            if (e==null){
+                                                generatorHangUpOrder(list);
+                                            }
+                                        }
+                                    });
+
+                                }else{
+                                    generatorHangUpOrder(list);
+                                }
+                            }else{
+                                hideDialog();
+                                ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
+                            }
+                        }
+                    });
+
+                } else {
+                    hideDialog();
+                    ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
+                }
+            }
+        });
+    }
+
+    private void generatorHangUpOrder(List<AVObject> list) {
+        List<Object> giveList = FilterUtil.getGiveList(list);
+        if(giveList.size()>0) {
+            AVObject avObject = new AVObject("HangUpOrder");
+            avObject.put("customer", 1);
+            avObject.put("startedAt", new Date());
+            avObject.put("order", giveList);
+            avObject.put("isGive", true);
+            avObject.put("tableNumber", "挂单赠品");
+            avObject.put("remark", DateUtil.getStringDateShort(new Date()) + "赠品挂单");
+            avObject.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(AVException e) {
+                    if (e == null) {
+                        hideDialog();
+                        T.L("生成挂单成功");
+                        initData();
+                    } else {
+                        hideDialog();
+                        ToastUtil.showShort(MyApplication.getContextObject(), "网络连接错误");
+                    }
+                }
+            });
+        }else{
+            hideDialog();
+            T.L("今日没有赠送商品");
+        }
     }
 
 
@@ -130,16 +219,16 @@ public class HangUpFragment extends BaseFragment {
             holder.order_remark.setText("备注信息:" + avObject.getString("remark"));
             holder.order_state.setText("订单状态:挂单中");
             String commodityList = "菜品详情\n";
-            if (avObject.getInt("type")==0){
+            if (avObject.getInt("type") == 0) {
                 for (int i = 0; i < avObject.getList("order").size(); i++) {
                     HashMap<String, Object> order = ObjectUtil.format(avObject.getList("order").get(i));
                     commodityList += order.get("name").toString() + "*" + order.get("number").toString() + "份\n";
                 }
-            }else if(avObject.getInt("type")==1){
+            } else if (avObject.getInt("type") == 1) {
 
                 for (int i = 0; i < avObject.getList("order").size(); i++) {
                     HashMap<String, Object> order = ObjectUtil.format(avObject.getList("order").get(i));
-                    commodityList += order.get("name").toString() + "*" + order.get("weight").toString() + (Double.parseDouble(order.get("weight").toString())>20?"ml":"kg")+"份\n";
+                    commodityList += order.get("name").toString() + "*" + order.get("weight").toString() + (Double.parseDouble(order.get("weight").toString()) > 20 ? "ml" : "kg") + "份\n";
                 }
             }
 
@@ -162,17 +251,18 @@ public class HangUpFragment extends BaseFragment {
             holder.btn_to_settle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (avObject.getInt("type")==0){
+                    if (avObject.getInt("type") == 0) {
                         FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-                        ft.replace(R.id.fragment_content, SettleFg.newInstance(avObject.getObjectId(),true)).commit();
-                    }else{
+                        ft.replace(R.id.fragment_content, SettleFg.newInstance(avObject.getObjectId(), true)).commit();
+                    } else {
                         Intent intent = new Intent(getActivity(), SettleActivity.class);
-                        RetailBean retailBean = DataUtil.buildRetailBean((List<Object>)avObject.get("order"));
+                        RetailBean retailBean = DataUtil.buildRetailBean((List<Object>) avObject.get("order"));
                         intent.putExtra("retailBean", retailBean);
                         intent.putExtra("isHangUp", true);
-                        intent.putExtra("remark",avObject.getString("remark"));
-                        intent.putExtra("hangUpId",avObject.getObjectId());
-                        startActivityForResult(intent,1);
+                        intent.putExtra("remark", avObject.getString("remark"));
+                        intent.putExtra("hangUpId", avObject.getObjectId());
+                        intent.putExtra("userId", avObject.getAVObject("user") == null ? null : avObject.getAVObject("user").getObjectId());
+                        startActivityForResult(intent, 1);
                     }
 
                 }
@@ -195,7 +285,7 @@ public class HangUpFragment extends BaseFragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode==1){
+        if (requestCode == 1) {
             initData();
         }
     }

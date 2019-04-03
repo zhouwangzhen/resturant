@@ -33,14 +33,23 @@
                     android:id="@+id/svip_avatar"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:visibility="invisible"
+                    android:visibility="gone"
                     android:src="@drawable/icon_svip" />
                 <TextView
                     android:id="@+id/user_type"
                     android:paddingLeft="6dp"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:visibility="gone"
                     android:text="普通会员" />
+                <TextView
+                    android:id="@+id/user_charge_nb"
+                    android:textColor="@color/blue"
+                    android:drawableLeft="@drawable/icon_re_nb"
+                    android:gravity="center_vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="点击这去给此用户充值牛币"/>
             </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"

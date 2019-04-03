@@ -71,8 +71,10 @@ public class ShowStatisticsDialog extends DialogFragment {
         setItem("总营业金额", ordersDetail.get("totalMoney").toString());
         setItem("线上收款金额", ordersDetail.get("onlineMoney").toString());
         setItem("线下收款金额", ordersDetail.get("offlineMoney").toString());
+        setItem("大众点评总收款", ordersDetail.get("DZDPTotalMoney").toString());
+        setItem("大众点评优惠券款", ordersDetail.get("DZDPMoney").toString());
+        setItem("大众点评菜品收款", ordersDetail.get("DZDPCommodityMoney").toString());
         setItem("餐饮用餐人数", ordersDetail.get("dinnerPeople").toString());
-        setItem("大众点评收款", ordersDetail.get("DZDPMoney").toString());
         setItem("会员数", ordersDetail.get("member").toString());
         setItem("非会员数", ordersDetail.get("noMember").toString());
         setItem("餐饮单数", ordersDetail.get("restaurarntNumber").toString());

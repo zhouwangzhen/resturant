@@ -154,11 +154,11 @@ public class MyUtils {
      * 格式化时间
      */
     public static String dateFormat(Date date) {
-        SimpleDateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd HH:MM:SS");
+        SimpleDateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return timeformat.format(date);
     }
     public static String dateFormat1(Date date) {
-        SimpleDateFormat timeformat = new SimpleDateFormat("HH:MM:SS");
+        SimpleDateFormat timeformat = new SimpleDateFormat("HH:mm:ss");
         return timeformat.format(date);
     }
     public static String dateFormatShort(Date date) {
@@ -189,8 +189,10 @@ public class MyUtils {
             productBeen = mRealmHleper.queryProductByBarcode(barcode);
         } else if (barcode.length() == 18) {
             productBeen = mRealmHleper.queryProductByBarcode(barcode.substring(2, 7));
-        } else if (barcode.length() == 5||barcode.length() == 8) {
+        } else if (barcode.length() == 5||barcode.length() == 8||barcode.length() == 10) {
             productBeen = mRealmHleper.queryProductByBarcode(barcode);
+        }else{
+            mRealmHleper.queryProductByBarcode(barcode);
         }
         return productBeen;
     }
@@ -208,7 +210,7 @@ public class MyUtils {
     }
     public static String filter(String character)
     {
-        character = character.replaceAll("[^(0-9\\u4e00-\\u9fa5)]", "");
+//        character = character.replaceAll("[^(0-9\\u4e00-\\u9fa5)]", "");
         return character;
     }
     public static boolean isNumber(String str) {

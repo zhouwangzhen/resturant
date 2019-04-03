@@ -242,6 +242,9 @@ public class PayActivity extends BaseActivity {
                     mallOrder.put("type", 1);
                     jsonReduce = new JSONObject();
                     try {
+                        if (orderDetail.getChargeReduceMoney()>0){
+                            jsonReduce.put("充值牛币反馈200优惠",orderDetail.getChargeReduceMoney());
+                        }
                         if (orderDetail.getChooseReduce() && orderDetail.getUserBean() != null && orderDetail.getMyReduceMoney() > 0) {
                             jsonReduce.put("牛肉抵扣金额", orderDetail.getMyReduceMoney());
                         }
@@ -417,6 +420,7 @@ public class PayActivity extends BaseActivity {
             paymentTypes.add(6);
             paymentTypes.add(21);
             paymentTypes.add(22);
+            paymentTypes.add(26);
         }
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
 
@@ -472,6 +476,7 @@ public class PayActivity extends BaseActivity {
         paymentTypes.add(6);
         paymentTypes.add(21);
         paymentTypes.add(22);
+        paymentTypes.add(26);
         ensureContent = ProductUtil.setPaymentContent(paymentTypes.get(0), orderDetail.getActualMoney(), storedBalance, whiteBarBalance);
 
     }

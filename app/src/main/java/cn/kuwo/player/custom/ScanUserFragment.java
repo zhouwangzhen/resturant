@@ -126,7 +126,7 @@ public class ScanUserFragment extends DialogFragment {
     }
 
     private void initData() {
-        if (CameraProvider.hasCamera()&&!SharedHelper.readBoolean("useGun")) {
+        if (CameraProvider.hasCamera()&&(!SharedHelper.readBoolean("useGun")||type==0)) {
             btnCancel.setVisibility(View.VISIBLE);
         } else {
             btnCancel.setVisibility(View.GONE);

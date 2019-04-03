@@ -11,7 +11,6 @@ import cn.kuwo.player.service.view.NbRechargeLogView;
 import cn.kuwo.player.service.view.View;
 import cn.kuwo.player.util.T;
 import rx.Observer;
-import rx.Scheduler;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;

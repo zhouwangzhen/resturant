@@ -37,6 +37,7 @@ public class OrderDetail implements Serializable {
     private String rateContent;
     private Double rateReduceMoney;
     private Double blackfiveMoney;
+    private Double chargeReduceMoney;
 
     public OrderDetail(AVObject avObject,
                        Double myMeatWeight,
@@ -116,7 +117,8 @@ public class OrderDetail implements Serializable {
                        int rate,
                        String rateContent,
                        Double rateReduceMoney,
-                       Double blackfiveMoney) {//零售版
+                       Double blackfiveMoney,
+                       Double chargeReduceMoney) {//零售版
         this.avObject = avObject;
         this.myMeatWeight = myMeatWeight;
         this.totalMoney = totalMoney;
@@ -141,6 +143,7 @@ public class OrderDetail implements Serializable {
         this.rateContent=rateContent;
         this.rateReduceMoney=rateReduceMoney;
         this.blackfiveMoney=blackfiveMoney;
+        this.chargeReduceMoney=chargeReduceMoney;
     }
 
     public AVObject getAvObject() {
@@ -373,6 +376,14 @@ public class OrderDetail implements Serializable {
 
     public void setOfflineCouponNumber(int offlineCouponNumber) {
         this.offlineCouponNumber = offlineCouponNumber;
+    }
+
+    public Double getChargeReduceMoney() {
+        return chargeReduceMoney;
+    }
+
+    public void setChargeReduceMoney(Double chargeReduceMoney) {
+        this.chargeReduceMoney = chargeReduceMoney;
     }
 
     @Override
