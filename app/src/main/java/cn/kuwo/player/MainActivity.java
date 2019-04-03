@@ -124,33 +124,12 @@ public class MainActivity extends BaseActivity {
     @Override
     public void initData() {
         mContext = this;
-        test();
-        LoginUtil.checkSystemLogin();
-        checkCashierLogin();
-        checkLocalStorageCommodity();
-        setListener();
-        showDialog();
-        AVQuery<AVObject> query = new AVQuery<>("OffineControl");
-        query.whereEqualTo("store", CONST.STORECODE);
-        query.findInBackground(new FindCallback<AVObject>() {
-            @Override
-            public void done(List<AVObject> list, AVException e) {
-                if (e == null) {
-                    final AVObject avObject = list.get(0);
-                    hideDialog();
-                    if (MyUtils.getVersionCode(MyApplication.getContextObject()) < avObject.getInt("version") && avObject.getAVFile("upgrade") != null) {
-                        UpgradeUtil.checkInfo(mContext);
-                    }
-                } else {
-                    hideDialog();
-                }
-            }
-        });
+        LoginUtil.checkSystemLogin();//判断系统管理员是否登录
+        checkCashierLogin();//判断收银员是否登录
+        checkLocalStorageCommodity();//判断本地数据库是否有商品
+        setListener();//设置时间监听
+        checkVersion();//检查当前版本号是否是最新版本
     }
-
-    /**
-     * 系统账号登录
-     */
     private void checkCashierLogin() {
         if (SharedHelper.readBoolean("cashierLogin")) {
             waiterName.setText("收银人员:" + SharedHelper.read("cashierName"));
@@ -159,6 +138,7 @@ public class MainActivity extends BaseActivity {
             new ScanUserFragment(0).show(getSupportFragmentManager(), "scanuser");
         }
     }
+
 
     private void checkLocalStorageCommodity() {
         final RealmHelper mRealmHleper = new RealmHelper(MyApplication.getContextObject());
@@ -187,11 +167,6 @@ public class MainActivity extends BaseActivity {
 
         }
     }
-
-
-    /**
-     * 设置监听
-     */
     private void setListener() {
         waiterName.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -211,10 +186,25 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
-
-    /**
-     * 初始化fragment
-     */
+    private void checkVersion() {
+        showDialog();
+        AVQuery<AVObject> query = new AVQuery<>("OffineControl");
+        query.whereEqualTo("store", CONST.STORECODE);
+        query.findInBackground(new FindCallback<AVObject>() {
+            @Override
+            public void done(List<AVObject> list, AVException e) {
+                if (e == null) {
+                    final AVObject avObject = list.get(0);
+                    hideDialog();
+                    if (MyUtils.getVersionCode(MyApplication.getContextObject()) < avObject.getInt("version") && avObject.getAVFile("upgrade") != null) {
+                        UpgradeUtil.checkInfo(mContext);
+                    }
+                } else {
+                    hideDialog();
+                }
+            }
+        });
+    }
     private void initializeFragment() {
         ft = getSupportFragmentManager().beginTransaction();
         TableFg tableFg = TableFg.newInstance("");
@@ -267,66 +257,57 @@ public class MainActivity extends BaseActivity {
                 break;
         }
     }
-
-
-    /**
-     * fragment切换
-     */
     public void switchFragment(String tag) {
         resetState();
         ft = getSupportFragmentManager().beginTransaction();
         switch (tag) {
             case "commodity":
-                setSelectState(menuCommodity, R.drawable.icon_menu);
+                setSelectState(menuCommodity);
                 CommodityClassifyFg commodityClassifyFg = new CommodityClassifyFg();
                 ft.replace(R.id.fragment_content, commodityClassifyFg, "commodity").commit();
                 break;
             case "table":
-                setSelectState(menuTable, R.drawable.icon_table);
+                setSelectState(menuTable);
                 TableFg tableFg = TableFg.newInstance("");
                 ft.replace(R.id.fragment_content, tableFg, "table").commit();
                 remainTable.setTextColor(getResources().getColor(R.color.white));
                 break;
             case "netconnect":
-                setSelectState(menuPrint, R.drawable.icon_print);
+                setSelectState(menuPrint);
                 NetConnectFg netConnectFg = NetConnectFg.newInstance("");
                 ft.replace(R.id.fragment_content, netConnectFg, "netconnect").commit();
                 break;
             case "order":
-                setSelectState(menuOrder, R.drawable.icon_order);
+                setSelectState(menuOrder);
                 OrderListFg orderListFg = OrderListFg.newInstance("");
                 ft.replace(R.id.fragment_content, orderListFg, "orderlist").commit();
                 break;
             case "setting":
-                setSelectState(menuUpdate, R.drawable.icon_update);
+                setSelectState(menuUpdate);
                 SettingFg settingFg = SettingFg.newInstance("");
                 ft.replace(R.id.fragment_content, settingFg, "setting").commit();
                 break;
             case "stored":
-                setSelectState(menuStored, R.drawable.icon_recharge_nor);
+                setSelectState(menuStored);
                 StoredFg storedFg = StoredFg.newInstance("");
                 ft.replace(R.id.fragment_content, storedFg, "stored").commit();
                 break;
             case "nb":
-                setSelectState(menuNb, R.drawable.icon_recharge_nor);
+                setSelectState(menuNb);
                 NbFg nbFg = NbFg.newInstance("");
                 ft.replace(R.id.fragment_content, nbFg, "nb").commit();
                 break;
             case "coupon":
-                setSelectState(menuCoupon, R.drawable.icon_recharge_nor);
+                setSelectState(menuCoupon);
                 CouponFg couponFg = CouponFg.newInstance("");
                 ft.replace(R.id.fragment_content, couponFg, "coupon").commit();
                 break;
             case "credit":
-                setSelectState(menuCredit, R.drawable.icon_inventory);
+                setSelectState(menuCredit);
                 break;
         }
 
     }
-
-    /**
-     * 重置状态
-     */
     private void resetState() {
         menuCommodity.setTextColor(getResources().getColor(R.color.purple));
         menuTable.setTextColor(getResources().getColor(R.color.purple));
@@ -337,11 +318,9 @@ public class MainActivity extends BaseActivity {
         menuStored.setTextColor(getResources().getColor(R.color.purple));
         menuNb.setTextColor(getResources().getColor(R.color.purple));
     }
-
-    private void setSelectState(TextView view, int resourceId) {
+    private void setSelectState(TextView view) {
         view.setTextColor(getResources().getColor(R.color.white));
     }
-
     public void fetchTable() {
         table = new AVQuery<>("Table");
         table.orderByAscending("tableNumber");
@@ -357,10 +336,6 @@ public class MainActivity extends BaseActivity {
         subscribeQuery();
 
     }
-
-    /**
-     * 绑定订阅事件
-     */
     private void subscribeQuery() {
         if (table != null) {
             AVLiveQuery avLiveQuery = AVLiveQuery.initWithQuery(table);
@@ -387,8 +362,6 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         ButterKnife.bind(this);
     }
-
-
     public void loadCommodity() {
         fetchRule();
         CommodityApi.getOfflineCommodity().findInBackground(new FindCallback<AVObject>() {
@@ -413,7 +386,6 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
-
     @Override
     public void onResume() {
         super.onResume();
@@ -540,7 +512,7 @@ public class MainActivity extends BaseActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == 2) {
             resetState();
-            setSelectState(menuNb, R.drawable.icon_recharge_nor);
+            setSelectState(menuNb);
             NbFg nbFg = NbFg.newInstance(data.getStringExtra("userId"));
             ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.fragment_content, nbFg, "nb").commit();
@@ -548,9 +520,5 @@ public class MainActivity extends BaseActivity {
     }
 
 
-    private void test() {
-
-
-    }
 
 }

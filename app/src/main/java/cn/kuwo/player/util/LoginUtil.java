@@ -11,16 +11,13 @@ import cn.kuwo.player.MyApplication;
  * Created by lovely on 2018/6/26
  */
 public class LoginUtil {
-    public static final String SYSTEMACCOUNT="13888888888";
-    public static final String SYSTEMPASSWORD="123456789";
-
     public static void checkSystemLogin(){
         SharedHelper sharedHelper = new SharedHelper(MyApplication.getContextObject());
         boolean sessionToken = sharedHelper.read("sessionToken").equals("");
         boolean isLogin = (AVUser.getCurrentUser()!= null);
         if (!sessionToken&&isLogin){
         }else{
-            AVUser.logInInBackground(SYSTEMACCOUNT, SYSTEMPASSWORD, new LogInCallback<AVUser>() {
+            AVUser.logInInBackground(CONST.SYSTEM_ADMIN_TEL, CONST.SYSTEM_ADMIN_PASSWORD, new LogInCallback<AVUser>() {
                 @Override
                 public void done(AVUser avUser, AVException e) {
                     if (e == null) {

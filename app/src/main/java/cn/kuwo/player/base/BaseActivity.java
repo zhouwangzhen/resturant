@@ -47,25 +47,6 @@ public abstract class BaseActivity extends AppCompatActivity {
 
 
     public abstract void initData();
-
-    public void showLongToast(String content) {
-        Toast.makeText(MyApplication.getContextObject(), content, Toast.LENGTH_LONG).show();
-    }
-
-    public void showShortToast(String content) {
-        Toast.makeText(MyApplication.getContextObject(), content, Toast.LENGTH_SHORT).show();
-    }
-
-    public String TextToString(View tv) {
-        if (tv instanceof EditText) {
-            return ((EditText) tv).getText().toString().trim();
-        } else if (tv instanceof TextView) {
-            return ((TextView) tv).getText().toString().trim();
-        } else {
-            return "字符转换错误";
-        }
-
-    }
     public void showDialog() {
         tipDialog.show();
     }

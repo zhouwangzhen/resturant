@@ -332,26 +332,6 @@ public class PayFg extends BaseFragment {
                 public void done(AVException e) {
                     if (e == null) {
                         hideDialog();
-//                        for (int i = 0; i < orderDetail.getSelectTableIds().size(); i++) {
-//                            AVObject table = AVObject.createWithoutData("Table", orderDetail.getSelectTableIds().get(i));
-//                            table.put("order", new List[0]);
-//                            table.put("preOrder", new List[0]);
-//                            table.put("refundOrder", new List[0]);
-//                            table.put("customer", 0);
-//                            table.put("startedAt", null);
-//                            table.put("user", null);
-//                            table.saveInBackground(new SaveCallback() {
-//                                @Override
-//                                public void done(AVException e) {
-//                                    if (e == null) {
-//                                        hideDialog();
-//                                    } else {
-//                                        hideDialog();
-//                                        resetTable();
-//                                    }
-//                                }
-//                            });
-//                        }
                         FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
                         ft.replace(R.id.fragment_content, TableFg.newInstance(""), "table").commit();
                     } else {
@@ -669,32 +649,5 @@ public class PayFg extends BaseFragment {
     public void onMessageEvent(PrintEvent event) {
         hideDialog();
         resetTable();
-        checkExplode();
-    }
-    private void checkExplode() {
-        if (!SharedHelper.readBoolean("Test")) {
-            final int explodeNumber = ProductUtil.calExplodeNumbers(orderDetail.getFinalOrders());
-            if (explodeNumber > 0) {
-                final AVQuery<AVObject> query = new AVQuery<>("OffineControl");
-                query.whereEqualTo("store", 1);
-                query.findInBackground(new FindCallback<AVObject>() {
-                    @Override
-                    public void done(List<AVObject> list, AVException e) {
-                        if (e == null) {
-                            AVObject avObject = list.get(0);
-                            avObject.put("number", avObject.getInt("number") + explodeNumber);
-                            avObject.saveInBackground(new SaveCallback() {
-                                @Override
-                                public void done(AVException e) {
-                                    if (e != null) {
-                                        checkExplode();
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
-            }
-        }
     }
 }

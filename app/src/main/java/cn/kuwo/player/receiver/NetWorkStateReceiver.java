@@ -1,24 +1,17 @@
 package cn.kuwo.player.receiver;
 
-import android.app.Dialog;
-import android.app.FragmentManager;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.provider.Settings;
 import android.widget.Toast;
 
 import org.greenrobot.eventbus.EventBus;
 
-import cn.kuwo.player.MyApplication;
-import cn.kuwo.player.R;
 import cn.kuwo.player.bean.NetBean;
-import cn.kuwo.player.custom.CommomDialog;
-import cn.kuwo.player.custom.ShowNoNetFragment;
 import cn.kuwo.player.util.NetUtils;
-import cn.kuwo.player.util.ToastUtil;
 
 public class NetWorkStateReceiver extends BroadcastReceiver {
     @Override

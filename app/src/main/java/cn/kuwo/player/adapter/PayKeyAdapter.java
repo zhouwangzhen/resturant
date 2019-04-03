@@ -96,12 +96,9 @@ public class PayKeyAdapter extends BaseAdapter {
         }
 
 
-        wrapper.textView = (TextView)view.findViewById(R.id.GridTextView);
-        wrapper.iv_back= (ImageView) view.findViewById(R.id.iv_back);
-        wrapper.GridItemLayout= (FrameLayout) view.findViewById(R.id.GridItemLayout);
-//        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) wrapper.GridItemLayout.getLayoutParams();
-//        layoutParams.height=(height-40)/4;
-//            view.setLayoutParams(layoutParams);
+        wrapper.textView =view.findViewById(R.id.GridTextView);
+        wrapper.iv_back=  view.findViewById(R.id.iv_back);
+        wrapper.GridItemLayout=view.findViewById(R.id.GridItemLayout);
 
         if (position<11){
             wrapper.textView.setVisibility(View.VISIBLE);
@@ -116,15 +113,10 @@ public class PayKeyAdapter extends BaseAdapter {
         if(types[position].equals("back")
                 || types[position].equals("cancel")
                 || types[position].equals("equal")){
-            // wrapper.textView.setBackgroundResource(R.drawable.btn_cell_delete);
         }else if(types[position].equals("pay")){
-            //  wrapper.textView.setBackgroundResource(R.drawable.btn_cell_pay);
-            //  wrapper.textView.setTextColor(Color.WHITE);
+
         }
 
-//	  wrapper.textView = (TextView)view.findViewById(R.id.GridItemText);
-//	  wrapper.textView.setText(texts[position]);
-//	  wrapper.textView.setTag(payTypes[position]);
 
 
 

@@ -16,12 +16,6 @@ import cn.kuwo.player.util.DateUtil;
 public class MallOrderApi {
     public static AVQuery<AVObject> findMallOrder(Date date) {
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            Long time = date.getTime();
-            Long nextTime = time + 24 * 60 * 60 * 1000;
-            String d = sdf.format(nextTime);
-            Date nextDate = null;
-            nextDate = sdf.parse(d);
             AVObject mallOrderStatusFinsh = AVObject.createWithoutData("MallOrderStatus", CONST.OrderState.ORDER_STATUS_FINSIH);
             AVObject mallOrderStatusRefund = AVObject.createWithoutData("MallOrderStatus", CONST.OrderState.ORDER_STATUS_CANCEL);
             List<AVObject> orderSratus = new ArrayList<AVObject>();
@@ -51,9 +45,9 @@ public class MallOrderApi {
             mallOrder.whereGreaterThan("createdAt",  new Date(DateUtil.getZeroTimeStamp(date)));
             mallOrder.whereLessThan("createdAt", new Date(DateUtil.getLasterTimeStamp(date)));
             mallOrder.whereContainedIn("orderStatus", orderSratus);
-            mallOrder.limit(1000);
+            mallOrder.limit(CONST.MAX_LIMIT);
             return mallOrder;
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }

@@ -1,6 +1,4 @@
 package cn.kuwo.player.event;
-
-import java.util.HashMap;
 import java.util.List;
 
 import cn.kuwo.player.bean.ProductBean;

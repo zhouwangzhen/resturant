@@ -14,6 +14,7 @@ import java.util.List;
 import cn.kuwo.player.R;
 import cn.kuwo.player.bean.CommodityBean;
 import cn.kuwo.player.bean.ProductBean;
+import cn.kuwo.player.util.CONST;
 
 /**
  * Created by lovely on 2018/9/22
@@ -53,10 +54,10 @@ public class RigthCommodityItemAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = View.inflate(context, R.layout.item_right_item, null);
             viewHold = new ViewHold();
-            viewHold.tv_name = (TextView) convertView.findViewById(R.id.item_home_name);
-            viewHold.item_price = (TextView) convertView.findViewById(R.id.item_price);
-            viewHold.item_nb_price = (TextView) convertView.findViewById(R.id.item_nb_price);
-            viewHold.iv_icon = (SimpleDraweeView) convertView.findViewById(R.id.item_album);
+            viewHold.tv_name = convertView.findViewById(R.id.item_home_name);
+            viewHold.item_price = convertView.findViewById(R.id.item_price);
+            viewHold.item_nb_price = convertView.findViewById(R.id.item_nb_price);
+            viewHold.iv_icon =convertView.findViewById(R.id.item_album);
             convertView.setTag(viewHold);
         } else {
             viewHold = (ViewHold) convertView.getTag();
@@ -64,7 +65,7 @@ public class RigthCommodityItemAdapter extends BaseAdapter {
         viewHold.tv_name.setText((productBean.getSerial()==null?productBean.getSerial():"")+" "+productBean.getName());
         viewHold.item_price.setText("价格:"+productBean.getPrice());
         viewHold.item_nb_price.setText("牛币价"+productBean.getNb());
-        Uri uri = Uri.parse("https://qfile.aobeef.cn/361876d35ee46349c23f.png");
+        Uri uri = Uri.parse(CONST.DEFAULT_IMAGE_URL);
         viewHold.iv_icon.setImageURI(uri);
         return convertView;
 

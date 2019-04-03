@@ -42,17 +42,6 @@ public class RealmHelper {
         mRealm.copyToRealm(typeBean);
         mRealm.commitTransaction();
     }
-
-    public void addProgress(ProgressBean progressBean) {
-        mRealm.beginTransaction();
-        mRealm.copyToRealm(progressBean);
-        mRealm.commitTransaction();
-    }
-    public void addCoupon(CouponBean couponBran) {
-        mRealm.beginTransaction();
-        mRealm.copyToRealm(couponBran);
-        mRealm.commitTransaction();
-    }
     public void addRule(final RuleBean ruleBean){
         mRealm.beginTransaction();
         mRealm.copyToRealm(ruleBean);
@@ -66,34 +55,19 @@ public class RealmHelper {
         RealmResults<ProductBean> all = mRealm.where(ProductBean.class).equalTo("active",1).findAll().sort("serial", Sort.ASCENDING);
         return mRealm.copyFromRealm(all);
     }
-    public List<ProductBean> queryActiveAllProduct() {
-        RealmResults<ProductBean> all = mRealm.where(ProductBean.class).equalTo("active",1).findAll().sort("serial", Sort.ASCENDING);
-        return mRealm.copyFromRealm(all);
-    }
+
     public List<TypeBean> queryAllType() {
         RealmResults<TypeBean> typeBean = mRealm.where(TypeBean.class).findAll();
         return mRealm.copyFromRealm(typeBean);
     }
-    public List<ProgressBean> queryAllProgress() {
-        RealmResults<ProgressBean> progressBean = mRealm.where(ProgressBean.class).findAll();
-        return mRealm.copyFromRealm(progressBean);
-    }
-    public List<CouponBean> queryCouponActive() {
-        RealmResults<CouponBean> couponBean = mRealm.where(CouponBean.class).equalTo("active",1).findAll();
-        return mRealm.copyFromRealm(couponBean);
-    }
-    public TypeBean queryTypeByType(int type){
-        TypeBean typeBean = mRealm.where(TypeBean.class).equalTo("number", type).findFirst();
-        return typeBean;
-    }
+
+
+
     public List<ProductBean> queryStoreCommodity(int type){
         RealmResults<ProductBean> productBeans=mRealm.where(ProductBean.class).equalTo("type",type).equalTo("active",1).findAll();
         return mRealm.copyFromRealm(productBeans);
     }
-    public List<TypeBean> queryCommodityTypes(){
-        RealmResults<TypeBean> typeBeans=mRealm.where(TypeBean.class).findAll();
-        return mRealm.copyFromRealm(typeBeans);
-    }
+
     public ProductBean queryCommodityById(String id){
         try {
             ProductBean productBean=mRealm.where(ProductBean.class).equalTo("objectId",id).findFirst();
@@ -113,20 +87,12 @@ public class RealmHelper {
         return mRealm.copyFromRealm(productBeans);
     }
 
-    public List<ProductBean>  queryCommodityByStyle(int type) {
-        RealmResults<ProductBean> productBeans = mRealm.where(ProductBean.class).equalTo("active",1).equalTo("type", type).isNotNull("serial").findAll();
-        return mRealm.copyFromRealm(productBeans);
-    }
     public List<ProductBean>  queryCommodityByClassify(int type) {
         RealmResults<ProductBean> productBeans = mRealm.where(ProductBean.class).equalTo("active",1).equalTo("classify", type).isNotNull("serial").findAll();
         return mRealm.copyFromRealm(productBeans);
     }
     public List<RuleBean> queryAllRule() {
         RealmResults<RuleBean> ruleBean = mRealm.where(RuleBean.class).findAll();
-        return mRealm.copyFromRealm(ruleBean);
-    }
-    public List<ProductBean> queryCookStyle() {
-        RealmResults<ProductBean> ruleBean = mRealm.where(ProductBean.class).equalTo("type",10).findAll();
         return mRealm.copyFromRealm(ruleBean);
     }
     public Realm getRealm() {

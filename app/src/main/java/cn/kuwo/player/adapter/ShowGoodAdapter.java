@@ -83,14 +83,6 @@ public class ShowGoodAdapter extends RecyclerView.Adapter<ShowGoodAdapter.MyView
         holder.tvName.setText(contnet);
         holder.tvPrice.setText("￥" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "price"))+"("+"牛币价:"+ObjectUtil.getDouble(format, "nb")+")");
         holder.tvSerial.setText(productBean.getSerial());
-//        String weightContent = "菜品重量:" + ObjectUtil.getDouble(format, "weight")  +  (ObjectUtil.getDouble(format, "weight")>20?"ml":"kg");
-//        if (productBean.getScale() > 0&&ObjectUtil.getDouble(format,"price")>0) {
-//            weightContent += "超牛会员可抵扣" + MyUtils.formatDouble(ObjectUtil.getDouble(format, "weight")*productBean.getScale()) + "kg";
-//            if (productBean.getRemainMoney() > 0) {
-//                weightContent += ",额外需要" + MyUtils.formatDouble(productBean.getRemainMoney() * ObjectUtil.getDouble(format, "number"));
-//            }
-//        }
-//        holder.tvWeight.setText(weightContent);
         if (ObjectUtil.getString(format,"barcode").length()==18){
             holder.tvNumber.setText("￥"+ ProductUtil.calCommodityMoney(ObjectUtil.getString(format,"barcode"))+"*"+ObjectUtil.getDouble(format, "number")+"份");
         }else{

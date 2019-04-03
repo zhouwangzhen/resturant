@@ -5,7 +5,7 @@ import android.content.Context;
 public final class AppUtils {
     private AppUtils() {
     }
-    private static long mLastClickTime;// 用户判断多次点击的时间
+    private static long mLastClickTime;
     public static boolean isFastDoubleClick() {
         long time = System.currentTimeMillis();
         if (Math.abs(time - mLastClickTime) < 1000) {

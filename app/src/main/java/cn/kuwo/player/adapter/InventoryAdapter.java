@@ -69,7 +69,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.MyVi
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        TextView meatName, meatWeight, meatPrice, number, meatNumber;
+        TextView meatName, meatWeight, meatPrice, number;
         Button delete;
 
         public MyViewHolder(View itemView) {

@@ -54,7 +54,7 @@ public class GoodsAdapter extends RecyclerView.Adapter<GoodsAdapter.MyViewHolder
 
         public MyViewHolder(View view) {
             super(view);
-            name = (TextView) view.findViewById(R.id.name);
+            name =view.findViewById(R.id.name);
         }
     }
     public void setOnItemClickListener(MyItemClickListener listener) {
