@@ -34,7 +34,6 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(getLayoutId(), container, false);
-        ButterKnife.bind(this, view);
         ButterKnife.bind(getActivity());
         tipDialog = new QMUITipDialog.Builder(getContext())
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)

@@ -13,7 +13,6 @@ import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVException;
@@ -24,10 +23,7 @@ import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
-import com.avos.avoscloud.SaveCallback;
 import com.orhanobut.logger.Logger;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +31,6 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import cn.kuwo.player.MainActivity;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.api.HangUpApi;
@@ -60,6 +55,9 @@ public class TableFg extends BaseFragment {
     TextView tvHangupNumber;
     @BindView(R.id.rl_hangup)
     LinearLayout rlHangup;
+    @BindView(R.id.btn_hangup)
+    TextView btnHangup;
+    Unbinder unbinder;
 
     private Activity mActivity;
     private boolean chooseBigTable = true;
@@ -107,8 +105,7 @@ public class TableFg extends BaseFragment {
         final AVQuery<AVObject> table = new AVQuery<>("Table");
         table.orderByAscending("tableNumber");
         table.whereEqualTo("spread", !chooseBigTable);
-//        table.whereEqualTo("active", 1);
-        table.findInBackground( new FindCallback<AVObject>() {
+        table.findInBackground(new FindCallback<AVObject>() {
             @Override
             public void done(List<AVObject> list, AVException e) {
                 if (e == null) {
@@ -194,6 +191,15 @@ public class TableFg extends BaseFragment {
 
             }
         });
+        unbinder.unbind();
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // TODO: inflate a fragment view
+        View rootView = super.onCreateView(inflater, container, savedInstanceState);
+        unbinder = ButterKnife.bind(this, rootView);
+        return rootView;
     }
 
 
@@ -220,10 +226,10 @@ public class TableFg extends BaseFragment {
                 view = getLayoutInflater().inflate(R.layout.adapter_table, null);
                 holder = new ViewHolder();
                 holder.tableNumber = view.findViewById(R.id.table_number);
-                holder.tableCommodity =  view.findViewById(R.id.table_commodity);
+                holder.tableCommodity = view.findViewById(R.id.table_commodity);
                 holder.tablePrice = view.findViewById(R.id.table_price);
                 holder.tablePeople = view.findViewById(R.id.table_people);
-                holder.tableDate =  view.findViewById(R.id.table_date);
+                holder.tableDate = view.findViewById(R.id.table_date);
                 holder.cv_table = view.findViewById(R.id.cv_table);
                 view.setTag(holder);
             } else {
@@ -233,7 +239,7 @@ public class TableFg extends BaseFragment {
             holder.tableNumber.setText(avObject.getString("tableNumber"));
             if (avObject.getInt("customer") != 0) {
                 holder.tableNumber.setBackgroundResource(R.drawable.shape_red_circle);
-                String priceContext="￥" + ProductUtil.calculateTotalMoney(avObject)+"(牛币￥" + ProductUtil.calNbTotalMoney(avObject.getList("order"))+")";
+                String priceContext = "￥" + ProductUtil.calculateTotalMoney(avObject) + "(牛币￥" + ProductUtil.calNbTotalMoney(avObject.getList("order")) + ")";
                 holder.tablePrice.setText(priceContext);
                 holder.tableCommodity.setText(avObject.getList("order").size() + avObject.getList("preOrder").size() + "道菜品");
                 holder.tablePeople.setText(avObject.getInt("customer") + "人");
@@ -257,7 +263,7 @@ public class TableFg extends BaseFragment {
         }
 
         private class ViewHolder {
-            TextView tableNumber,tableCommodity,tablePrice,tablePeople,tableDate;
+            TextView tableNumber, tableCommodity, tablePrice, tablePeople, tableDate;
             CardView cv_table;
         }
     }

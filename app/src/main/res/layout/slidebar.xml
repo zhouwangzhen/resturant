@@ -108,8 +108,13 @@
                 style="@style/slidebar"
                 android:text="@string/menu_assist"/>
             <TextView
+                android:id="@+id/menu_coupon"
+                style="@style/slidebar"
+                android:text="@string/menu_coupon"/>
+            <TextView
                 android:id="@+id/menu_mou"
                 style="@style/slidebar"
+                android:visibility="gone"
                 android:text="激活牛只"/>
             <TextView
                 android:id="@+id/menu_credit"

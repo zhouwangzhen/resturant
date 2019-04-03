@@ -32,6 +32,7 @@ public class CONST {
         public static final String ORDER_STATUS_FINSIH = "577b34cda34131006188b821";//订单已完成
         public static final String DELIVER_STATUS_FINSIH = "577b34d9165abd005529fdaf";
         public static final String ORDER_STATUS_CANCEL = "577b36ebc4c97100669cb248";//订单退款
+        public static final String ORDER_STATUS_RECEIVE = "592684202f301e0057bc3219";//订单收货
     }
 
     public static final class SVIPSTYLE {

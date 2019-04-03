@@ -99,13 +99,13 @@ public class StoredFg extends BaseFragment {
     Unbinder unbinder;
     @BindView(R.id.gv_payment)
     CardView gvPayment;
-    Unbinder unbinder1;
+    Unbinder unbinder2;
     private Activity mActivity;
     private String mParam;
     private String userId = "";
     private String marketId = "";
     private String username = "";
-    private String marketName="";
+    private String marketName = "";
     private int escrow = 3;
     private int REQUEST_CODE_SCAN = 111;
     private int REQUEST_CODE_SCAN_USER = 112;
@@ -159,7 +159,7 @@ public class StoredFg extends BaseFragment {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_scan_user:
-                if (CameraProvider.hasCamera()&&!SharedHelper.readBoolean("useGun")) {
+                if (CameraProvider.hasCamera() && !SharedHelper.readBoolean("useGun")) {
                     if (MyUtils.getCameraPermission(MyApplication.getContextObject())) {
                         Intent intent = new Intent(getActivity(), CaptureActivity.class);
                         intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
@@ -233,11 +233,11 @@ public class StoredFg extends BaseFragment {
         gvPayment.setVisibility(View.VISIBLE);
         btnRecharge.setVisibility(View.VISIBLE);
         llNoUser.setVisibility(View.VISIBLE);
-        userId="";
-        marketId="";
-        username="";
-        escrow=3;
-        rechargeMoney=500;
+        userId = "";
+        marketId = "";
+        username = "";
+        escrow = 3;
+        rechargeMoney = 500;
         tvRechargeMoney.setText("500元");
         rechargeContent.setText("充值500得550");
         rgPaystyle.check(R.id.pay_ali);
@@ -257,7 +257,7 @@ public class StoredFg extends BaseFragment {
                     @Override
                     public void onClick(QMUIDialog dialog, int index) {
                         dialog.dismiss();
-                        if (CameraProvider.hasCamera()&&!SharedHelper.readBoolean("useGun")) {
+                        if (CameraProvider.hasCamera() && !SharedHelper.readBoolean("useGun")) {
                             if (MyUtils.getCameraPermission(MyApplication.getContextObject())) {
                                 Intent intent = new Intent(getActivity(), CaptureActivity.class);
                                 intent.putExtra(Constant.INTENT_ZXING_CONFIG, MyUtils.caremaSetting());
@@ -331,7 +331,7 @@ public class StoredFg extends BaseFragment {
                         if (e == null) {
                             if (Integer.parseInt(objectMap.get("clerk").toString()) > 0 || (Boolean) objectMap.get("Test")) {
                                 marketId = objectMap.get("objectId").toString();
-                                marketName= objectMap.get("realName") == null ? objectMap.get("nickName").toString() : objectMap.get("realName").toString();
+                                marketName = objectMap.get("realName") == null ? objectMap.get("nickName").toString() : objectMap.get("realName").toString();
                                 toRecharge();
                             } else {
                                 hideDialog();
@@ -354,7 +354,7 @@ public class StoredFg extends BaseFragment {
         parameters.put("key", "eNn59AK231DgUuVu");
         parameters.put("phoneRecharge", false);
         parameters.put("escrow", escrow);
-        parameters.put("store",1);
+        parameters.put("store", 1);
         AVCloud.callFunctionInBackground("usernamePrepaid", parameters, new FunctionCallback<String>() {
             @Override
             public void done(String s, AVException e) {
@@ -373,9 +373,9 @@ public class StoredFg extends BaseFragment {
                             marketName
                     );
                     freshUserInfo();
-                }else{
+                } else {
                     hideDialog();
-                    ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙"+e.getMessage());
+                    ToastUtil.showShort(MyApplication.getContextObject(), "网络繁忙" + e.getMessage());
                 }
             }
         });
@@ -404,7 +404,7 @@ public class StoredFg extends BaseFragment {
         } else if (userBean.getCallbackCode() == CONST.UserCode.SCANUSER) {
             if (userBean.getClerk() > 0 || userBean.getTest()) {
                 marketId = userBean.getId();
-                marketName=userBean.getRealName();
+                marketName = userBean.getRealName();
                 toRecharge();
             } else {
                 ToastUtil.showShort(MyApplication.getContextObject(), "非销售账号,请扫描销售账号");
@@ -465,5 +465,19 @@ public class StoredFg extends BaseFragment {
     public void onPause() {
         super.onPause();
         EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // TODO: inflate a fragment view
+        View rootView = super.onCreateView(inflater, container, savedInstanceState);
+        unbinder2 = ButterKnife.bind(this, rootView);
+        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder2.unbind();
     }
 }

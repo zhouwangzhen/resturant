@@ -68,9 +68,9 @@ public class DataUtil {
         } else {
             hashMap.put("weight", MyUtils.formatDouble(productBean.getWeight() * event.getCommodityNumber()));
             if (mode == 0) {
-                if(productBean.getSpecial().length()>0&&productBean.getSpecial().split("-").length==2&&(DateUtil.getWeekNumber()+"").equals(productBean.getSpecial().split("-")[0])&&new Date().getHours()<=14){
-                    hashMap.put("price",MyUtils.formatDouble(Double.parseDouble(productBean.getSpecial().split("-")[1])));
-                    hashMap.put("nb",MyUtils.formatDouble(Double.parseDouble(productBean.getSpecial().split("-")[1])));
+                if(productBean.getSpecial()!=null&&productBean.getSpecial().length()>0&&productBean.getSpecial().split("-").length==2&&(DateUtil.getWeekNumber()+"").equals(productBean.getSpecial().split("-")[0])&&new Date().getHours()<=14){
+                    hashMap.put("price",MyUtils.formatDouble(Double.parseDouble(productBean.getSpecial().split("-")[1]) * event.getCommodityNumber()));
+                    hashMap.put("nb",MyUtils.formatDouble(Double.parseDouble(productBean.getSpecial().split("-")[1]) * event.getCommodityNumber()));
                 }else {
                     hashMap.put("price", MyUtils.formatDouble(productBean.getPrice() * event.getCommodityNumber())+sideDishPrice);
                     if (productBean.getSerial()==null){

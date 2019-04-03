@@ -18,6 +18,7 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
  * Created by lovely on 2018/6/26
@@ -51,7 +52,8 @@ public class ClientUtil {
             // Create an ssl socket factory with our all-trusting manager
             final SSLSocketFactory sslSocketFactory = sslContext
                     .getSocketFactory();
-
+            HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
+            httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
             OkHttpClient okHttpClient = new OkHttpClient();
             okHttpClient = okHttpClient.newBuilder()
                     .connectTimeout(15, TimeUnit.SECONDS)
@@ -99,6 +101,7 @@ public class ClientUtil {
 
                         }
                     })
+                    .addInterceptor(httpLoggingInterceptor)
                     .sslSocketFactory(sslSocketFactory)
                     .hostnameVerifier(org.apache.http.conn.ssl.SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER).build();
             return okHttpClient;

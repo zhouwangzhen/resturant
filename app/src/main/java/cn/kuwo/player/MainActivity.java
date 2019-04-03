@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.drawable.Drawable;
 import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
@@ -23,19 +22,13 @@ import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
-import com.avos.avoscloud.GetCallback;
 import com.avos.avoscloud.SaveCallback;
-import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.QMUIRadiusImageView;
-import com.qmuiteam.qmui.widget.dialog.QMUIBottomSheet;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -55,13 +48,12 @@ import cn.kuwo.player.event.PrintEvent;
 import cn.kuwo.player.event.RefundEvent;
 import cn.kuwo.player.event.SuccessEvent;
 import cn.kuwo.player.fragment.CommodityClassifyFg;
-import cn.kuwo.player.fragment.CommodityFg;
+import cn.kuwo.player.fragment.CouponFg;
 import cn.kuwo.player.fragment.NbFg;
 import cn.kuwo.player.fragment.NetConnectFg;
 import cn.kuwo.player.fragment.OrderListFg;
 import cn.kuwo.player.fragment.SettingFg;
 import cn.kuwo.player.fragment.StoredFg;
-import cn.kuwo.player.fragment.SvipFg;
 import cn.kuwo.player.fragment.TableFg;
 import cn.kuwo.player.fragment.activities.EventsActivity;
 import cn.kuwo.player.fragment.credit.CreditActivity;
@@ -72,12 +64,10 @@ import cn.kuwo.player.util.AppUtils;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.ErrorUtil;
-import cn.kuwo.player.util.ImageUtil;
 import cn.kuwo.player.util.LoginUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.RealmHelper;
 import cn.kuwo.player.util.RealmUtil;
-import cn.kuwo.player.util.ScriptUtil;
 import cn.kuwo.player.util.SharedHelper;
 import cn.kuwo.player.util.ToastUtil;
 import cn.kuwo.player.util.UpgradeUtil;
@@ -118,6 +108,8 @@ public class MainActivity extends BaseActivity {
     TextView menuActivity;
     @BindView(R.id.menu_credit)
     TextView menuCredit;
+    @BindView(R.id.menu_coupon)
+    TextView menuCoupon;
     private AVQuery<AVObject> table;
     NetWorkStateReceiver netWorkStateReceiver;
     ShowNoNetFragment showNoNetFragment = null;
@@ -229,7 +221,7 @@ public class MainActivity extends BaseActivity {
         ft.replace(R.id.fragment_content, tableFg, "table").commitAllowingStateLoss();
     }
 
-    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_order, R.id.menu_stored, R.id.menu_activity, R.id.menu_nb, R.id.menu_update_info, R.id.menu_credit,R.id.menu_mou})
+    @OnClick({R.id.ll_table, R.id.menu_commodity, R.id.menu_print, R.id.menu_update, R.id.menu_order, R.id.menu_stored, R.id.menu_activity, R.id.menu_nb, R.id.menu_update_info, R.id.menu_credit, R.id.menu_mou,R.id.menu_coupon})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.ll_table:
@@ -269,6 +261,9 @@ public class MainActivity extends BaseActivity {
                 break;
             case R.id.menu_mou:
                 startActivity(new Intent(MainActivity.this, MouActivity.class));
+                break;
+            case R.id.menu_coupon:
+                switchFragment("coupon");
                 break;
         }
     }
@@ -316,6 +311,11 @@ public class MainActivity extends BaseActivity {
                 setSelectState(menuNb, R.drawable.icon_recharge_nor);
                 NbFg nbFg = NbFg.newInstance("");
                 ft.replace(R.id.fragment_content, nbFg, "nb").commit();
+                break;
+            case "coupon":
+                setSelectState(menuCoupon, R.drawable.icon_recharge_nor);
+                CouponFg couponFg = CouponFg.newInstance("");
+                ft.replace(R.id.fragment_content, couponFg, "coupon").commit();
                 break;
             case "credit":
                 setSelectState(menuCredit, R.drawable.icon_inventory);
@@ -523,6 +523,9 @@ public class MainActivity extends BaseActivity {
                 filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
                 filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
                 registerReceiver(new USBBroadcastReceiver(), filter);
+                menuCoupon.setVisibility(View.VISIBLE);
+            }else{
+                menuCoupon.setVisibility(View.GONE);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -546,7 +549,6 @@ public class MainActivity extends BaseActivity {
 
 
     private void test() {
-
 
 
     }
