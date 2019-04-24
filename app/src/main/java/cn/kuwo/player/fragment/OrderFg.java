@@ -382,12 +382,8 @@ public class OrderFg extends BaseFragment {
                     if (productBeans.size() > 0) {
                         editMemberAmount.setText("");
                         ProductBean productBean = productBeans.get(0);
-                        if (tableAVObject.getAVObject("user") != null) {
-                            ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(MyApplication.getContextObject(), productBean, false, productBean.getCode());
-                            showComboMenuFragment.show(getActivity().getFragmentManager(), "showcomboMenu");
-                        } else {
-                            ToastUtil.showShort(MyApplication.getContextObject(), "登录会员后选取");
-                        }
+                        ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(MyApplication.getContextObject(), productBean, false, productBean.getCode());
+                        showComboMenuFragment.show(getActivity().getFragmentManager(), "showcomboMenu");
                     } else {
                         ToastUtil.showShort(MyApplication.getContextObject(), "没有查到此编号商品");
                     }
@@ -783,7 +779,7 @@ public class OrderFg extends BaseFragment {
                     break;
                 case R.id.btn_choose_commodity:
                     CommodityTypeFragment commodityTypeFragment = new CommodityTypeFragment();
-                    commodityTypeFragment.show(getActivity().getSupportFragmentManager(),"orderbyname");
+                    commodityTypeFragment.show(getActivity().getSupportFragmentManager(), "orderbyname");
                     break;
             }
         } catch (Exception e) {
