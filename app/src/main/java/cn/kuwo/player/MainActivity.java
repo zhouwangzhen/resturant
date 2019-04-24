@@ -317,6 +317,8 @@ public class MainActivity extends BaseActivity {
         menuOrder.setTextColor(getResources().getColor(R.color.purple));
         menuStored.setTextColor(getResources().getColor(R.color.purple));
         menuNb.setTextColor(getResources().getColor(R.color.purple));
+        menuCoupon.setTextColor(getResources().getColor(R.color.purple));
+        menuCredit.setTextColor(getResources().getColor(R.color.purple));
     }
     private void setSelectState(TextView view) {
         view.setTextColor(getResources().getColor(R.color.white));
