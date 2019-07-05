@@ -9,6 +9,7 @@ import com.orhanobut.logger.Logger;
 import com.tencent.bugly.crashreport.CrashReport;
 
 import cn.kuwo.player.util.RealmHelper;
+import cn.kuwo.player.util.SpUtils;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
@@ -35,6 +36,7 @@ public class MyApplication extends Application {
                 .build();
         Realm.setDefaultConfiguration(configuration);
         CrashReport.initCrashReport(this, "523a908f55", false);
+        SpUtils.init(this);
     }
     public static Context getContextObject(){
         return context;

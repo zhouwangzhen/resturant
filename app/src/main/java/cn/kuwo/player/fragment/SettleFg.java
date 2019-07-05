@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,6 +71,7 @@ import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.RateBean;
 import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.custom.CommomDialog;
+import cn.kuwo.player.custom.PasswordDialog;
 import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.custom.ShowCouponFragment;
 import cn.kuwo.player.custom.ShowFuncFragment;
@@ -86,6 +88,7 @@ import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.SharedHelper;
+import cn.kuwo.player.util.SpUtils;
 import cn.kuwo.player.util.T;
 import cn.kuwo.player.util.ToastUtil;
 import okhttp3.ResponseBody;
@@ -221,6 +224,8 @@ public class SettleFg extends BaseFragment {
     private boolean isNbPay = false;
     LinearLayoutManager linearLayoutManager;
     ShowGoodAdapter showGoodAdapter;
+    private PasswordDialog mDialog;
+    private String mPassword;
 
     @Override
     protected int getLayoutId() {
@@ -306,6 +311,35 @@ public class SettleFg extends BaseFragment {
             }
         });
         setListener();
+        mPassword = SpUtils.getString("password", "", SpUtils.KEY_ACCOUNT);
+        if (TextUtils.isEmpty(mPassword)) {
+            ToastUtil.showLong(mActivity, "请先设置密码");
+        }
+        showPasswordDialog();
+
+    }
+
+    private void showPasswordDialog() {
+        if (mDialog == null) {
+            mDialog = new PasswordDialog(mActivity, R.style.dialog);
+            mDialog.setTitle("请输入密码")
+                    .setPasswordHint("请输入6位数字密码")
+                    .setSingle(true)
+                    .show();
+            mDialog.setListener((password, oldPassword) -> {
+                        if (TextUtils.isEmpty(mPassword)) {
+                            ToastUtil.showLong(mActivity, "请先设置密码");
+                        } else {
+                            if (mPassword.equals(password)) {
+                                mDialog.dismiss();
+                            } else {
+                                ToastUtil.showShort(mActivity, "密码错误，请重新输入");
+                            }
+                        }
+                    });
+        } else {
+            mDialog.show();
+        }
 
     }
 

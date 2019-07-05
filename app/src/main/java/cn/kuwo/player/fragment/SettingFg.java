@@ -1,22 +1,13 @@
 package cn.kuwo.player.fragment;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,36 +22,25 @@ import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.SaveCallback;
-import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-import com.yzq.zxinglibrary.android.CaptureActivity;
-import com.yzq.zxinglibrary.common.Constant;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import cn.kuwo.player.BuildConfig;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.api.CommodityApi;
 import cn.kuwo.player.base.BaseFragment;
-import cn.kuwo.player.custom.ScanUserFragment;
-import cn.kuwo.player.util.CONST;
+import cn.kuwo.player.custom.PasswordDialog;
 import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.RealmUtil;
 import cn.kuwo.player.util.SharedHelper;
+import cn.kuwo.player.util.SpUtils;
 import cn.kuwo.player.util.ToastUtil;
 import cn.kuwo.player.util.UpgradeUtil;
 
@@ -79,6 +59,8 @@ public class SettingFg extends BaseFragment {
     CheckBox cbCarema;
     @BindView(R.id.rl_carema_choose)
     RelativeLayout rlCaremaChoose;
+    @BindView(R.id.setting_password)
+    TextView setttingPassword;
     private int mCurrentDialogStyle = com.qmuiteam.qmui.R.style.QMUI_Dialog;
     private Activity mActivity;
     private String mParam;
@@ -90,6 +72,9 @@ public class SettingFg extends BaseFragment {
             super.handleMessage(msg);
         }
     };
+    private PasswordDialog mDialog;
+    private String mOldPassword;
+    private boolean mChange;
 
     @Override
     protected int getLayoutId() {
@@ -275,10 +260,42 @@ public class SettingFg extends BaseFragment {
         return settingFg;
     }
 
-    @OnClick(R.id.upgrade)
-    public void onViewClicked() {
-        UpgradeUtil.checkInfo(mContext);
+    @OnClick({R.id.upgrade, R.id.setting_password})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.upgrade:
+                UpgradeUtil.checkInfo(mContext);
+                break;
+            case R.id.setting_password:
+                if (mDialog == null) {
+                    mDialog = new PasswordDialog(mContext, R.style.dialog);
+                    mOldPassword = SpUtils.getString("password", "", SpUtils.KEY_ACCOUNT);
+                    mChange = !TextUtils.isEmpty(mOldPassword);
+                    mDialog.setTitle("设置密码")
+                            .setPasswordHint("请输入6位数字密码")
+                            .setSingle(false)
+                            .setPasswordShow(true)
+                            .setPasswordChange(mChange)
+                            .show();
+                    mDialog.setListener((password, oldPassword) -> {
+                        if (mChange && !oldPassword.equals(mOldPassword)) {
+                            ToastUtil.showShort(mContext, "原密码输入错误");
+                            return;
+                        }
+                        if (password.length() != 6) {
+                            ToastUtil.showShort(mContext, "密码小于6位");
+                        } else {
+                            SpUtils.putString("password", password, SpUtils.KEY_ACCOUNT);
+                            mDialog.dismiss();
+                        }
+                    });
+                } else {
+                    mDialog.show();
+                }
+                break;
+        }
     }
+
 
 
     @Override

@@ -20,7 +20,6 @@ import com.avos.avoscloud.AVCloud;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
-import com.avos.avoscloud.CountCallback;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.FunctionCallback;
 import com.avos.avoscloud.GetCallback;
@@ -36,12 +35,10 @@ import com.yzq.zxinglibrary.common.Constant;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -61,6 +58,7 @@ import cn.kuwo.player.bean.RateBean;
 import cn.kuwo.player.bean.RetailBean;
 import cn.kuwo.player.bean.UserBean;
 import cn.kuwo.player.custom.CommomDialog;
+import cn.kuwo.player.custom.PasswordDialog;
 import cn.kuwo.player.custom.ScanUserFragment;
 import cn.kuwo.player.custom.ShowCouponFragment;
 import cn.kuwo.player.custom.ShowFuncFragment;
@@ -73,11 +71,11 @@ import cn.kuwo.player.util.ApiManager;
 import cn.kuwo.player.util.CONST;
 import cn.kuwo.player.util.CameraProvider;
 import cn.kuwo.player.util.DataUtil;
-import cn.kuwo.player.util.DateUtil;
 import cn.kuwo.player.util.MyUtils;
 import cn.kuwo.player.util.ObjectUtil;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.SharedHelper;
+import cn.kuwo.player.util.SpUtils;
 import cn.kuwo.player.util.T;
 import cn.kuwo.player.util.ToastUtil;
 import okhttp3.ResponseBody;
@@ -254,6 +252,8 @@ public class SettleActivity extends BaseActivity {
         setData();
         setListener();
     }
+
+
 
     private void getUserInfo(final String userId) {
         showDialog();

@@ -84,4 +84,16 @@
             android:layout_height="wrap_content"
             />
     </RelativeLayout>
+
+    <TextView
+            android:id="@+id/setting_password"
+            android:gravity="center_vertical"
+            android:padding="10dp"
+            android:layout_width="match_parent"
+            android:textSize="20sp"
+            android:text="设置密码"
+            android:layout_marginTop="10dp"
+            android:background="#fff"
+            android:textColor="#333"
+            android:layout_height="wrap_content" />
 </LinearLayout>

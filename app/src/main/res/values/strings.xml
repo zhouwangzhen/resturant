@@ -14,4 +14,7 @@
     <string name="menu_anniversary">周年庆活动</string>
     <string name="menu_check_upgrade">检测更新</string>
 
+    <string name="digits_number">0123456789</string>
+    <string name="digits_number_letter">0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
+    <string name="digits_letter">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
 </resources>
