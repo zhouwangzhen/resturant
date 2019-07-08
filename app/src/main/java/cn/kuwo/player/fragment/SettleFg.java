@@ -315,8 +315,6 @@ public class SettleFg extends BaseFragment {
         if (TextUtils.isEmpty(mPassword)) {
             ToastUtil.showLong(mActivity, "请先设置密码");
         }
-        showPasswordDialog();
-
     }
 
     private void showPasswordDialog() {
@@ -597,6 +595,7 @@ public class SettleFg extends BaseFragment {
                 }
                 break;
             case R.id.btn_pay:
+                showPasswordDialog();
                 if (isNbPay) {
                     useNbPay();
                 } else {
