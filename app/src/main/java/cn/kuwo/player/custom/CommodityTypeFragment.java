@@ -6,10 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.support.v7.widget.CardView;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
@@ -22,11 +18,7 @@ import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.TextView;
 
-import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
-
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,9 +26,9 @@ import java.util.List;
 import cn.kuwo.player.MyApplication;
 import cn.kuwo.player.R;
 import cn.kuwo.player.bean.ProductBean;
+import cn.kuwo.player.bean.TypeBean;
 import cn.kuwo.player.util.ProductUtil;
 import cn.kuwo.player.util.RealmHelper;
-import cn.kuwo.player.util.T;
 import cn.kuwo.player.util.ToastUtil;
 
 /**
@@ -47,6 +39,8 @@ public class CommodityTypeFragment extends DialogFragment {
     private QMUITipDialog tipDialog;
     private TabLayout tablayout;
     private GridView gvCommoidty;
+
+    private List<TypeBean> typeBeans = new ArrayList<>();
     private List<ProductBean> productBeans=new ArrayList<>();
     @Nullable
     @Override
@@ -60,18 +54,11 @@ public class CommodityTypeFragment extends DialogFragment {
     private void findView() {
         tablayout = view.findViewById(R.id.tablayout);
         gvCommoidty = view.findViewById(R.id.gv_commoidty);
-        tablayout.addTab(tablayout.newTab().setText("大众点评菜单"));
-        tablayout.addTab(tablayout.newTab().setText("午市套餐"));
-        tablayout.addTab(tablayout.newTab().setText("新菜单菜品"));
-        tablayout.addTab(tablayout.newTab().setText("午市特惠套餐"));
-        tablayout.addTab(tablayout.newTab().setText("葡萄酒"));
-        tablayout.addTab(tablayout.newTab().setText("葡萄酒(杯)"));
-        tablayout.addTab(tablayout.newTab().setText("啤酒饮料"));
-        getCommodityList(0);
+        fetchCommodity();
         tablayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                getCommodityList(tab.getPosition());
+                getCommodityList(typeBeans.get(tab.getPosition()).getNumber());
             }
 
             @Override
@@ -86,6 +73,17 @@ public class CommodityTypeFragment extends DialogFragment {
         });
     }
 
+    private void fetchCommodity() {
+        RealmHelper realmHelper = new RealmHelper(MyApplication.getContextObject());
+        typeBeans.clear();
+        typeBeans.addAll(realmHelper.queryAllType());
+        if (typeBeans.size()>0){
+            for (TypeBean typeBean : typeBeans) {
+                tablayout.addTab(tablayout.newTab().setText(typeBean.getName()));
+            }
+        }
+        getCommodityList(typeBeans.get(0).getNumber());
+    }
 
     private void initData() {
         tipDialog = new QMUITipDialog.Builder(getContext())
@@ -119,7 +117,7 @@ public class CommodityTypeFragment extends DialogFragment {
     }
     private void getCommodityList(int position) {
         RealmHelper realmHelper = new RealmHelper(MyApplication.getContextObject());
-        productBeans = realmHelper.queryCommodityByClassify(position+1);
+        productBeans = realmHelper.queryCommodityByClassify(position);
         TableAdapter tableAdapter = new TableAdapter();
         gvCommoidty.setAdapter(tableAdapter);
     }
@@ -159,7 +157,7 @@ public class CommodityTypeFragment extends DialogFragment {
             viewHolder.cv_table.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    List<ProductBean> productBeans = ProductUtil.searchBySerial(productBean.getSerial());
+                    List<ProductBean> productBeans = ProductUtil.searchBySerial(productBean.getObjectId());
                     if (productBeans.size() > 0) {
                         ProductBean productBean = productBeans.get(0);
                         ShowComboMenuFragment showComboMenuFragment = new ShowComboMenuFragment(MyApplication.getContextObject(), productBean, false, productBean.getCode());

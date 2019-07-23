@@ -3,16 +3,12 @@ package cn.kuwo.player.util;
 import android.content.Context;
 
 import java.util.List;
-import java.util.logging.Logger;
 
-import cn.kuwo.player.bean.CouponBean;
 import cn.kuwo.player.bean.ProductBean;
-import cn.kuwo.player.bean.ProgressBean;
 import cn.kuwo.player.bean.RuleBean;
 import cn.kuwo.player.bean.TypeBean;
 import io.realm.Realm;
 import io.realm.RealmObject;
-import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
@@ -83,12 +79,12 @@ public class RealmHelper {
         return mRealm.copyFromRealm(productBeen);
     }
     public List<ProductBean>  queryCommodityBySerial(String serial) {
-        RealmResults<ProductBean> productBeans = mRealm.where(ProductBean.class).equalTo("active",1).equalTo("serial", serial).findAll();
+        RealmResults<ProductBean> productBeans = mRealm.where(ProductBean.class).equalTo("active",1).equalTo("objectId", serial).findAll();
         return mRealm.copyFromRealm(productBeans);
     }
 
     public List<ProductBean>  queryCommodityByClassify(int type) {
-        RealmResults<ProductBean> productBeans = mRealm.where(ProductBean.class).equalTo("active",1).equalTo("classify", type).isNotNull("serial").findAll();
+        RealmResults<ProductBean> productBeans = mRealm.where(ProductBean.class).equalTo("active",1).equalTo("type", type).findAll();
         return mRealm.copyFromRealm(productBeans);
     }
     public List<RuleBean> queryAllRule() {
