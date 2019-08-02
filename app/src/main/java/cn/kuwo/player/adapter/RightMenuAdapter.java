@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.kuwo.player.R;
-import cn.kuwo.player.bean.CommodityBean;
 import cn.kuwo.player.bean.ProductBean;
 import cn.kuwo.player.bean.TypeBean;
 import cn.kuwo.player.custom.GridViewForScrollView;
@@ -64,7 +63,7 @@ public class RightMenuAdapter extends BaseAdapter {
         }
         List<ProductBean> classifyBeans = new ArrayList<>();
         for (int i=0;i<commodityBeans.size();i++){
-            if (commodityBeans.get(i).getType()==position){
+            if (commodityBeans.get(i).getType()==typeBeans.get(position).getNumber()){
                 classifyBeans.add(commodityBeans.get(i));
             }
         }
