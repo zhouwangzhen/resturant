@@ -429,8 +429,7 @@ public class MainActivity extends BaseActivity {
                     }
 
                 }
-            })
-                    .setTitle("提示").setNegativeButton("人工通知小票打印失败").setPositiveButton("重新尝试打印").show();
+            }).setTitle("提示").setNegativeButton("人工通知小票打印失败").setPositiveButton("重新尝试打印").show();
         }
 
     }
